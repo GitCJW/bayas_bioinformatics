@@ -1,0 +1,252 @@
+/*############################################################################*/
+/*################################## Zephyr ##################################*/
+/*############################################################################*/
+:root {
+  --bs-blue: #3459e6;
+  --bs-indigo: #6610f2;
+  --bs-purple: #6f42c1;
+  --bs-pink: #d63384;
+  --bs-red: #da292e;
+  --bs-orange: #f8765f;
+  --bs-yellow: #f4bd61;
+  --bs-green: #2fb380;
+  --bs-teal: #20c997;
+  --bs-cyan: #287bb5;
+  --bs-black: #000;
+  --bs-white: #fff;
+  --bs-gray: #6c757d;
+  --bs-gray-dark: #343a40;
+  --bs-gray-100: #f8f9fa;
+  --bs-gray-200: #e9ecef;
+  --bs-gray-300: #dee2e6;
+  --bs-gray-400: #ced4da;
+  --bs-gray-500: #adb5bd;
+  --bs-gray-600: #6c757d;
+  --bs-gray-700: #495057;
+  --bs-gray-800: #343a40;
+  --bs-gray-900: #212529;
+  --bs-primary: #3459e6;
+  --bs-secondary: #fff;
+  --bs-success: #2fb380;
+  --bs-info: #287bb5;
+  --bs-warning: #f4bd61;
+  --bs-danger: #da292e;
+  --bs-light: #f8f9fa;
+  --bs-dark: #212529;
+  --bs-primary-rgb: 52, 89, 230;
+  --bs-secondary-rgb: 255, 255, 255;
+  --bs-success-rgb: 47, 179, 128;
+  --bs-info-rgb: 40, 123, 181;
+  --bs-warning-rgb: 244, 189, 97;
+  --bs-danger-rgb: 218, 41, 46;
+  --bs-light-rgb: 248, 249, 250;
+  --bs-dark-rgb: 33, 37, 41;
+  --bs-primary-text-emphasis: #15245c;
+  --bs-secondary-text-emphasis: #666666;
+  --bs-success-text-emphasis: #134833;
+  --bs-info-text-emphasis: #103148;
+  --bs-warning-text-emphasis: #624c27;
+  --bs-danger-text-emphasis: #571012;
+  --bs-light-text-emphasis: #495057;
+  --bs-dark-text-emphasis: #495057;
+  --bs-primary-bg-subtle: #d6defa;
+  --bs-secondary-bg-subtle: white;
+  --bs-success-bg-subtle: #d5f0e6;
+  --bs-info-bg-subtle: #d4e5f0;
+  --bs-warning-bg-subtle: #fdf2df;
+  --bs-danger-bg-subtle: #f8d4d5;
+  --bs-light-bg-subtle: #fcfcfd;
+  --bs-dark-bg-subtle: #ced4da;
+  --bs-primary-border-subtle: #aebdf5;
+  --bs-secondary-border-subtle: white;
+  --bs-success-border-subtle: #ace1cc;
+  --bs-info-border-subtle: #a9cae1;
+  --bs-warning-border-subtle: #fbe5c0;
+  --bs-danger-border-subtle: #f0a9ab;
+  --bs-light-border-subtle: #e9ecef;
+  --bs-dark-border-subtle: #adb5bd;
+  --bs-white-rgb: 255, 255, 255;
+  --bs-black-rgb: 0, 0, 0;
+  --bs-font-sans-serif: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --bs-font-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --bs-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0));
+  --bs-body-font-family: var(--bs-font-sans-serif);
+  --bs-body-font-size: 1rem;
+  --bs-body-font-weight: 400;
+  --bs-body-line-height: 1.5;
+  --bs-body-color: #495057;
+  --bs-body-color-rgb: 73, 80, 87;
+  --bs-body-bg: #fff;
+  --bs-body-bg-rgb: 255, 255, 255;
+  --bs-emphasis-color: #000;
+  --bs-emphasis-color-rgb: 0, 0, 0;
+  --bs-secondary-color: rgba(73, 80, 87, 0.75);
+  --bs-secondary-color-rgb: 73, 80, 87;
+  --bs-secondary-bg: #e9ecef;
+  --bs-secondary-bg-rgb: 233, 236, 239;
+  --bs-tertiary-color: rgba(73, 80, 87, 0.5);
+  --bs-tertiary-color-rgb: 73, 80, 87;
+  --bs-tertiary-bg: #f8f9fa;
+  --bs-tertiary-bg-rgb: 248, 249, 250;
+  --bs-heading-color: var(--bs-primary-color);
+  --bs-link-color: #3459e6;
+  --bs-link-color-rgb: 52, 89, 230;
+  --bs-link-decoration: underline;
+  --bs-link-hover-color: #2a47b8;
+  --bs-link-hover-color-rgb: 42, 71, 184;
+  --bs-code-color: #d63384;
+  --bs-highlight-color: #495057;
+  --bs-highlight-bg: #fdf2df;
+  --bs-border-width: 1px;
+  --bs-border-style: solid;
+  --bs-border-color: #dee2e6;
+  --bs-border-color-translucent: rgba(0, 0, 0, 0.175);
+  --bs-border-radius: 0.375rem;
+  --bs-border-radius-sm: 0.25rem;
+  --bs-border-radius-lg: 0.5rem;
+  --bs-border-radius-xl: 1rem;
+  --bs-border-radius-xxl: 2rem;
+  --bs-border-radius-2xl: var(--bs-border-radius-xxl);
+  --bs-border-radius-pill: 50rem;
+  --bs-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --bs-box-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --bs-box-shadow-lg: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --bs-box-shadow-inset: inset 0 1px 2px rgba(0, 0, 0, 0.075);
+  --bs-focus-ring-width: 0.25rem;
+  --bs-focus-ring-opacity: 0.25;
+  --bs-focus-ring-color: rgba(52, 89, 230, 0.25);
+  --bs-form-valid-color: #2fb380;
+  --bs-form-valid-border-color: #2fb380;
+  --bs-form-invalid-color: #da292e;
+  --bs-form-invalid-border-color: #da292e;
+}
+
+
+/* btn */
+:root{
+  --bs-btn-color: #fff;
+  --bs-btn-bg: #3459e6;
+  --bs-btn-border-color: #3459e6;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: #2c4cc4;
+  --bs-btn-hover-border-color: #2a47b8;
+  --bs-btn-focus-shadow-rgb: 82, 114, 234;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: #2a47b8;
+  --bs-btn-active-border-color: #2743ad;
+  --bs-btn-active-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: #3459e6;
+  --bs-btn-disabled-border-color: #3459e6;
+}
+
+
+/* Zephyr specific colors not declared in bs5 root */
+/* Some colors are also used in ui elements or plots that cannot be styled with the class attribute. */
+/* 'bayasColors' should also be defined in function 'bayasColors' in Style/Colors.R */
+:root {
+  
+  --color-hover: #555;
+  --color-active: #353535;
+  --color-hover-active: #262626;
+  
+  --navbar-separators: #617EEE;
+  
+  --navbar-hexButtons-hover: #eee;
+  --navbar-hexButtons-active: white;
+  
+  --border-color-primary: 52, 89, 230; /* --bs-btn-bg */
+  
+  --datatable-cell-click: gray;
+  
+  --plotColor-div-a: #e3e9ff; 
+  --plotColor-div-b: #E69F002E; 
+  --planningExampleBtn-bg: #e3e3e3;
+  --planningExampleBtn-bg-primary: #f0f3ff;
+
+  --disabled-text: var(--bs-gray-500); /* #adb5bd */
+
+  --trash-hover: var(--color-hover); /*previously #3e3e3e */
+  --trash-active: var(--color-active); /*previously #353535 */
+  --trash-hover-active: var(--color-hover-active); /*previously #262626 */
+  
+  
+  --btn-alt-color: #fff;
+  --btn-alt-bg-image-a: #5975e3;
+  --btn-alt-bg-image-b: #3459e6; /* --bs-btn-disabled-bg */
+  --btn-alt-bg-image-c: #244ce3;
+
+  --modalBackButton-bg-image-a: #f0f3ff;
+  --modalBackButton-bg-image-b: #e8edff;
+
+  --modalBackButton-bg-image-hover-a: #e3e9ff;
+  --modalBackButton-bg-image-hover-b: #d9e1ff;
+
+  --modelExplanation-hover: #f0f3ff;
+
+  --reportProgressElement-bg: #3459e6;
+  --reportProgressElement-bg-hover: #d9e1ff;
+  
+  --shinyTree-hovered: #f0f3ff;
+  --shinyTree-selected: #dee4fc;
+
+  /* bayasColors */
+  --font-error: #da292e; /* --bs-danger */
+  --font-warning: #f4bd61; /* --bs-warning */
+
+  --highlight-selection: #f0f3ff;
+
+  --plotPreHist-color-1: #d9e1ff;
+  --plotPreHist-color-2: black;
+  
+  --plotDiff_range_a: grey;
+  --plotDiff_range_b: #3459e6;
+  
+  --plotVerificationLoo-good: #d9e1ff; /*#617EEE*/
+  --plotVerificationLoo-ok: grey;
+  --plotVerificationLoo-bad: red;
+  --plotVerificationLoo-veryBad: darkred;
+  
+  --tb-cell-colors-1: #B13433;
+  --tb-cell-colors-2: #8D472B;
+  --tb-cell-colors-3: #675E24;
+  --tb-cell-colors-4: #45731E;
+  --tb-cell-colors-5: #2E7F18;
+
+  --samplingESS-colors-1: darkred;
+  --samplingESS-colors-2: darkkhaki;
+  --samplingESS-colors-3: #93c16c;
+  --samplingESS-colors-4: darkgreen;
+ 
+  --effectMatrix-colors-1: #e65050; 
+  --effectMatrix-colors-2: #fff; 
+  --effectMatrix-colors-3: #3459e6; 
+  
+  --creatingData-colors-1: #fff;
+  --creatingData-colors-2: black;
+  --creatingData-colors-3: red;
+  --creatingData-colors-4: #FF6666;
+  
+  --formula-color-1: black;
+  --formula-color-2: #3459e6; /* --bs-blue */ 
+  --formula-color-3: #2fb380; /* --bs-green */ 
+  --formula-color-4: #555;
+  --formula-color-5: darkgrey;
+  
+  --modelCreatingPlot-color-1: #d9e1ff;
+  --modelCreatingPlot-color-2: grey;
+  --modelCreatingPlot-color-3: orange;
+  --modelCreatingPlot-color-4: blue;
+  --modelCreatingPlot-color-5: red;
+  
+  --modelCreatingPlot-color-values-1: #999999;
+  --modelCreatingPlot-color-values-2: #03396c;
+  --modelCreatingPlot-color-values-3: #8F2727;
+  --modelCreatingPlot-color-values-4: #E69F00;
+  --modelCreatingPlot-color-values-5: #3459e6;
+
+  --modelCreatingPlotROPE-color-values-1: darkred;
+  --modelCreatingPlotROPE-color-values-2: darkgreen;
+}
+
+

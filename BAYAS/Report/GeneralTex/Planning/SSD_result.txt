@@ -1,0 +1,2 @@
+If a sample size can be determined that fulfills the conditions, this will reported. Because this is a simulation-based approach where the number of simulations is indirectly controlled by the user, the uncertainty of the estimated power for a given sample size is quantified by a $90\%$ credible interval.
+The reported sample size is the total number of observations aggregated over all groups.

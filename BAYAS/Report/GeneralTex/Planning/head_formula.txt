@@ -1,0 +1,2 @@
+This chapter describes a statistical model that represents a real-world phenomenon (e.g. a biological experiment). 
+Reported \textit{seeds} bring quasi-random number generation into defined initial state for reproducibility. 

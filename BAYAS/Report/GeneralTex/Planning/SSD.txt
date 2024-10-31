@@ -1,0 +1,4 @@
+Sample size determination is the process of calculating the number of observations or participants needed in a study to reliably detect or exclude an effect. 
+Unlike conventional approaches such as the power t-test, we here use a simulation-based approach with two parameters. 
+The \textit{power} is the probability of achieving the formulated goals, and the \textit{approximate number simulations} controls the number of simulations for a certain sample size. 
+

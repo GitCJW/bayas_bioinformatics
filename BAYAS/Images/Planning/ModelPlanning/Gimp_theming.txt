@@ -1,0 +1,8 @@
+Farben -> Einfärben:
+Farbe: --bs-btn-bg
+Sättigung: 0,7
+Helligkeit: 0,55
+
+(3459e6)  (9daeee)
+
+Font ändern

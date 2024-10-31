@@ -1,0 +1,8 @@
+Predictions are given as probability distributions of the outcome variable given the posterior and a certain subset of predictor values. 
+Different questions can be answered by predictions, for instance: 
+What range of response values do we have to expect for a range of predictor values? 
+Do prediction ranges overlap for different predictor ranges?
+Differences between predictions obtained for pairs of specific predictor values are effects. 
+As predictions are uncertain (given by probability distributions), effects are also uncertain.
+																																					
+Overlaps close to 0 suggest that predictions are clearly separated, while overlaps close to 1 indicate that predictions are nearly the same.

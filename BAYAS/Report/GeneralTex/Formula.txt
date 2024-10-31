@@ -1,0 +1,10 @@
+The formula is a mathematical representation of the model and contains important information about relations between variables. A formula of the structure ``$Y \sim X$'' means that a variable $Y$ has a distribution $X$.
+Often such formulas are used to describe our prior knowledge (or \textit{prior} for short). E.g.\ if you read $\alpha \sim \text{Normal}(0,1)$ this means that \emph{we know} that a variable $\alpha$ follows a normal distribution with mean 0 and standard deviation 1. 
+Variables with underlined names are vectors of one or more elements. 
+
+BAYAS internally uses the \href{http://mc-stan.org/rstanarm/}{rstanarm} software. rstanarm can automatically generate reasonable priors, but the users can also set priors themselves.
+
+Variables with underlined names are vectors of one or more elements. These elements are listed at the end of the formula.
+
+
+

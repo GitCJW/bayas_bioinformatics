@@ -1,0 +1,1 @@
+A uni-duisburg-essen.de token name. For other e-mail provider edit code in "Server_Home" and "Malfunction_report.R".

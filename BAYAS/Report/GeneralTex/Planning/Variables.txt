@@ -1,0 +1,1 @@
+Variables describe a particular set of data and are either \textit{categorical} or \textit{numerical}. 

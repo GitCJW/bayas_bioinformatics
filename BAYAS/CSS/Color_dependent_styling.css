@@ -1,0 +1,662 @@
+
+/*############################################################################*/
+/*################################### Font ###################################*/
+/*############################################################################*/
+.fontColor-regular-bg{
+  color: var(--bs-body-color) !important;
+}
+
+.fontColor-primary{
+  color: var(--bs-primary) !important;
+}
+
+.fontColor-warning{
+  color: var(--bs-warning) !important;
+}
+
+.fontColor-error{
+  color: var(--bs-danger) !important;
+}
+
+
+/*############################################################################*/
+/*################################ Background ################################*/
+/*############################################################################*/
+.backgroundColor{
+  background-color: var(--bs-tertiary-bg);
+}
+
+.backgroundColor-border-regular{
+  background-color: var(--bs-border-color) !important;
+}
+
+.getActiveColor{
+  background-color: var(--bs-body-bg);
+}
+
+
+
+/*############################################################################*/
+/*################################# Borders ##################################*/
+/*############################################################################*/
+.borderColor-regular{
+  border-color: var(--bs-border-color) !important; /* previously: #e3e3e3*/
+}
+
+.borderColor-dark{
+  border-color: var(--bs-dark-border-subtle) !important; /* previously: #555(5)*/
+}
+
+.border_invalid{
+  border-color: var(--bs-form-invalid-border-color);
+}
+
+.border_warning{
+  border-color: var(--font-warning);
+}
+
+.borderColor-primary{
+  border-color: var(--border-color-primary); 
+}
+
+
+
+/*############################################################################*/
+/*################################### Other ##################################*/
+/*############################################################################*/
+
+
+
+.randomizeFrequencyRadioButton > div > div > label{
+  color: var(--disabled-text);
+  text-decoration: line-through;
+}
+.randomizeFrequencyHint > i{
+  color: var(--bs-warning) !important;
+}
+
+.insetShadow{
+  box-shadow: var(--bs-box-shadow-inset)
+}
+
+
+
+
+/*############################################################################*/
+/*################################ Info panel ################################*/
+/*############################################################################*/
+
+.infoBox{
+  background-color: var(--bs-primary-bg-subtle) !important; /* --bs-info-bg-subtle */ 
+  border: 1px solid var(--bs-primary-border-subtle) !important; /* --bs-info-border-subtle */
+  color: var(--bs-info-text-emphasis) !important;
+  border-radius:4px !important;
+  margin-bottom:20px;
+}
+
+
+/*############################################################################*/
+/*################################## Navbar ##################################*/
+/*############################################################################*/
+.navbarSeparator{
+  border-color: var(--navbar-separators) !important;
+}
+
+/*############################################################################*/
+/*############################ navbar hex buttons ############################*/
+/*############################################################################*/
+.navbar-hex-button {
+  cursor: pointer;
+  margin-top: 3px;
+  padding: 2px; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center;
+  border-radius: 4px;
+}
+.navbar-hex-button:hover {
+  background-color: var(--navbar-hexButtons-hover);
+}
+.navbar-hex-button:active {
+  background-color: var(--navbar-hexButtons-active);
+}
+.navbar-hex-button-active {
+  background-color: var(--navbar-hexButtons-hover);
+}
+
+
+
+/*############################################################################*/
+/*############################## Save and Load ###############################*/
+/*############################################################################*/
+.saveLoadBtn {
+  font-size: initial;
+  color: var(--bs-white);
+  margin: 0px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  text-decoration: none;
+}                          
+.saveLoadBtn:active {
+  color: var(--color-hover); /*previously #555555; */
+}
+.saveLoadBtn:hover {
+  color: var(--color-hover); /*previously #555555; */
+}
+
+
+
+
+/*############################################################################*/
+/*################################ icon button ###############################*/
+/*############################################################################*/
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 15px;
+  border: none;
+  color: var(--btn-alt-color);
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  background-color: transparent;
+}
+
+.icon-button:hover {
+  color: var(--color-hover);
+}
+
+.icon-button:active {
+  color: var(--color-active);
+}
+
+.icon-button:hover:active {
+  color: var(--color-hover-active);
+}
+
+
+
+/*############################################################################*/
+/*############################################################################*/
+/*################################# Planning #################################*/
+/*############################################################################*/
+/*############################################################################*/
+
+
+/*############################################################################*/
+/*############################### Plot colors ################################*/
+/*############################################################################*/
+.plotColor-div-a{
+  background-color: var(--plotColor-div-a);
+}
+.plotColor-div-b{
+  background-color: var(--plotColor-div-b);
+}
+
+
+
+
+/*############################################################################*/
+/*############################### Example btn ################################*/
+/*############################################################################*/
+.planningExampleBtn {
+  background-color: transparent !important; 
+  transition-duration:0.2s !important;
+}
+.planningExampleBtn:hover {
+  background-color: var(--planningExampleBtn-bg) !important;
+}
+.planningExampleBtnPrimary {
+  background-color: var(--planningExampleBtn-bg-primary) !important; 
+  transition-duration: 0.2s !important;
+}
+.planningExampleBtnPrimary:hover {
+  background-color: var(--planningExampleBtn-bg) !important;
+}
+
+.planningSelectedExampleBtn {
+  background-color: var(--planningExampleBtn-bg) !important;
+}
+
+
+
+
+
+/*############################################################################*/
+/*############################################################################*/
+/*################################ Evaluation ################################*/
+/*############################################################################*/
+/*############################################################################*/
+
+/*############################################################################*/
+/*############################ Fit model checklist ###########################*/
+/*############################################################################*/
+.uiChecklist-row{
+  border-radius: 5px 10px; 
+  margin:0px; 
+  margin-top:5px; 
+  display:flex; 
+  min-height:45px;
+}
+
+.uiChecklist-div-check{
+  background-color: var(--bs-primary-bg-subtle) !important;
+}
+.uiChecklist-div-warning{
+  background-color: var(--bs-warning-bg-subtle) !important;
+}
+.uiChecklist-div-error{
+  background-color: var(--bs-danger-bg-subtle) !important;
+}
+
+.uiChecklist-font-check{
+  color: var(--bs-primary-text-emphasis) !important;
+}
+.uiChecklist-font-warning{
+  color: var(--bs-warning-text-emphasis) !important;
+}
+.uiChecklist-font-error{
+  color: var(--bs-danger-text-emphasis) !important;
+}
+
+
+
+
+
+/*############################################################################*/
+/*################################## Formula #################################*/
+/*############################################################################*/
+.formulaDistribution{
+  color: var(--formula-color-2); /*previously #00f; */
+}
+.formulaParameter{
+  color: var(--formula-color-3); /*previously #008000; */
+}
+
+
+
+
+
+/*############################################################################*/
+/*############################ Trash link-button #############################*/
+/*############################################################################*/
+.btn-trash{
+  border: none;
+  background: none;
+  color: var(--color-hover);
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+}
+.btn-trash:hover{
+  border: none;
+  background: none;
+  color: var(--trash-hover);
+}
+.btn-trash:active{
+  border: none;
+  background: none;
+  color: var(--trash-active);
+}
+.btn-trash:active:hover{
+  border: none;
+  background: none;
+  color: var(--trash-hover-active);
+}
+
+
+
+
+
+
+/*############################################################################*/
+/*################################ Button-alt ################################*/
+/*############################################################################*/
+
+
+.btn-primary-alt{
+  color: var(--bs-btn-bg); /* previously #2fa4e7; */
+  border-color: var(--bs-btn-bg);
+  transition: background-image 0.3s;
+}
+.btn-primary-alt:active{
+  color: var(--bs-btn-bg);
+  border-color: var(--bs-btn-bg);
+}
+.btn-primary-alt:focus{
+  color: var(--bs-btn-bg);
+  border-color: var(--bs-btn-bg);
+}
+.btn-primary-alt:hover{
+  color: var(--btn-alt-color);
+  background-color: var(--bs-btn-bg);
+  border-color: var(--bs-btn-bg);
+  background-image: linear-gradient(var(--btn-alt-bg-image-a), var(--btn-alt-bg-image-b) 60%, var(--btn-alt-bg-image-c));
+  background-repeat: no-repeat;
+}
+
+
+
+
+
+/*############################################################################*/
+/*############################# Modal back button ############################*/
+/*############################################################################*/
+.backButton{
+  background-image: linear-gradient(to right, var(--modalBackButton-bg-image-a), var(--modalBackButton-bg-image-b));
+  border: none;
+  border-radius:1px;
+}
+.backButton:hover{
+  background-image: linear-gradient(to right, var(--modalBackButton-bg-image-hover-a), var(--modalBackButton-bg-image-hover-b));
+}
+
+
+
+
+
+/*############################################################################*/
+/*########################## Model explanation list ##########################*/
+/*############################################################################*/
+.modelExplanationHover {
+  background-color: transparent !important; 
+  margin-left:-10px;
+}
+.modelExplanationHover:hover {
+  background-color: var(--modelExplanation-hover) !important; 
+  border-radius:3px; 
+  cursor:pointer;
+}
+
+.modelExplanationHoverCheck {
+  background-color: transparent !important;
+}
+.modelExplanationHoverCheck:hover {
+  background-color: var(--modelExplanation-hover) !important; 
+  border-radius:3px; 
+  cursor:pointer;
+}
+.modelExplanationHoverCheck::before {
+  content: "\27A2";  
+  color: var(--bs-primary); 
+  font-weight: bold; 
+  display: inline-block;
+  width: 1em; 
+  margin-left: -1em; 
+}
+
+.modelExplanationHoverCheckImportant {
+  background-color: transparent !important;
+}
+.modelExplanationHoverCheckImportant:hover {
+  background-color: var(--modelExplanation-hover) !important; 
+  border-radius:3px; 
+  cursor:pointer;
+}
+.modelExplanationHoverCheckImportant::before {
+    content: "\27A2";  
+    color: var(--bs-danger); 
+    font-weight: bold; 
+    display: inline-block;
+    width: 1em; 
+    margin-left: -1em; 
+}
+
+
+
+
+
+/*############################################################################*/
+/*############################# Randomize button #############################*/
+/*############################################################################*/
+.randomDizeButton{
+  border: none;
+  background: none;
+  color: var(--color-hover);
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+}
+.randomDizeButton:hover{
+  border: none;
+  background: none;
+  color: var(--trash-hover);
+}
+.randomDizeButton:active{
+  border: none;
+  background: none;
+  color: var(--trash-active);
+}
+.randomDizeButton:active:hover{
+  border: none;
+  background: none;
+  color: var(--trash-hover-active);
+}
+.randomDizeButton:disabled{
+  border: none;
+  background: none;
+  color: var(--trash-hover);
+}
+
+
+
+
+/*############################################################################*/
+/*######################## Horizontal line separator #########################*/
+/*############################################################################*/
+.wordWrappedInHorizLine{
+    display: flex; 
+    flex-direction: row; 
+}
+.wordWrappedInHorizLine:before{
+    content: ""; 
+    flex: 1 1; 
+    border-bottom: 1px solid var(--bs-dark-border-subtle); 
+    margin: auto; 
+    margin-right:5px;
+}
+.wordWrappedInHorizLine:after{
+    content: ""; 
+    flex: 1 1; 
+    border-bottom: 1px solid var(--bs-dark-border-subtle); 
+    margin: auto; 
+    margin-left:5px;
+}
+
+
+
+
+
+/*############################################################################*/
+/*############################ bayasSelectButton #############################*/
+/*############################################################################*/
+.bayasSelectButton{
+  border: none !important;
+  border-radius: 0px !important;
+  height:40px;
+  width:160px;
+  background-color: var(--bs-body-bg);
+  background-image:none !important;
+  text-align:left;
+  padding-left:20px;
+}
+.bayasSelectButton:hover{
+  background-color: var(--bs-gray-200); /*previously #e6e6e6 */
+}
+.bayasSelectButton-icon{
+  color: var(--bs-primary);
+}
+
+
+
+
+/*############################################################################*/
+/*########################### selectInput***Input ############################*/
+/*############################################################################*/
+.selectInputInvalidInput > div > div > div > div{
+  border-color: var(--bs-form-invalid-border-color); /* previously #c80000 */
+}
+.selectInputDangerInput > div > div > div > div{
+  border-color: var(--font-warning); /* previously #ff8f00 */
+}
+
+
+
+
+
+/*############################################################################*/
+/*############################## colorizedList ###############################*/
+/*############################################################################*/
+.colorizedList optgroup[label="invalid"] option{
+    color: var(--bs-danger); /* previously #c80000 */
+}
+.colorizedList optgroup[label="warning"] option{
+    color: var(--bs-warning); /* previously #ff8f00 */
+}
+.colorizedList optgroup[label="unused"] option{
+    color: var(--bs-warning); /* previously #ff8f00 */
+}
+
+
+
+
+
+/*############################################################################*/
+/*########################## textAreaOtherVariable ###########################*/
+/*############################################################################*/
+.textAreaOtherVariable textarea{
+  height: calc((3em*1.5) + .75rem + calc(var(--bs-border-width) * 2));
+  min-height: calc((1em*1.5) + .75rem + calc(var(--bs-border-width) * 2));
+  max-height: calc((5em*1.5) + .75rem + calc(var(--bs-border-width) * 2));
+}
+.textAreaOtherVariableFreq textarea{
+  height: calc((1em*1.5) + .75rem + calc(var(--bs-border-width) * 2));
+  min-height: calc((1em*1.5) + .75rem + calc(var(--bs-border-width) * 2));
+  max-height: calc((5em*1.5) + .75rem + calc(var(--bs-border-width) * 2));
+}
+.textAreaOtherVariableFreqInvalid textarea{
+  border: 1px solid;
+  border-color: var(--bs-form-invalid-border-color); /* previously #c80000; */;
+}
+
+
+
+
+
+/* ########################################################################## */
+/* ########################################################################## */
+/* ################################# Report ################################# */
+/* ########################################################################## */
+/* ########################################################################## */
+
+.progress-element-active {
+  background-color: var(--reportProgressElement-bg);
+}
+.progress-element-inactive {
+  background-color: transparent;
+}
+.progress-element-inactive:hover {
+  background-color: var(--reportProgressElement-bg-hover);
+}
+
+
+.custom-sortable{
+  height: 160px;
+  margin: 0px !important;
+  padding:0px !important;
+  border-radius: 3px;
+  background-color: var(--bs-body-bg) !important;
+  overflow-x: scroll;
+  box-shadow: var(--bs-box-shadow-inset);
+}
+
+.custom-sortable .rank-list-empty{
+  width:100% !important;
+}
+.custom-sortable .rank-list-selected{
+  background-color: var(--reportProgressElement-bg) !important;
+}
+.custom-sortable .rank-list-item:hover{
+  background-color: var(--reportProgressElement-bg-hover) !important;
+}
+.custom-sortable .rank-list-selected:hover{
+  background-color: var(--reportProgressElement-bg) !important;
+}
+
+#reportTool-selecetedReportedElementsRank > div {
+  margin:10px 0px 17px 10px; 
+  padding: 5px 5px;
+  border-radius: 5px;
+}
+#reportTool-selecetedReportedElementsRank {
+  margin:0px;
+  border-radius:3px;
+  width:fit-content;
+  display:flex;
+  background-color: transparent !important;
+}
+
+#reportTool-outputOptionsSizeFlex{
+  display:flex; 
+  flex-wrap:wrap;
+}
+#reportTool-outputOptionsSizeFlex > div{
+  flex: 1 1 100px;
+}
+
+.reportTool-outputPrintFlex{
+  display:flex; 
+  flex-wrap:wrap;
+}
+.reportTool-outputPrintFlex > *{
+  flex: 1 1 100px;
+}
+
+
+
+
+
+/* ########################################################################## */
+/* ########################################################################## */
+/* ################################ Overwrite ############################### */
+/* ########################################################################## */
+/* ########################################################################## */
+
+/* ########################################################################## */
+/* ################################ shinyTree ############################### */
+/* ########################################################################## */
+.jstree-wholerow-hovered{
+  background: var(--shinyTree-hovered) !important;
+}
+.jstree-wholerow-clicked{
+  background: var(--shinyTree-selected) !important;
+}
+
+
+/* ########################################################################## */
+/* ################################ dataTable ############################### */
+/* ########################################################################## */
+.table.dataTable tbody td.selected {
+  background-color: var(--datatable-cell-click) !important;
+}
+
+.table.dataTable tbody tr.selected > td{
+  box-shadow: inset 0 0 0 9999px var(--datatable-cell-click) !important;
+}
+
+.table.dataTable thead th {
+  text-transform: none !important; /* Disable uppercase text */
+  font-weight: bold !important;    /* Make header text bold */
+}
+
+
+/*############################################################################*/
+/*############################## selectizeInput ##############################*/
+/*############################################################################*/
+.selectize-input.focus {
+  border-color: var(--border-color-primary) !important;
+  box-shadow: 0 0 0 0.25rem rgb(var(--border-color-primary), 0.25) !important;
+}
+.selectize-dropdown .selected {
+  background-color: var(--shinyTree-selected) !important; 
+  color: var(--bs-body-color) !important;
+}
+

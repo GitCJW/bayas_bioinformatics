@@ -1,0 +1,2 @@
+The pairs plot shows on its diagonal the marginal posteriors of a given set of parameters and also a two dimensional plot of the posterior distribution for each parameter pair.
+Theses plots can be used e.g. to examine correlations between parameters.

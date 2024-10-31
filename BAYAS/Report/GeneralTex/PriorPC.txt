@@ -1,0 +1,2 @@
+In the prior predictive check we simulate data based solely on the prior, i.e. without using our input data. 
+The prior predictive check is passed if the prior predictions (thin, light blue lines) cover the input data (thick, dark line).

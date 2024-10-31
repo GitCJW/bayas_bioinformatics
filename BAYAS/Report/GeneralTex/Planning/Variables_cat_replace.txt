@@ -1,0 +1,2 @@
+A \textit{categorical replacement} variable is a duplicate of another categorical (subgroup) where (some) elements are replaced. 
+For example, there is a \textit{categorical replacement} variable \textit{size\_id} with (1,2,3) for the categorical variable \textit{size} (\textit{s},\textit{m},\textit{l}), so \textit{size} \textit{s} is replaced by \textit{size\_id} 1, \textit{m} by 2, and \textit{l} by 3. 

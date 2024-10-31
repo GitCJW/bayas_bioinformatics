@@ -1,0 +1,143 @@
+html {
+  font-size:smaller;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  height: 100%;
+  min-height:100vh;
+}
+
+
+
+
+.bayas_shinybusy_spinner{
+  text-align: center;
+  margin-bottom: 10px;
+}
+.bayas_shinybusy_spinner > div > div{
+  position: relative;
+  right:0px !important;
+}
+
+
+/* Overwrite bs dropdown-toggle so that no arrow-down is shown (necessary for dropdownButton)*/
+.dropdown-toggle::after{
+  display:none !important;
+}
+
+
+#center{
+  text-align: center;
+}
+
+
+
+.navbar-brand {
+  margin-right: 0px;
+} 
+
+
+
+.childs-low-tbmargin > *{
+  margin-top: 3px;
+  margin-bottom: 3px;
+}
+
+
+.no_border_child > div:nth-child(1) {
+  border-style: none !important;
+  height: auto !important;
+}
+
+.no_border_child > div:nth-child(1) > div:nth-child(2) {
+  resize: vertical !important;
+  height: 400px;
+}
+
+.selectInput-neg-margin-child > div{
+  margin-bottom:0px;
+}
+
+
+
+.div.MathJax_Display{
+   text-align: left !important;
+   margin: 0px;
+}
+
+
+
+
+.full_hide{width: 20px;}
+
+.ownOpenPanel{width: 33.33%;}
+
+.selectize-dropdown {width: auto !important; min-width: -moz-available;}
+
+.popover{max-width: 350px !important; text-align:justify;}
+
+
+
+/*Make selectInputs narrow*/
+.table_select_intput {
+  margin-bottom:-20px; 
+  max-width:100px;
+}
+.table_select_intput select {
+  padding:2px;
+  height:25px;
+}
+.table_select_intput selectize-input {
+  padding:2px;
+  height:25px;
+}
+
+
+
+
+
+
+
+.randomizeFrequencyRandomSeedNumericInput > div > input{
+  height: 30px;
+}
+
+
+.otherVariableSubgroupExplicit {
+  padding:10px;
+  margin-top:-20px;  
+}
+
+
+
+/*Overwrite shinywidgets progress-xxs class */
+.progress-xxs{
+  height:10px;
+}
+
+/*Overwrite jexcel styling*/
+.jexcel_content{
+  overflow:auto !important; 
+  width:100% !important;
+}
+.jexcel col{
+  min-width:50px;
+}
+
+
+
+/* Datatable */
+.dtfc-fixed-left {
+  z-index:2 !important;
+}
+
+
+/*Overwrite form-group margin-bottom */
+.form-group-mb-0 .form-group{
+  margin-bottom:0px !important;
+}
+
+

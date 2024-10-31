@@ -1,0 +1,20 @@
+\documentclass[11pt]{scrartcl}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usepackage{hyperref}
+\usepackage{verbatim}
+
+\usepackage{flexisym}
+\usepackage{breqn}
+\usepackage{upgreek}
+
+\newcommand{\breakingcomma}{%
+  \begingroup\lccode`~=`,
+  \lowercase{\endgroup\expandafter\def\expandafter~\expandafter{~\penalty0 }}}
+
+\begin{document}
+
+\title{BAYAS Statistics Report}

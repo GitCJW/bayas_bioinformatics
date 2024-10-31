@@ -1,0 +1,7 @@
+The formula is a mathematical representation of the model and contains important information about relations between variables. A formula of the structure ``$Y \sim X$'' means that a variable $Y$ has a distribution $X$.
+Often such formulas are used to describe our prior knowledge (or \textit{prior} for short). E.g.\ if you read $\alpha \sim \text{Normal}(0,1)$ this means that \emph{we know} that a variable $\alpha$ follows a normal distribution with mean 0 and standard deviation 1. 
+Variables with underlined names are vectors of one or more elements. 
+
+There are two versions of the model used for estimating the sample size \textit{N}, which differ in the priors.
+The \textit{data generation} model has highly informative priors that reflect a realistic size of the effect of interest, and the model is used to generate samples. 
+These samples are fed into the \textit{inference} model, which is used to infer probability distributions of model parameters. These distributions are key to the sample size determination, e.g.\ if the probability distribution of a target parameter is sufficiently narrow, our sample size is large enough. The inference model should also later be the one that will be applied to the actual data. 

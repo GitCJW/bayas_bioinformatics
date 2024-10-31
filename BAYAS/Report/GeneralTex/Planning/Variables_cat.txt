@@ -1,0 +1,2 @@
+A categorical variable can take one of a limited, fixed number of possible values, representing different categories or groups. 
+These values are typically qualitative and non-numeric, although they can be encoded as numbers for analysis purposes. 

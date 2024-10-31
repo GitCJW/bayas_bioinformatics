@@ -1,0 +1,2 @@
+A sample dataset showing the variables used and their values. The values of the response variables (the leftmost one) are generated using the generative model. \\ 
+

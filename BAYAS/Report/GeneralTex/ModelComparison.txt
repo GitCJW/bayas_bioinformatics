@@ -1,0 +1,18 @@
+Model comparison is done by approximate leave-one-out cross validation (LOOCV) 
+\footnote{Vehtari, A., Gelman, A., and Gabry, J. (2017). Practical Bayesian model evaluation using leave-one-out cross-validation and WAIC. Statistics and Computing. 27(5), 1413–1432. doi:10.1007/s11222-016-9696-4 (journal version, preprint arXiv:1507.04544).} 
+using the R-package loo 
+\footnote{Vehtari A, Gabry J, Magnusson M, Yao Y, Bürkner P, Paananen T, Gelman A (2022). “loo: Efficient leave-one-out cross-validation and WAIC for Bayesian models.” R package version 2.5.1, https://mc-stan.org/loo/. }
+ for each of the models that are compared. 
+LOOCV quantifies the ability of a model to generalize to unseen data. In this sense, a better model is one that generalizes better. 
+Note that it is difficult to learn from LOOCV whether a model as such is good or not; a model can be a bad model even if it has a LOOCV that is better than that of another (worse) model.
+																																			
+
+The first table shows the result of the LOOCV comparison, with the best model at the top. 
+The first column gives differences in expected log predictive density ($\Delta$elpd), a measure of generalization ability of a model. 
+The differences always refer to the best model at the top, which is why the top value is zero. 
+The second column shows standard errors $se$ of the $\Delta$elpd. 
+For a reliable ranking of models, standard errors should be much smaller than the corresponding $\Delta$elpd values.
+																																			 
+																							 
+The second table contains information about the quality of the LOOCV approximation (Pareto diagnostics \footnote{Vehtari, A., Simpson, D., Gelman, A., Yao, Y., and Gabry, J. (2019). Pareto smoothed importance sampling. preprint arXiv:1507.02646}).
+Non-zero numbers in columns ``bad'' or ``very bad'' indicate that the model does not represent all data reliably. Such a model should not be trusted.

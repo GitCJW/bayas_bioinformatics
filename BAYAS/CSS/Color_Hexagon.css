@@ -1,0 +1,102 @@
+
+/* ########################################################################## */
+/* ################################## Home ################################## */
+/* ########################################################################## */
+
+/* Individual styling */
+.hexagon {
+  position: relative;
+  width: 200px; 
+  height: 115.47px;
+  margin: 57.74px 0;
+  color: var(--hex-color);
+  box-shadow: 0 0 20px var(--hex-box-shadow-color);
+  border-left: solid 5px var(--hex-border-color);
+  border-right: solid 5px var(--hex-border-color);
+  background-image: var(--hex-bg-image);
+  background-repeat: no-repeat;
+  cursor:pointer;
+}
+
+.hexagon:before,
+.hexagon:after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  width: 141.42px;
+  height: 141.42px;
+  -webkit-transform: scaleY(0.5774) rotate(-45deg);
+  -ms-transform: scaleY(0.5774) rotate(-45deg);
+  transform: scaleY(0.5774) rotate(-45deg);
+  left: 24.2893px;
+  box-shadow: 0 0 20px var(--hex-box-shadow-color);
+}
+
+.hexagon:before {
+  top: -70.7107px;
+  border-top: solid 7.0711px var(--hex-border-color);
+  border-right: solid 7.0711px var(--hex-border-color);
+  background-image: var(--hex-bg-image-before); 
+  background-repeat: no-repeat;
+  box-shadow: -5px 5px 20px -5px var(--hex-box-shadow-color);
+  border-top-right-radius: 5px;
+}
+
+.hexagon:after {
+  bottom: -70.7107px;
+  border-bottom: solid 7.0711px var(--hex-border-color);
+  border-left: solid 7.0711px var(--hex-border-color);
+  background-image: var(--hex-bg-image-after); 
+  background-repeat: no-repeat;
+  border-bottom-left-radius: 5px;
+}
+
+/*cover up extra shadows*/
+.hexagon span {
+  display: block;
+  position: absolute;
+  top:2.8867513459481287px;
+  left: 0;
+  width:190px;
+  height:109.6966px;
+  z-index: 2;
+  background: inherit;
+}
+
+
+.hexagon:hover{
+  background-image: var(--hex-bg-image-hover) !important;
+  border-left: solid 5px var(--hex-border-color-hover);
+  border-right: solid 5px var(--hex-border-color-hover);
+  color: var(--bs-body-bg);
+}
+.hexagon:hover:before{
+  background-image: var(--hex-bg-image-before-hover) !important; 
+  border-top: solid 7.0711px var(--hex-border-color-hover);
+  border-right: solid 7.0711px var(--hex-border-color-hover);
+}
+.hexagon:hover:after{
+  background-image: var(--hex-bg-image-after-hover) !important;
+  border-bottom: solid 7.0711px var(--hex-border-color-hover);
+  border-left: solid 7.0711px var(--hex-border-color-hover);
+}
+
+.hexagon:hover:active{
+  background-image: var(--hex-bg-image-hover-active) !important;
+  border-left: solid 5px --hex-border-color-hover-active;
+  border-right: solid 5px --hex-border-color-hover-active;
+  color: var(--hex-color);
+}
+.hexagon:hover:active:before{
+  background-image: var(--hex-bg-image-before-hover-active) !important; 
+  border-top: solid 7.0711px --hex-border-color-hover-active;
+  border-right: solid 7.0711px --hex-border-color-hover-active;
+}
+.hexagon:hover:active:after{
+  background-image: var(--hex-bg-image-after-hover-active) !important; 
+  border-bottom: solid 7.0711px --hex-border-color-hover-active;
+  border-left: solid 7.0711px --hex-border-color-hover-active;
+}
+
+
+

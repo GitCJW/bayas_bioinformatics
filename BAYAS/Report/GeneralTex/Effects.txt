@@ -1,0 +1,20 @@
+The underlying statistical model contains coefficients for the independent variables.
+The predictors (independent variables) that are used in the statistical model. 
+
+
+By using the terminology 'effects' we mainly quantify the difference between groups,
+when examine the coefficients (the margianl posteriors) of the statistical model. 
+
+Group effect (always a comparison):
+
+Slope effect
+(single slope coefficient)
+
+(Slope coefficient comparison)
+
+
+
+
+
+
+(cite regression and other stories?)

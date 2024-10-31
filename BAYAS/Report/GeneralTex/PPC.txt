@@ -1,0 +1,4 @@
+Posterior predictive checks (PPC) are comparisons of observed (input) data with data simulated using the model. 
+ 
+If the distribution of the observed data (thick, dark curve) lies in the midst of the the simulated replicates (thin, light blue curves), 
+the model is in agreement with the data and the PPC is passed.

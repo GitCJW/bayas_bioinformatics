@@ -1,0 +1,12 @@
+An effect is a change in response variable of the model as we change a predictor variable in the model, 
+e.g. the weight of a mouse (response) changes as we change sex (predictor) from male to female. 
+Since model parameters are uncertain, the effects will be uncertain as well. 
+Effects are therefore given by distributions that show effect sizes and uncertainties. 
+The pi value (equation below) is the probability of the effect having a certain direction. 
+A pi of 0 means a fifty-fifty probability of a positive or negative effect. 
+A pi of 1 means that the effect clearly lies in one direction. 
+CI\_low and CI\_high shows the corresponding limits of the credible interval (HDI or ETI). 
+
+\begin{equation} 
+	\pi(x) = 2 \cdot \max{ \left(  \int_{x=-\infty}^{0}  p(x) \,dx, \int_{x=0}^{\infty}  p(x) \,dx \right) } - 1
+\end{equation}
