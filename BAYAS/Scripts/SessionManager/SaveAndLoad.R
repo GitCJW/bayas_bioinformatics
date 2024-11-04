@@ -21,63 +21,11 @@ saveSession <- function(dataModel, file, encrypt=T){
   retPlan <- unnestR6(statePlan)
   retPlan <- retPlan$unnestList
   
-  
-  
-  #testing
-  {
-    flag <- flag2 <- flag3 <- F
 
-    tmpFile <- paste0(dirname(dirname(getwd())), "/tmp/all/")
-    if(flag){
-      for(aa_id in seq_along(retPlan)){
-        aa <- retPlan[[aa_id]]
-        saveRDS(aa, file=paste0(tmpFile, "_", aa_id))
-      }
-    }
-
-    if(flag2){
-      index <- 143
-      so <- retPlan[[index]]$value
-      for(aa_id in seq_along(so)){
-        aa <- so[[aa_id]]
-        saveRDS(aa, file=paste0(tmpFile, "_so_", aa_id))
-      }
-    }
-    
-    if(flag3){
-      index <- 143
-      index2 <- 8
-      index3 <- 23
-      so <- retPlan[[index]]$value[[index2]][[index3]]
-      for(aa_id in seq_along(so)){
-        aa <- so[[names(so)[aa_id]]]
-        saveRDS(aa, file=paste0(tmpFile, "_so_layer", aa_id))
-        aa_id <- aa_id+1
-      }
-    }
-  }
-  
-  # parEnv <- rlang::env()
-  # (parEnv <- rlang::env_parent(parEnv))
-  
-  # so <- retEval[[38]]$value[[8]][[11]][5]
-  # so_var <- so$variance
-  # env <- rlang::get_env(so_var)
-  # p_env <- rlang::env_parent(env)
-
-  # stats_env <- environment(sd)
-  # stats_env <- rlang::new_environment()
-  
-  # saveRDS(so_var, file="C:/Users/CJW/Downloads/all/so_var")
   
   state <- list(retEval = retEval, retPlan = retPlan)
   
-  
-  ## Not possible this way due to potential backwards compatibility of models. ##
-  # add checksum
-  # hash_pp <- readRDS(paste0(dirname(getwd()), "/PW/hash_passphrase.key"))
-  # state$checksum <- hash_pp
-  # state$checksum <- getHash(state)
+
 
   # Write to local
   if(encrypt){
@@ -215,17 +163,6 @@ loadSession <- function(dataModel, file, decrypt=T){
     return(list(F, msg="Can't read this file."))
   }
 
-
-  ## Not possible this way due to potential backwards compatibility of models. ##
-  # verify checksum
-  # hash_pp <- readRDS(paste0(dirname(getwd()), "/PW/hash_passphrase.key"))
-  # cs <- state$checksum
-  # state$checksum <- hash_pp
-  # if(cs != getHash(state)){
-  #   browser()
-  #   showNotification("Corrupt upload file")
-  #   return()
-  # }
 
   status <- tryCatch({
     
