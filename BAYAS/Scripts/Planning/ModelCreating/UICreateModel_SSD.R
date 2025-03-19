@@ -215,7 +215,8 @@ planning_creatingStepsSSD_help <- function(ns){
                      "<b>ROPE</b> (Region Of Practical Equivalence) refers to a range of values that are interpreted as equal. ",
                      "For example, if you want to show a unit effect of 3, you can declare a ROPE of 2.8-3.2. ",
                      "Any value within this range will be treated as 'equal'. <br>",
-                     "To <b>'Exclude'</b> means that none of the considered probability mass of the effect distribution is allowed to be in the defined ROPE. <br>",
+                     "To <b>'Exclude'</b> means that none of the considered probability mass of the effect distribution is allowed to be in the defined ROPE. ",
+                     "Note: if the probability density mass is truncated by the ROPE, only the remaining majority on one side is taken into account. <br>",
                      "To <b>'Include'</b> means that all of the considered probability mass of the effect distribution have to be in the defined ROPE. </b> ",
                      "<b>'Lower'</b> and <b>'Upper'</b> define the ROPE limits."
                    ))

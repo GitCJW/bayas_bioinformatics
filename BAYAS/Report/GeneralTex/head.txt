@@ -17,4 +17,6 @@
 
 \begin{document}
 
+\bibliographystyle{abbrv}
+
 \title{BAYAS Statistics Report}

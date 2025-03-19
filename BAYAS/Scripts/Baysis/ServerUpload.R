@@ -147,9 +147,82 @@ init_upload_function <- function(input, output, session, dataModel){
   
   #use of example data
   observeEvent(input$exampleUserData, ignoreInit = T, {
+
+    showModal(
+      modalDialog(
+        tags$div(
+          style = "",
+          tags$div(
+            
+            style = "display: flex; overflow-x: auto;",
+            imageButtonTitle(
+              btnId = ns("exampleDataSet1"), imageFile = "Images/Example_data_sets/OFT.png", title="Open field test", selected=F,
+              btnStyle="width:230px; height:200px;",
+              imgHeight="150px", imgClass="", imgStyle="", imgWidth = NULL
+            ),
+            imageButtonTitle(
+              btnId = ns("exampleDataSet2"), imageFile = "Images/Example_data_sets/bayas.png", title="BAYAS - normal", selected=F,
+              btnStyle="width:230px; height:200px;",
+              imgHeight="150px", imgClass="", imgStyle="", imgWidth = NULL
+            )
+          ),
+          
+          tags$div(
+            style = "margin-top: 20px;",
+            disabled(textAreaInput(ns("exampleDataSetInfoBox"), label=NULL, 
+                                   resize="vertical", width="100%", height="11rem",
+                                   placeholder="Select an example for more information"))
+          )
+        ),
+
+        size="m",
+        easyClose=T,
+        footer = tags$div(
+          style="display: flex; width:100%;",
+          tags$div(
+            style = "flex: 1;",
+            shiny::modalButton("Cancel")
+          ),
+          tags$div(
+            style = "flex: 1; display: flex; flex-direction: row-reverse;",
+            actionButton(ns("readExampleDataModal"), "Load")
+          )
+        )
+      )
+    )
+  })
+  
+  #Example data set modal
+  exampleDataSetLength <- 2
+  selectedExampleDataSet <- reactiveVal(0)
+  sapply(1:exampleDataSetLength, function(i){
+    observeEvent(input[[ns(paste0("exampleDataSet",i))]], {
+      selectedExampleDataSet(i)
+      setPrimaryImageButtonTitle(ns(paste0("exampleDataSet",setdiff(1:exampleDataSetLength, i))), F)
+      setPrimaryImageButtonTitle(ns(paste0("exampleDataSet",i)), T)
+      
+      msg <- switch(i,
+                    paste0("The open field test measures anxiety and exploration in animals by tracking movement ",
+                           "in an open arena. Anxious animals stay near the edges, while less anxious ones explore the center. \n\n",
+                           "Data published in von Kortzfleisch, Vanessa Tabea, et al. 'Improving reproducibility in animal research by splitting the study population into several ‘mini-experiments’.' Scientific reports 10.1 (2020): 16579."),
+                    paste0("A synthetic dataset of blood hormone concentration on a log scale, dependent on specified sex and weight."))
+      
+      updateTextAreaInput(inputId = ns("exampleDataSetInfoBox"), value = HTML(msg))
+      
+      
+    })
+  })
+  
+  observeEvent(input[[ns("readExampleDataModal")]], {
+
+    removeModal()
     
-    file <- list(name="BAYAS example data", datapath=paste0(data_folder, "/bayasExampleData.csv"),
-                 num=0)
+    id <- selectedExampleDataSet()
+    file <- switch(id,
+                   list(name="Open field test", datapath=paste0(data_folder, "/Open_field.csv"), num=0),
+                   list(name="BAYAS - normal ", datapath=paste0(data_folder, "/bayasExampleData.csv"), num=0))
+
+
     fileOld <- uploadedUserFile()
     if(!is.empty(fileOld)){
       file$num <- fileOld$num+1
@@ -158,7 +231,6 @@ init_upload_function <- function(input, output, session, dataModel){
     updateTextInput(session, inputId=ns("userInputData-text"), value="BAYAS example data")
     session$sendCustomMessage("upload_txt", "BAYAS example data")
   })
-  
 
   
   #Show example of long-format data
@@ -253,7 +325,7 @@ init_upload_function <- function(input, output, session, dataModel){
       decSep <- dMID$getDecSep()
       cellSep <- dMID$getCellSep()
       file <- dMID$getTmpDataPath()
-      
+
       if(is.null(file) || is.null(decSep) || is.null(cellSep)){
         # dnd panel
         output[[ns("uiUserRawData")]] <- renderUI({
@@ -435,10 +507,11 @@ init_upload_function <- function(input, output, session, dataModel){
   })
   
   
-  #Button >>+
+  #Button +>>
+  importObject <- reactiveVal(list())
+  importObjectIndex <- reactiveVal(0)
   observeEvent(input[[ns("rawDataToTableAdd")]], {
     
-
     inp <- input[[ns("rawInputExcel")]]
     sel <- get_selected_data(inp)
     
@@ -450,13 +523,16 @@ init_upload_function <- function(input, output, session, dataModel){
       return()
     }
 
+
+    sel_cleaned <- sel %>% removeEmptyCol() %>% removeLastEmptyRows()
     
     dmid <- DataModelImportData$new()
-    obj <- dmid$importData(sel)
-    
+    dataModel$setDataModelImportData(dmid)
+    obj <- dmid$importData(sel_cleaned)
+
     #confirm (disabled?)
     lastStep=F
-    confirmButton <- actionButton(ns("confirmImportDataModal"),"Confirm")
+    confirmButton <- actionButton(ns("confirmImportDataModal"),"Next")
     if(lastStep){
       confirmButton <- actionButton(ns("confirmImportDataModal"),"Confirm", class="btn-primary")
     }else{
@@ -464,22 +540,313 @@ init_upload_function <- function(input, output, session, dataModel){
     }
     
     showModal(modalDialog(
-      size="l",
-      easyClose=T,
-      footer = tags$div(tags$span(
-        actionButton(ns("cancelImportDataModal"), "Cancel"),
-        style = "float: left;"),
-        confirmButton),
+      size="xl",
+      easyClose=F,
+      footer = tags$div(
+        style="display:flex; width: 100%;",
+        tags$div(
+          style = "flex:1",
+          tags$div(actionButton(ns("cancelImportDataModal"),"Cancel"), style="float:left;")),
+        tags$div(
+          style = "flex:1; text-align:right;",
+          confirmButton
+        )
+      ),
+      
       tags$div(
         uiOutput(ns("importDataModal"))
       )
     ))
-    output[[ns("importDataModal")]] <- renderUI({
-      upload_import(ns, 1, obj)
-    })
-    
+    importObjectIndex(1)
+    importObject(list(obj))
   })
   
+  #Change ui depending on import status / steps
+  observe({
+    index <- importObjectIndex()
+    
+    if(index < 1) return()
+    isolate({
+      
+      impObj <- importObject()
+      index <- importObjectIndex()
+      cImpObj <- impObj[[index]]
+      data <- cImpObj$data
+      status <- cImpObj$status
+      
+      #Update modal ui
+      output[[ns("importDataModal")]] <- renderUI({
+        upload_import(ns, index, impObj)
+      })
+      
+      #Update model ui depending on the status
+      if(status=="nonMult"){
+        dt <- datatable(
+          data = data,
+          rownames = F,
+          colnames = colnames(data),
+          selection = "none",
+          filter = "none",
+          options = list(searching=F, paging=F, escape=F, info=F,
+                         columnDefs = list(list(className = 'dt-right', targets = colnames(data)))),
+          fillContainer = T
+        ) %>%
+          formatStyle(0:(dim(data)[2]), lineHeight="70%")
+        
+        output[[ns("dtHeaderRow")]] <- renderDT(dt)
+      }else if(status=="dupHeaders"){
+        dt <- datatable(
+          data = data,
+          rownames = F,
+          colnames = colnames(data),
+          selection = "none",
+          filter = "none",
+          options = list(searching=F, paging=F, escape=F, info=F,
+                         columnDefs = list(list(className = 'dt-right', targets = colnames(data)))),
+          fillContainer = T
+        ) %>%
+          formatStyle(0:(dim(data)[2]), lineHeight="70%")
+        
+        output[[ns("dtDuplicateHeader")]] <- renderDT(dt)
+      }else if(status=="uniqueHeaders"){
+        dt <- datatable(
+          data = data,
+          rownames = F,
+          colnames = colnames(data),
+          selection = "none",
+          filter = "none",
+          options = list(searching=F, paging=F, escape=F, info=F,
+                         columnDefs = list(list(className = 'dt-right', targets = colnames(data)))),
+          fillContainer = T
+        ) %>%
+          formatStyle(0:(dim(data)[2]), lineHeight="70%")
+        
+        output[[ns("dtRowSingleMeasurement")]] <- renderDT(dt)
+      }
+    })
+  })
+  
+  
+  #Choose between row/column header
+  observeEvent(input[[ns("groupBtnHeaderInRowOrColumn")]], {
+   
+    impObj <- importObject()
+    index <- importObjectIndex()
+    cImpObj <- impObj[[index]]
+    data <- cImpObj$data
+    
+    header <- input[[ns("groupBtnHeaderInRowOrColumn")]]
+    
+    if(is.null(header)) return()
+
+    header <- ifelse(header=="yes", "row", "col")
+    dmid <- dataModel$getDataModelImportData()
+    nextImpObj <- dmid$importData(cImpObj, header=header)
+    
+    if(nextImpObj$status == "failed"){
+      output[[ns("dtHeaderColumnMessage")]] <- renderUI(paste0("Transpose failed. Are some row headers empty? Row headers cannot be left blank. ",
+                                                               "Please revise your selected cells."))
+      output[[ns("dtHeaderColumn")]] <- renderDT(NULL)
+      hide(ns("dtHeaderColumn"))
+    }else{
+      transposedData <- nextImpObj$data
+      dt <- datatable(
+        data = transposedData,
+        rownames = F,
+        colnames = colnames(transposedData),
+        selection = "none",
+        filter = "none",
+        options = list(searching=F, paging=F, escape=F, info=F),
+        fillContainer = T
+      ) %>%
+        formatStyle(seq_len(dim(transposedData)[2]), lineHeight="70%") %>%
+        formatStyle(seq_len(dim(transposedData)[2]), `text-align` = "right")
+      
+      show(ns("dtHeaderColumn"))
+      output[[ns("dtHeaderColumn")]] <- renderDT(dt)
+      output[[ns("dtHeaderColumnMessage")]] <- renderUI(NULL)
+      enable(ns("confirmImportDataModal"))
+    }
+  })
+  
+  #Choose between merging headers or rename them (not yet implemented)
+  observeEvent(input[[ns("groupBtnDuplicateHeaders")]], {
+    
+    impObj <- importObject()
+    index <- importObjectIndex()
+    cImpObj <- impObj[[index]]
+    data <- cImpObj$data
+    
+    merge <- input[[ns("groupBtnDuplicateHeaders")]]
+    
+    if(is.null(merge)) return()
+    
+    merge <- ifelse(merge=="merge", T, F)
+    if(!merge){
+      output[[ns("dtDuplicateHeaderMergedMessage")]] <- renderUI(paste0("Unfortunately, this option is not available yet. Coming soon."))
+      output[[ns("dtDuplicateHeaderMerged")]] <- renderDT(NULL)
+      hide(ns("dtDuplicateHeaderMerged"))
+    }else{
+      dmid <- dataModel$getDataModelImportData()
+      nextImpObj <- dmid$importData(cImpObj, combineHeaders=merge)
+      
+      if(nextImpObj$status == "failed"){
+        output[[ns("dtDuplicateHeaderMergedMessage")]] <- renderUI(paste0("Oops, merge failed for unknown reason."))
+        output[[ns("dtDuplicateHeaderMerged")]] <- renderDT(NULL)
+        hide(ns("dtDuplicateHeaderMerged"))
+      }else{
+        data <- nextImpObj$data
+        dt <- datatable(
+          data = data,
+          rownames = F,
+          colnames = colnames(data),
+          selection = "none",
+          filter = "none",
+          options = list(searching=F, paging=F, escape=F, info=F),
+          fillContainer = T
+        ) %>%
+          formatStyle(seq_len(dim(data)[2]), lineHeight="70%") %>%
+          formatStyle(seq_len(dim(data)[2]), `text-align` = "right")
+        
+        show(ns("dtDuplicateHeaderMerged"))
+        output[[ns("dtDuplicateHeaderMerged")]] <- renderDT(dt)
+        output[[ns("dtDuplicateHeaderMergedMessage")]] <- renderUI(NULL)
+        enable(ns("confirmImportDataModal"))
+      }
+    }
+  })
+  
+
+  #Is each row a single measurement
+  observeEvent(input[[ns("groupBtnRowSingleMeasurement")]], {
+    
+    impObj <- importObject()
+    index <- importObjectIndex()
+    cImpObj <- impObj[[index]]
+    data <- cImpObj$data
+    
+    rowSingleMeasurement <- input[[ns("groupBtnRowSingleMeasurement")]]
+    
+    if(is.null(rowSingleMeasurement)) return()
+    
+    singleMeas <- ifelse(rowSingleMeasurement=="yes", T, F)
+    if(singleMeas){
+      output[[ns("dtRowSingleMeasurementCombinedMessage")]] <- renderUI(paste0("Your data should now be 'long formatted'."))
+      output[[ns("dtRowSingleMeasurementCombined")]] <- renderDT(NULL)
+      hide(ns("dtRowSingleMeasurementCombined"))
+    }else{
+      dmid <- dataModel$getDataModelImportData()
+      nextImpObj <- dmid$importData(cImpObj, mergeColumns=T, mergeColNames=cImpObj$header)
+      
+      if(nextImpObj$status == "failed"){
+        output[[ns("dtRowSingleMeasurementCombinedMessage")]] <- renderUI(paste0("Oops, merge failed for unknown reason."))
+        output[[ns("dtRowSingleMeasurementCombined")]] <- renderDT(NULL)
+        hide(ns("dtRowSingleMeasurementCombined"))
+      }else{
+        data <- nextImpObj$data
+        dt <- datatable(
+          data = data,
+          rownames = F,
+          colnames = colnames(data),
+          selection = "none",
+          filter = "none",
+          options = list(searching=F, paging=F, escape=F, info=F),
+          fillContainer = T
+        ) %>%
+          formatStyle(seq_len(dim(data)[2]), lineHeight="70%") %>%
+          formatStyle(seq_len(dim(data)[2]), `text-align` = "right")
+        
+        show(ns("dtRowSingleMeasurementCombined"))
+        output[[ns("dtRowSingleMeasurementCombined")]] <- renderDT(dt)
+        output[[ns("dtRowSingleMeasurementCombinedMessage")]] <- renderUI(NULL)
+        enable(ns("confirmImportDataModal"))
+      }
+    }
+  })
+  #Next in steps
+  observeEvent(input[[ns("confirmImportDataModal")]], {
+    
+    if(global_browser) browser()
+    
+    impObj <- importObject()
+    index <- importObjectIndex()
+    cImpObj <- impObj[[index]]
+    data <- cImpObj$data
+    nextImpObj <- cImpObj
+    dmid <- dataModel$getDataModelImportData()
+    objList <- importObject()
+    
+    if(cImpObj$status == "nonMult"){
+      header <- input[[ns("groupBtnHeaderInRowOrColumn")]]
+      if(is.null(header)) stop("Header is null against expectation")
+      header <- ifelse(header=="yes", "row","col") 
+      nextImpObj <- dmid$importData(cImpObj, header=header)
+      
+      objList <- list.append(objList, nextImpObj)
+      
+      nextImpObj <- dmid$importData(nextImpObj)
+      objList <- list.append(objList, nextImpObj)
+      
+      index <- importObjectIndex() +2
+    }else if(cImpObj$status == "dupHeaders"){
+      merge <- input[[ns("groupBtnDuplicateHeaders")]]
+      if(is.null(merge)) stop("Merge headers is null against expectation")
+      merge <- ifelse(merge=="merge", T, F)
+      nextImpObj <- dmid$importData(cImpObj, combineHeaders=merge)
+      
+      if(nextImpObj$status == "failed"){
+        output[[ns("dtDuplicateHeaderMergedMessage")]] <- renderUI(paste0("Oops, merge failed for unknown reason."))
+        output[[ns("dtDuplicateHeaderMerged")]] <- renderDT(NULL)
+        hide(ns("dtDuplicateHeaderMerged"))
+      }else{
+        objList <- list.append(objList, nextImpObj)
+        index <- importObjectIndex() +1
+      }
+    }else if(cImpObj$status == "uniqueHeaders"){
+      rowSingleMeasurement <- input[[ns("groupBtnRowSingleMeasurement")]]
+      if(is.null(rowSingleMeasurement)) return()
+      singleMeas <- ifelse(rowSingleMeasurement=="yes", T, F)
+      nextImpObj <- dmid$importData(cImpObj, mergeColumns=T, mergeColNames=cImpObj$header)
+
+      if(nextImpObj$status == "failed"){
+        output[[ns("dtDuplicateHeaderMergedMessage")]] <- renderUI(paste0("Oops, merge failed for unknown reason."))
+        output[[ns("dtDuplicateHeaderMerged")]] <- renderDT(NULL)
+        hide(ns("dtDuplicateHeaderMerged"))
+      }else{
+        #Final, remove modal
+        hide(ns("tableUserDataInfo"))
+        show(ns("tableUserData"))
+        
+        sel <- data.frame(nextImpObj$data)
+
+        dMID <- dataModel$getDataModelInputData()
+        dMID$setLongFormat(sel)
+        dMID$setGuessedInputProperties()
+        
+        index <- 0
+        objList <- list()
+        removeModal()
+      }
+    }
+
+    importObjectIndex(index)
+    importObject(objList)
+    disable(ns("confirmImportDataModal"))
+  })
+  
+  #Return in steps
+  observeEvent(input[[ns("modalBack")]], {
+    print("back")
+    enable(ns("confirmImportDataModal"))
+    importObjectIndex(importObjectIndex()-1)
+  })
+  
+  #Cancel import
+  observeEvent(input[[ns("cancelImportDataModal")]], {
+    removeModal()
+    importObject(list())
+    importObjectIndex(0)
+  })
   
   # Button "trash" for removing the datatable
   observeEvent(input[[ns("rawDataToTableRemove")]], {
@@ -501,6 +868,7 @@ init_upload_function <- function(input, output, session, dataModel){
   observeEvent(input[[ns("tableUserData")]], {
     dMID <- dataModel$getDataModelInputData()
     dMID$setLongFormat(input[[ns("tableUserData")]], silent=T)
+    browser()
   })
   observe({
     dMID <- dataModel$getDataModelInputData()

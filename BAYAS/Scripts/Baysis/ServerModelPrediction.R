@@ -748,7 +748,7 @@ modelPredictionEffectResultTabs <- function(id, numChoices, dataModel, pIDM, mPR
         
         
         effectLatex <- modelEffectItem(summaryTable, vars, hdiType, 
-                                       hdiRange, paste0("effect_",inputName), gg,
+                                       hdiRange, paste0("single_effect_",inputName), gg,
                                        numericVal)
         
 
@@ -770,7 +770,7 @@ modelPredictionEffectResultTabs <- function(id, numChoices, dataModel, pIDM, mPR
           style="font-weight:bold; margin: 5px 0px 5px 12px; word-wrap: break-word;",
           HTML(headerText)
         )
-        
+
         ggsave(paste0(report_folder, "/Thumbnails/single_effect_",inputName,".jpg"), 
                gg, device="jpeg", width=100, height=100, units="px", dpi=25)
         
@@ -813,7 +813,6 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
     id,
     function(input, output, session){
       
-      # plotHistory <- reactiveVal(list())
       plotHistory <- reactiveVal(mPRM$get.plot_history())
       
       numericValues <- reactiveVal(list())
@@ -957,12 +956,12 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
                      values=new_data,
                      color=color)
         pH <- plotHistory()
-        # pH <- list.append(pH, plot, index)
         pH <- list.append(pH, plot)
         plotHistory(pH)
       })
       
       observe({
+
         pH <- plotHistory()
         mPRM$set.plot_history(pH)
 
@@ -999,7 +998,6 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
                             class="fontColor-error",
                             style="font-weight:bold;"
         )
-        
         
         cSummary(df)
         cColor(ret$Color_coding)
@@ -1108,10 +1106,11 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
         
         isolate({
           if(is.null(sIndexes) || length(sIndexes)==0){
+   
             output$summaryPrediction <- renderDT(NULL)
-            output$summaryPredictionPlaceholder <- renderUI(tags$div(style="margin:10px;","Select at least one row in the upper table.."))
+            output$summaryPredictionPlaceholder <- renderUI(tags$div(style="margin:10px;","Select at least one row in the upper table."))
             output$densityPredictionPlot <- renderPlot(NULL)
-            output$distPredictionPlotPlaceholder <- renderUI(tags$div(style="margin:10px;","Select at least one row in the upper table.."))
+            output$distPredictionPlotPlaceholder <- renderUI(tags$div(style="margin:10px;","Select at least one row in the upper table."))
             output$differencePredictionPlot <- renderPlot(NULL)
             output$differencePrediction <- renderDT(NULL)
             output$differencePredictionPlaceholder <- renderUI(tags$div(style="margin:10px;","Select two(!) rows in the upper table."))
@@ -1121,8 +1120,8 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
             cPredictionTable(NULL)
             cPredictionDiffPlot(NULL)
             cPredictionDiffTable(NULL)
-            cSummary(NULL)
-            cColor(NULL)
+            # cSummary(NULL)
+            # cColor(NULL)
           }else{
             
             addCssClass("reportPrediction","btn-primary")
@@ -1150,7 +1149,7 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
 
               tmp <- data.frame(plot$index, interval$lower,
                                 interval$center, interval$upper, 
-                                paste0(tags$div(HTML("&#9724;"),
+                                paste0(tags$div(HTML("█"),
                                                 style=paste0("color:",plot$color,";"))))
 
               
@@ -1189,6 +1188,7 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
                                          columnDefs = list(list(className = 'dt-center', targets = "_all")))) %>%
               formatStyle(colnames(summary), lineHeight="70%")
           
+
             #global for report
             cPredictionTable(dt_summary)
             output$summaryPrediction <- renderDT(dt_summary)
@@ -1240,7 +1240,7 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
                 names(summaryTable) <- summaryTable_header
                 interval <- c()
                 if(tolower(hdiType) == "hdi"){
-                  interval <- hdi(mean_diff, ci=hdiRange)
+                  interval <- bayestestR::hdi(mean_diff, ci=hdiRange)
                 }else{
                   interval <- eti(mean_diff, ci=hdiRange)
                 }
@@ -1405,12 +1405,7 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
           ui <- tags$div(style="font-weight:bold; margin: 5px 0px 5px 12px; word-wrap: break-word;",
                          uiText)
         }
-        # }else{
-        #   uiText <- paste0("By including the global variance it is not possible to have a single effect distribution, ",
-        #                    "but a set of overlapping values of each distriubtion pair.")
-        # }
 
-        
 
         table <- cPredictionDiffTable()
         plot <- cPredictionDiffPlot()
@@ -1419,8 +1414,10 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
         inputName <- str_replace_all(inputName, " ", "_")
         inputName <- paste0(inputName,"_",plot_prediction_distribution_counter)
         
+
         #value table
         cSu <- cSummary()
+        if(is.null(cSu)) browser()
         cSu <- cSu[cSu$index %in% selectedIndexes(),1:(dim(cSu)[2]-2)]
         cnames <- colnames(cSu)
         valueTable <- datatable(cSu, rownames=F, escape=F, colnames=cnames,
@@ -1441,7 +1438,8 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
         latex <- modelPredictionDifferenceItem(summaryTable = table$x$data, valueTable = cSu, 
                                      color = cColor(),
                                      postType=postType, hdiType=hdiType, hdiRange=hdiRange, 
-                                     plotId=inputName, plot=plot)
+                                     plotId=paste0("prediction_distribution_diff_", inputName), 
+                                     plot=plot)
         
         
         #Add formula element to report progress

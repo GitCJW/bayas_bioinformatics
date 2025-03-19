@@ -57,7 +57,7 @@ planning_creatingData_page <- function(){
                                      actionLink("planningBrushingRadiusHint", label="", icon("question-circle"), 
                                                 class = "fontColor-primary",
                                                 style="font-size:15px;float:inline-end;padding-top:9px;")
-
+                                     
                                      ),
                               column(8,
                                 fluidRow(
@@ -66,8 +66,6 @@ planning_creatingData_page <- function(){
                                  column(5,sliderInput("planningBrushingRadius2", NULL, value=10, min=1, max=100,step=1), style="padding-left:0px;"))
                                 )
                               ),
-                                     # column(4,sliderInput("planningBrushingRadius", NULL, value=10, min=1, max=100,step=1)),
-                                     # column(4,sliderInput("planningBrushingRadius2", NULL, value=10, min=1, max=100,step=1))),
                             
                             fluidRow(column(4,style="padding-top:7px;",tags$label(class="control-label", "Show fraction", style="padding-top:10px;")),
                                      column(8,sliderInput("planningBrushingFraction", NULL, value=1, min=0.01, max=1,step=0.01))),
@@ -101,6 +99,12 @@ planning_creatingData_page <- function(){
                                      column(4,style="padding-left:5px;padding-right:15px;"))
                             ),
             
+            #TODO replace
+            # bsCollapsePanel(
+            #   "Visualize data", 
+            #   value="planningCollapsePanelVisualizeData", 
+            #   tags$div()
+            #   )
             )
       ),
       
@@ -146,19 +150,6 @@ planning_creatingData_page <- function(){
                    tabPanel("Brushing data",
                             plotOutput(outputId  = "planningBruhsingPlot", click = "planningBruhsingPlotClick", 
                                        hover=hoverOpts("planningBruhsingPlotHover",delay=25)), 
-                                       # brush=brushOpts("planningBruhsingPlotBrush",resetOnNew=T,delayType="debounce",direction="xy")),
-                            # tags$div(fluidRow(
-                            #   column(1,tags$label(class="control-label", "Y-axis", style="padding-top:8px;")),
-                            #   column(2,numericInput("planningPlotYAxisLimitsMin",label=NULL, value=c(-10)), style="margin-bottom:-15px;"),
-                            #   column(2,numericInput("planningPlotYAxisLimitsMax",label=NULL, value=c(10)), style="margin-bottom:-15px;"),
-                            #   column(1,offset=2,tags$label(class="control-label", "X-axis", style="padding-top:8px;")),
-                            #   column(2,numericInput("planningPlotXAxisLimitsMin",label=NULL, value=c(-10)), style="margin-bottom:-15px;"),
-                            #   column(2,numericInput("planningPlotXAxisLimitsMax",label=NULL, value=c(10)), style="margin-bottom:-15px;")
-                            # ),
-                            # fluidRow(
-                            #   column(4,offset=1,selectInput("planningPlotYAxisLimitsCat",label=NULL, choices=c(),multiple=T), style="margin-bottom:-15px;"),
-                            #   column(4,offset=2,selectInput("planningPlotYAxisLimitsCat",label=NULL, choices=c(),multiple=T), style="margin-bottom:-15px;"),
-                            # ),
                             fluidRow(
                               column(1,tags$label(class="control-label", "Y-axis", style="padding-top:8px;")),
                               column(4,uiOutput("planningPlotYAxisLimitsUI")),

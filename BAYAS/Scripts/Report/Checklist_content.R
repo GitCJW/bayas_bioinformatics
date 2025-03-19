@@ -82,8 +82,7 @@ get_checklist_content <- function(){
   tmp <- list()
   tmp$header <- "E7. Marginal posteriors"
   tmp$text <- paste0("Marignal posteriors are quantifications of the model that ",
-                     "are can be used to show effects. ",
-                     "This report item is part of the 'recommended items'.")
+                     "are can be used to show effects. ")
   ret$evaluation[[7]] <- tmp
   
   

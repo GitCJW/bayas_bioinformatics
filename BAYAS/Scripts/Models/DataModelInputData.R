@@ -16,8 +16,7 @@ DataModelInputData <- R6Class(
     tmpDataPath = NULL,
     
     
-    
-    #(Unique) path of uploaded/used data 
+    #(Not necessarily unique) path of uploaded/used data 
     #Will be passed to pDIM
     currentDataPath = NULL,
 
@@ -152,7 +151,7 @@ DataModelInputData <- R6Class(
       if(asIt){
         private$longFormat <- longFormat
       }else{
-        private$longFormat <- self$cleanInputData(longFormat)
+        private$longFormat <- self$cleanInputData(longFormat, decSep=private$decSep)
       }
       if(!silent) self$triggerReactiveValue("longFormat")
     },
@@ -216,8 +215,8 @@ DataModelInputData <- R6Class(
     },
     
     ## static
-    cleanInputData = function(x, allowOnlyComplete = F){
-  
+    cleanInputData = function(x, allowOnlyComplete = F, decSep){
+      if(global_browser) browser()
       colnames(x) <- gsub("[[:space:]]", "_", colnames(x))
       
       #remove columns with just one value
@@ -234,11 +233,16 @@ DataModelInputData <- R6Class(
       }
       
       #if every non-empty row is parsable to numeric --> as.numeric
+      #Also considering the chosen cell separator
       for(i in seq_len(dim(x)[2])){
-        if(all(!is.na(as.numeric(x[str_trim(x[,i])!="",i])))){
-          rep <- rep(NaN, length(x[,i]))
-          rep[str_trim(x[,i])!=""] <- as.numeric(x[str_trim(x[,i])!="",i])
-          x[,i] <- rep
+        tmp <- x[,i]
+        tmp[is.na(str_trim(tmp))] <- NaN
+        tmp[str_trim(tmp)==""] <- NaN
+        
+        if(decSep == "comma") tmp <- str_replace_all(tmp, ",", ".")
+        tmpNumeric <- as.numeric(tmp)
+        if(all(!is.na(tmpNumeric) | is.nan(tmpNumeric))){
+          x[,i] <- tmpNumeric
         }
       }
       

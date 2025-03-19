@@ -56,6 +56,15 @@ tooltip <- list(
   
   removeCPIDM = paste0("<p>Remove the current selected fitted model. To reduce memory; just in case you will download the session.</p>"),
   
+  
+  checklistGeneralInformation = paste0(
+    tags$div(tags$p("Some worthwhile information about the data and model."),
+             tags$ul(
+               tags$li(
+                 "Missing values: Your data contains missing values. Only complete cases are used for the fit."
+               )
+               )
+             )),
   checklistESS = paste0("<div>",
                        "<p>Roughly speaking, the effective sample size (ESS) of a quantity of interest captures how many independent draws contain the same amount of information as the dependent sample obtained by the MCMC algorithm.</p>",
                        "<p>The ESS for each single parameter should be at least greater than 100 times number of chains. Bulk ESS are more severe than Tail ESS.</p>", 
@@ -92,7 +101,8 @@ tooltip <- list(
                              "</ul></div>"),
   checklistPPC = paste0("<div>",
                         "<p>Posterior predictive checks (PPC) are used to compare simulated data based on the fitted model to the observed (your) data. If the replicate curves matches the thick one, the model is able to reproduce the data.</p>",
-                        "<p>Use the PPC (upper right) to look for systematic discrepancies between your data and the replicas. Bigger discrepancies will also highlighted with red overlays.</p>",
+                        "<p>Use the PPC (upper right) to look for systematic discrepancies between your data and the replicas. Bigger discrepancies will also highlighted with orange to red overlays.</p>",
+                        "<p>(Discrepancies are calculated using the z-score between the predictions and the actual data. Z-scores above 1.5 trigger warnings, while those above 2 indicate errors.)</p>",
                         "<p>Systematic discrepancies occur mostly due to: </p>",
                         "<ul>",
                         "<li>Lack of information: Consider, if possible, another predictor.</li>",
@@ -127,7 +137,7 @@ tooltip <- list(
   modelPredictionPlotType = paste0("<p>The shown plot type. Density plots are useful to examine the overlapping area, whereas violin plots are more clear.</p>"),
   modelPredictionFullPosterior = paste0("<p>Using the \"Full\" posterior means to include also the global variance. Small effects related to the global variance  may be negligible. Therefore it is also good to examine effects including the global variance.</p>"),
   modelPredictionCI = paste0("<p>The Highest Density Interval (HDI) maximizes the density of a certain CI, whereas the Equal-Tailed Interval (ETI) assigns equal density to both tails. For symmetric and steady distributions both methods act identical.</p>"),
-  modelPredictionCIValue = paste0("<p>Mostly used are CI of 0.9, 0.89 an 0.95.</p>"),
+  modelPredictionCIValue = paste0("<p>Mostly used are CI of 0.9, 0.89 and 0.95.</p>"),
   
   modelPredictionOverlapGlobal = paste0("<p>It is not possible to show a single distribution of the effect when including the global variance.</p>",
                                         "<p>The plot shows the distribution of overlapping values of each effect distribution pair. A value of 0 means a clear effects, while 1 means no effects.</p>",

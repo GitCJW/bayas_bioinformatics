@@ -1,3 +1,5 @@
+library(BH)
+
 library(rstan)
 library(rstanarm)
 library(brms)
@@ -9,9 +11,9 @@ library(shinyjs)
 library(shinyWidgets)
 library(shinyTree)
 library(shinycssloaders)
-library(shinyalert)
+library(shinyalert) 
 library(shinyFeedback) 
-library(shinybusy)
+library(shinybusy) 
 library(bslib)
 
 library(DT)
@@ -24,7 +26,7 @@ library(tidyr)
 library(bayesplot)
 library(ggplot2)
 
-library(LaplacesDemon) 
+library(LaplacesDemon) # for three parameter student t, halfnormal, etc.
 library(png)
 library(ggExtra)
 library(data.table)
@@ -48,11 +50,11 @@ library(ggpubr)
 library(withr)
 
 library(shinybayas)
-library(ssdbayas)
+library(bayesianssd)
 
+options(future.globals.maxSize=4*1024**3) #4GB
 
 BAYAS_COLORS <<- NULL
-
 
 # Source files
 s <- list.files(getwd(), pattern = ".R$", recursive = T)
@@ -81,12 +83,14 @@ askForLeaving <- !localUse
 # set.seed(1)
 set.seed(drawRandomSeed())
 
+global_browser <<- F
+global_browser2 <<- F
 
 # Enable multiprocessing
 ifelse(localUse,plan(sequential),plan(multisession, workers=2))
 
 
-# Load profiler
+# Load profiler (reactlog::reactlog_enable() -> Strg+F3)
 useProfVis <<- F
 if(localUse && useProfVis) library(profvis)
 
@@ -99,7 +103,7 @@ if(!localUse){
 } 
 
 #Logger
-flog.threshold(INFO) #DEBUG ,INFO
+flog.threshold(INFO) #DEBUG, INFO
 flog.layout(layout.format('[~l] ~m'))
 
 # Change maximum upload size to 1024mb
@@ -122,7 +126,6 @@ css_folder <<- paste0(dirname(getwd()),"/CSS")
 js_folder <<- paste0(dirname(getwd()),"/Javascript")
 report_folder <<- paste0(dirname(getwd()),"/Report")
 planning_model_folder <<- paste0(dirname(getwd()),"/Planning_models")
-stanModels_folder <<- paste0(dirname(getwd()),"/StanModels")
 pw_folder <<- paste0(dirname(getwd()),"/PW")
 data_folder <<- paste0(dirname(getwd()),"/Data")
 data_user_folder <<- paste0(dirname(getwd()),"/Data_user")
@@ -134,7 +137,6 @@ shiny::addResourcePath("CSS",css_folder)
 shiny::addResourcePath("JS",js_folder)
 shiny::addResourcePath("Report",report_folder)
 shiny::addResourcePath("Planning_models",planning_model_folder)
-shiny::addResourcePath("StanModels",stanModels_folder)
 shiny::addResourcePath("PW",pw_folder)
 shiny::addResourcePath("Data",data_folder)
 shiny::addResourcePath("Data_user",data_user_folder)
@@ -183,12 +185,12 @@ BAYAS_COLORS <<- bayasColors(GLOBAL_THEME)
 #set bayesplot theme
 setBayasBayesplotColors(GLOBAL_THEME)
 
-theme_set(theme_bw())
+
+theme_set(theme_bw(base_family="helvetica"))
 
 
 ui <- bslib::page(
   theme = bslib::bs_theme(version = 5, bootswatch=GLOBAL_THEME),
-  # theme = bslib::bs_theme(version = 3, bootswatch=theme),
   style = "height:auto; padding:0px; gap:0px;",
   
   tagList(

@@ -1,166 +1,3 @@
-# sex <- rep(c("male","female"),each=1500)
-# sex_num <- rep(c(0.1,0.6),each=1500)
-# 
-# y <- rnorm(3000,sex_num,1)
-# data <- data.frame(y=y,
-#                    sex=sex)
-# rstanarmfit1 <- rstanarm::stan_glm(y~1,data=data)
-# 
-# data$y <- rnbinom(3000, mu=100, size=10)
-# rstan <- rstanarm::stan_glm(formula = "y~1", data=data, family = neg_binomial_2("log"))
-#
-# pe <- posterior_epred(rstan)
-# pp <- posterior_predict(rstan)
-
-# rstanarmfit2 <- rstanarm::stan_glm(y~1+sex,data=data)
-# 
-# p1 <- rstanarm::posterior_epred(rstanarmfit1, newdata=NULL)[,1, drop=F]
-# p2 <- rstanarm::posterior_epred(rstanarmfit2, newdata=data.frame(sex="male"))
-
-# p <- pp_check(rstanarmfit1)
-# ggsave("R1.jpg",p,device="jpeg",path="E:/Dateien/Arbeit/Bioinf/BAYAS/BAYSIS/BAYSIS/Images/Report",
-#        units="px", width=100, height=100, dpi=10)
-
-# 
-# s1 <- rstanarmfit1$stanfit
-# ex1 <- extract(s1)
-# s2 <- rstanarmfit2$stanfit
-# ex2 <- extract(s2)
-# diff <- ex1$beta
-# diff2 <- ex2$beta[,2] - ex2$beta[,1]
-# diff2a <- ex2$beta[,2] - sample(ex2$beta[,1])
-# 
-# range(diff)
-# range(diff2)
-# range(diff2a)
-# plot(density(diff))
-# plot(density(diff2))
-
-
-# sex <- rep(c("male","female"),each=150)
-# sex_num <- rep(c(0.1,0.5),each=150)
-# id <- rep(c("1","2","3"),c(50,50,50))
-# id_num <- rep(c(1,2,3),c(50,50,50))
-# id_num_inter <- rep(c(2,0,1),c(50,50,50))
-# size <- rlnorm(300,5,0.1)
-# weight <- rlnorm(300,4.3,0.15)
-# total <- rpois(300,50)
-# # y <- rnorm(300,sex_num+id_num_inter+size*0.05+weight*0.1+0.2*size*weight,1)
-# y <- rnorm(300,sex_num+0.1*weight,1)
-# # y <- rbinom(300,total,plogis(sex_num+0.2*(weight-mean(weight))))
-# # y <- log(y)
-# data <- data.frame(y=y,
-#                    sex=sex,
-#                    id=id,
-#                    weight=weight-mean(weight),
-#                    size=size,
-#                    total=total)
-# # # rstanarmfit <- rstanarm::stan_glm(y~sex*id+weight*size + sex:weight,data=data)
-# # # rstanarmfit <- rstanarm::stan_glm(y~sex*id,data=data)
-# # # rstanarmfit <- rstanarm::stan_glm(y~sex,data=data)
-# # # rstanarmfit <- rstanarm::stan_glm(y~sex+id:weight,data=data)
-# # # rstanarmfit <- rstanarm::stan_glm(y~sex,data=data)
-# rstanarmfit <- rstanarm::stan_glm(y~-1+weight+sex,data=data, iter=2000, warmup=200)
-# pairs(rstanarmfit, condition="accept_stat__")
-# # # rstanarmfit <- rstanarm::stan_glm(cbind(y,total-y)~-1+sex+sex:weight,data=data, family=binomial())
-# # # pp_check(rstanarmfit)
-# #
-# #Make predictions
-# data_m <- data.frame(sex="male",
-#                    weight=mean(weight))
-# data_f <- data.frame(sex="female",
-#                    weight=mean(weight))
-# 
-# #Not deterministic
-# pp_male1 <- rstanarm::posterior_predict(rstanarmfit, newdata=data_m)
-# pp_male2 <- rstanarm::posterior_predict(rstanarmfit, newdata=data_m)
-# plot(density(pp_male1)) + lines(density(pp_male2))
-# 
-# pp_female1 <- rstanarm::posterior_predict(rstanarmfit, newdata=data_f)
-# pp_female2 <- rstanarm::posterior_predict(rstanarmfit, newdata=data_f)
-# plot(density(pp_female1)) + lines(density(pp_female2))
-# 
-# 
-# 
-# 
-# pp_lin_m <- c(rstanarm::posterior_epred(rstanarmfit, newdata=data_m))
-# pp_lin_f <- c(rstanarm::posterior_epred(rstanarmfit, newdata=data_f))
-# post <- as.array(rstanarmfit$stanfit)
-# sigma <- c(post[,,4])
-# 
-# #Full posterior, mean of all distributions (deterministic)
-# ret_dens_m <- prediction_dens_norm(pp_lin_m,sigma)
-# ret_dens_f <- prediction_dens_norm(pp_lin_f,sigma)
-# plot(ret_dens_m$density_norm~ret_dens_m$x, type="l", ylab="Density", xlab="Predicted value", xlim=c(11,23), main="male vs female") +
-# lines(ret_dens_f$density_norm~ret_dens_f$x, type="l", ylab="Density", xlab="Predicted value", col="red") #+
-#   # lines(density(rstanarm::posterior_predict(rstanarmfit, newdata=data_m)))
-#   # lines(density(rnorm(1e6, mean(pp_lin_m), mean(sigma))))
-# 
-# 
-# #Overlap of the mean distributions
-# mu <- c(pp_lin_m,pp_lin_f)
-# vec1 <- prediction_dens_norm(pp_lin_m,sigma, seq=seq(min(mu)-3*max(sigma),max(mu)+3*max(sigma),length=512))
-# vec2 <- prediction_dens_norm(pp_lin_f,sigma, seq=seq(min(mu)-3*max(sigma),max(mu)+3*max(sigma),length=512))
-# overlap(vec1$density,vec2$density)
-# 
-# 
-# #Full posterior 'diff' (deterministic)
-# #calculate the overlap for each draw (4000)
-# full_diff <- full_dens_diff_norm(pp_lin_m,pp_lin_f,sigma,1e3)
-# plot(density(full_diff), main="overlap")
-# plot(density(1-full_diff), main="1-overlap") #Probability of getting a higher value for females than males.
-# 
-# #Mean diff: difference of the two expected predictors (deterministic)
-# sex_diff <- average_diff(pp_lin_f,pp_lin_m)
-# plot(density(sex_diff))
-# 
-# ret_dens_m_log <- ret_dens_m
-# ret_dens_f_log <- ret_dens_f
-# ret_dens_m_log$x <- exp(ret_dens_m_log$x)
-# ret_dens_f_log$x <- exp(ret_dens_f_log$x)
-# data <- list(a=ret_dens_m_log, b=ret_dens_f_log)
-# data <- list(a=ret_dens_m, b=ret_dens_f)
-# colors <- c("blue","red")
-# x_axis <- "test"
-# method <- "eti"
-# plotSeveralAreas(data, x_axis=x_axis, method=method, colors=colors)
-
-
-
-
-
-
-
-
-# N <- 1e4
-# mu1 <- rnorm(N,3,0.1)
-# mu2 <- rnorm(N,5,0.1)
-# sigma <- rnorm(N,2,0.1)
-# overlap_vector <- full_dens_diff_norm(mu1,mu2,sigma)
-# hist(overlap_vector, breaks=50)
-# mean(overlap_vector)
-# 
-# seq <- seq(min(mu1,mu2)-3*max(sigma), max(mu1,mu2)+3*max(sigma),length=2^9)
-# pd1 <- prediction_dens_norm(mu1, sigma, seq=seq)
-# pd2 <- prediction_dens_norm(mu2, sigma, seq=seq)
-# 
-# overlap(pd1, pd2)
-# 
-# 
-# ab <- seq(1,10,length=1000)
-# mu1 <- rnorm(1e3, 1, 10)
-# mu2 <- rnorm(1e3, 1.1, 10)
-# 
-# # mu1 <- mu1[order(mu1)] 
-# # mu2 <- mu2[order(mu2)] 
-# 
-# mu1 <- rnorm(1e3, 1, 10)
-# mu2 <- mu1 + rnorm(1e3,0,0.1)
-# 
-# t.test(mu1,mu2)
-# t.test(mu1,mu2, paired=T)
-
-
 
 
 average_diff <- function(a,b){
@@ -262,17 +99,7 @@ mp_effects <- function(rstanarmBrmsFit, catVar=NULL, numVar=NULL, numVal=NULL,
     fit_pred_numeric <- fit_pred[fit_pred=="numeric"]
     fit_pred_non_numeric <- fit_pred[fit_pred!="numeric"]
   }
-  
-  # class(rstanarmfit) <- class(rstanarmfit)[!class(rstanarmfit) %in% "betareg"]
-  # post <- as.array(rstanarmfit)
-  # names <- names(post[1,1,])
-  # names <- names[!names %in% c("mean_PPD","log-posterior")]
-  # fit_pred <- attr(rstanarmfit$terms,"dataClasses")
-  # fit_pred <- fit_pred[!names(fit_pred) %in% response]
-  # fit_pred <- fit_pred[!fit_pred %in% c("nmatrix.2")]
-  # fit_factors <- colnames(attr(rstanarmfit$terms,"factors"))
-  # fit_pred_non_numeric <- fit_pred[fit_pred %in% c("character","factor")]
-  # fit_pred_numeric <- fit_pred[fit_pred=="numeric"]
+
   
   data <- rstanarmBrmsFit$data
   
@@ -612,15 +439,7 @@ summarizeEffectsVerbal <- function(rstanarmBrmsFit, catVar=NULL, numVar=NULL,
   }
   
   ret <- list()
-  # post <- as.array(rstanarmfit)
-  # names <- names(post[1,1,])
-  # names <- names[!names %in% c("mean_PPD","log-posterior")]
-  # fit_pred <- attr(rstanarmfit$terms,"dataClasses")
-  # fit_pred <- fit_pred[!names(fit_pred) %in% response]
-  # fit_factors <- colnames(attr(rstanarmfit$terms,"factors"))
-  # fit_pred_non_numeric <- fit_pred[fit_pred %in% c("character","factor")]
-  # fit_pred_numeric <- fit_pred[fit_pred=="numeric"]
-  
+
   data <- rstanarmBrmsFit$data
   
   # Group vars: are there interaction?
@@ -712,7 +531,7 @@ summarizeEffectsVerbal <- function(rstanarmBrmsFit, catVar=NULL, numVar=NULL,
                             "The pi value gives probability of the effect having a certain direction. ",
                             "A pi of 0 means a fifty-fifty probability of a positive or negative effect. ",
                             "A pi of 1 means that the effect clearly lies in one direction. ",
-                            "Select mean, median, CI_low, CI_high to show the corresponding value of the effect.",
+                            "Select mean, median, CI_low, CI_high to show the corresponding value of the effect. ",
                             "Effects are shown as: (column element - row element). ")))
   ret <- list.append(ret, txt)
   
@@ -790,9 +609,9 @@ eff_diff <- function(a,b,type, hdiType="hdi", ci=1){
   ci_interval <- NULL
   if(type=="min" || type=="max"){
     if(hdiType=="hdi"){
-      ci_interval <- hdi(diff, ci)
+      ci_interval <- bayestestR::hdi(diff, ci)
     }else{
-      ci_interval <- eti(diff, ci)
+      ci_interval <- bayestestR::eti(diff, ci)
     }
   }
   if(type=="pi"){
@@ -881,14 +700,6 @@ dependsOnNumeric <- function(rstanarmBrmsFit, groupVars, response){
     fit_pred_numeric <- fit_pred[fit_pred=="numeric"]
   }
   
-  # post <- as.array(rstanarmfit)
-  # names <- names(post[1,1,])
-  # names <- names[!names %in% c("mean_PPD","log-posterior")]
-  # fit_pred <- attr(rstanarmfit$terms,"dataClasses")
-  # fit_pred <- fit_pred[!names(fit_pred) %in% response]
-  # fit_factors <- colnames(attr(rstanarmfit$terms,"factors"))
-  # fit_pred_non_numeric <- fit_pred[fit_pred %in% c("character","factor")]
-  # fit_pred_numeric <- fit_pred[fit_pred=="numeric"]
   
   nums <- c()
   for(terms in fit_factors){
@@ -908,12 +719,6 @@ dependsOnNumeric <- function(rstanarmBrmsFit, groupVars, response){
 isNumericPossible <- function(rstanarmBrmsFit, catVar=NULL, numVar=NULL, 
                               numVal=NULL, response){
 
-
-  # rstanarmBrmsFit <- brmsFit
-  # rstanarmBrmsFit <- rstanarmFit
-  # numVar <- "weight"
-  # numVar <- NULL
-  # response <- "y"
   
   if("brmsfit" %in% class(rstanarmBrmsFit)){
     post <- as.array(rstanarmBrmsFit)

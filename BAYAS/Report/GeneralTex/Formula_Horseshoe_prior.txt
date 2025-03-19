@@ -1,0 +1,12 @@
+
+This formula contains a horseshoe prior as a simplified one-liner, $\text{Horseshoe}(\nu, \nu_\tau, \tau_0, \nu_s, s_0)$ meaning:
+
+\begin{equation}
+	\begin{split}
+		\lambda_K &\sim \text{half-t}(\nu, 0, 1)\\ 
+		\tau &\sim \text{half-t}(\nu_\tau, 0, \tau_0)\\ 
+		c^2 &\sim \text{inv\_gamma}\left(\frac{\nu_s}{2}, \frac{\nu_s}{2}\right)\\ 
+		sdb_K &= \tau \cdot \sqrt{\frac{\lambda_K^2 \cdot s_0^2 \cdot c^2}{s_0^2 \cdot c^2 + \tau^2 \cdot \lambda_K^2}} \\ 
+		b_K &\sim \text{Normal}(0, sdb_K)\\
+	\end{split}
+\end{equation}

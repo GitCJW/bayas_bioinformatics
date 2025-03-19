@@ -7,7 +7,8 @@ distributionEnum <- function(){
   list(Normal = "Normal", Lognormal = "Lognormal", Exponential = "Exponential", Binomial = "Binomial", 
        Gamma = "Gamma", StudentT = "StudentT", Beta = "Beta", Cauchy = "Cauchy",
        HalfStudentT = "HalfStudentT", HalfNormal = "HalfNormal", HalfCauchy = "HalfCauchy",
-       Poisson = "Poisson", NegBinom = "NegBinom", FixedValues = "Fixed values", FixedBinomialN = "FixedBinomialN")
+       Poisson = "Poisson", NegBinom = "NegBinom", FixedValues = "Fixed values", FixedBinomialN = "FixedBinomialN",
+       Horseshoe = "Horseshoe")
 }
 
 distDisplayName <- function(name=NULL){
@@ -30,10 +31,10 @@ FactoryDistribution <- function(dist, name, display_name=NULL, description=NULL,
     return(NormalDistribution$new(name, dist, display_name, description, adjustable, is.vector))
   }else if(dist == dEnum$Lognormal){
     return(LognormalDistribution$new(name, dist, display_name=ifelse(is.null(display_name),"Log-normal distribution",display_name), 
-                                       description=ifelse(is.null(description),"The Log-normal distribution is strictly positive.",description), adjustable, is.vector))
+                                       description=description, adjustable, is.vector))
   }else if(dist == dEnum$Exponential){
     return(ExponentialDistribution$new(name, dist, display_name=ifelse(is.null(display_name),"Exponential distribution",display_name), 
-                                       description=ifelse(is.null(description),"The exponential distribution is strictly positive.",description), adjustable, is.vector))
+                                       description=description, adjustable, is.vector))
   }else if(dist == dEnum$Binomial){
     if(adjustable) { 
       malfunction_report(code=malfunctionCode()$distributions, msg="The Binomial is not adjustable",
@@ -41,41 +42,44 @@ FactoryDistribution <- function(dist, name, display_name=NULL, description=NULL,
       stop("The Binomial is not adjustable")
     }
     return(BinomialDistribution$new(name, dist, display_name=ifelse(is.null(display_name),"Binomial distribution",display_name), 
-                                       description=ifelse(is.null(description),"The Binomial distribution is used for non negative integers.",description), F, is.vector))
+                                       description=description, F, is.vector))
   }else if(dist == dEnum$StudentT){
     return(StudentTDistribution$new(name, dist, display_name=ifelse(is.null(display_name),"Student t-distribution",display_name), 
-                                    description=ifelse(is.null(description),"The Student t-distribution covers a range from -Inf to Inf.",description), adjustable, is.vector))
+                                    description=description, adjustable, is.vector))
   }else if(dist == dEnum$HalfStudentT){
     return(HalfStudentTDistribution$new(name, dist, display_name=ifelse(is.null(display_name),"Half Student t-distribution",display_name), 
-                                    description=ifelse(is.null(description),"The Half Student t-distribution covers a range from 0 to Inf.",description), adjustable, is.vector))
+                                    description=description, adjustable, is.vector))
   }else if(dist == dEnum$Cauchy){
     return(CauchyDistribution$new(name, dist, display_name=ifelse(is.null(display_name),"Cauchy distribution",display_name), 
-                                    description=ifelse(is.null(description),"The Cauchy distribution covers a range from -Inf to Inf.",description), adjustable, is.vector))
+                                    description=description, adjustable, is.vector))
   }else if(dist == dEnum$Gamma){
     return(GammaDistribution$new(name, dist, display_name=ifelse(is.null(display_name),"Gamma distribution",display_name), 
-                                      description=ifelse(is.null(description),"The Gamma distribution covers a range from 0 to Inf.",description), adjustable, is.vector))
+                                      description=description, adjustable, is.vector))
   }else if(dist == dEnum$HalfNormal){
     return(HalfNormalDistribution$new(name, dist, display_name=ifelse(is.null(display_name),"Half-Normal distribution",display_name), 
-                                  description=ifelse(is.null(description),"The half-Normal distribution covers a range from 0 (&mu;) to Inf.",description), adjustable, is.vector))
+                                  description=description, adjustable, is.vector))
   }else if(dist == dEnum$Poisson){
     return(PoissonDistribution$new(name, dist, display_name=ifelse(is.null(display_name),"Poisson distribution",display_name), 
-                                      description=ifelse(is.null(description),"The Poisson distribution covers a range from 0 to Inf.",description), F, is.vector))
+                                      description=description, F, is.vector))
   }else if(dist == dEnum$NegBinom){
     return(NegBinomDistribution$new(name, dist, display_name=ifelse(is.null(display_name),"Negative-binomial distribution",display_name), 
-                                   description=ifelse(is.null(description),"The Negative-binomial distribution covers a range from 0 to Inf.",description), F, is.vector))
+                                   description=description, F, is.vector))
   }else if(dist == dEnum$Beta){
     return(BetaDistribution$new(name, dist, display_name=ifelse(is.null(display_name),"Beta distribution",display_name), 
-                                    description=ifelse(is.null(description),"The Beta distribution covers a range from >0 to <1",description), F, is.vector))
+                                    description=description, F, is.vector))
   }else if(dist == dEnum$HalfCauchy){
     return(HalfCauchyDistribution$new(name, dist, display_name=ifelse(is.null(display_name),"Half-cauchy distribution",display_name), 
-                                description=ifelse(is.null(description),"The Half-cauchy distribution covers a range from 0 to Inf",description), adjustable, is.vector))
+                                description=description, adjustable, is.vector))
+  }else if(dist == dEnum$Horseshoe){
+    return(HorseshoeDistribution$new(name, dist, display_name=ifelse(is.null(display_name),"HorseshoeDistribution distribution",display_name), 
+                                      description=description, F, is.vector))
   }else if(dist == dEnum$FixedValues){
     return(FixedValues$new(name, dist, display_name=ifelse(is.null(display_name),"Fixed values",display_name), 
-                                      description=ifelse(is.null(description),"Use single or vectorized fixed data.",description), F, is.vector,
+                                      description=description, F, is.vector,
                            paraProp=paraProp))
   }else if(dist == dEnum$FixedBinomialN){
     return(FixedBinomialN$new(name, dist, display_name=ifelse(is.null(display_name),"Fixed values",display_name), 
-                           description=ifelse(is.null(description),"Use single or vectorized fixed data.",description), F, is.vector,
+                           description=description, F, is.vector,
                            paraProp=paraProp))
   }else{
     malfunction_report(code=malfunctionCode()$distributions, msg=paste0("Non valid distribution: ", dist),
@@ -113,6 +117,7 @@ AbstractDistribution <- R6Class(
     is.vector = F, #if this distribution is part of a vector. Just for display issues
     vectorId = "", #if this distribution is part of a vector, this is unique name within this vector
     paraProp = NULL, # Just needed for the fixedValues "distribution"
+    singleParameterization = F, # Whether there is only a single prior for a (sub)group of coefficients (e.g. for horseshoe prior) 
     
     
     
@@ -144,15 +149,11 @@ AbstractDistribution <- R6Class(
       }else{
         for(i in self$auxParameter){
           if(i$name == name){
-            # if(i$min_val <= value && i$max_val >= value){
               if(tmpValue){
                 i$tmp_value <- value
               }else{
                 i$value <- value
               }
-            # }else{
-            #   stop(paste0(value ," is not in range of ", i$name))
-            # } 
           }
         }
       }
@@ -163,7 +164,6 @@ AbstractDistribution <- R6Class(
         if(i$name == name){
           if(tmpValue){
             if(is.na(i$tmp_value) || is.null(i$tmp_value)){ 
-              # warning("tmp_value is na. Returning value instead.")
               return(i$value)
             }else{
               return(i$tmp_value)
@@ -195,7 +195,7 @@ AbstractDistribution <- R6Class(
     
     getPrior = function(brms=F){},
     
-    
+    #TODO: private!
     adjustedParameters = function(){},
     
     #Returns a named list
@@ -232,14 +232,13 @@ AbstractDistribution <- R6Class(
       self$dataX <- x
     },
     
-    setDataAndProperties = function(x=NULL, dataModel, para){
+    setDataAndProperties = function(x=NULL, perIterationDataModel, para){
 
-      
-      dMID <- dataModel$getDataModelInputData()
+      dMID <- perIterationDataModel$getDataModelInputData()
       response <- dMID$getResponseVariable(onlyName = T)
       y <- dMID$getLongFormatVariable(response, completeCases=T)[[1]]
       
-      baysisModel <- dataModel$get.cPerIterationDataModel()$get.selected_BAYSIS_stan_model()
+      baysisModel <- perIterationDataModel$get.selected_BAYSIS_stan_model()
       y <- tryCatch({      
         baysisModel$transformResponse(y)
         },
@@ -257,10 +256,9 @@ AbstractDistribution <- R6Class(
       )
       pred_var <- para$getParentPredictor()$userVariable
       if(is.null(x) && !is.null(pred_var)){
-        # x <- dataModel$get.user_cleaned_input_data()[pred_var]
         x <- dMID$getLongFormatVariable(pred_var, completeCases=T)
       }
-      is.gaussian <- ifelse(dataModel$get.cPerIterationDataModel()$get.selected_BAYSIS_stan_model()$is.gaussian,T,F)
+      is.gaussian <- ifelse(perIterationDataModel$get.selected_BAYSIS_stan_model()$is.gaussian,T,F)
       is.regCoef <- ifelse(para$name == "RegCoef",T,F)
       is.intercept <- ifelse(para$name == "Intercept",T,F)
       
@@ -475,8 +473,11 @@ AbstractDistribution <- R6Class(
     }
   )
 )
+{
+NormalDistribution <- R6Class(
+  classname = "NormalDistribution",
+  inherit = AbstractDistribution,
 
-NormalDistribution <- R6Class(classname = "NormalDistribution", inherit = AbstractDistribution,
   public = list(
     dEnum=distributionEnum()$Normal,
     setInitVals = function(){
@@ -484,8 +485,13 @@ NormalDistribution <- R6Class(classname = "NormalDistribution", inherit = Abstra
         self$display_name <- "Normal distribution"
       }
       if(is.null(self$description)){
-        self$description <- "Normal distribution covers a range from -Inf to +Inf"
-      } 
+        self$description <- paste0(
+          "The normal distribution is a symmetric distribution characterized by its mean (μ) and standard deviation (σ). ",
+          "The mean μ determines the center of the distribution, while the standard deviation σ controls the spread—larger values of σ result in a wider, ",
+          "flatter curve, whereas smaller values lead to a narrower, steeper curve. ",
+          "The Normal distribution covers a range from -∞ to +∞"
+        )
+      }
     },
     setDefaultAuxParameter = function(){
       self$auxParameter[[1]] <- DistributionParameter$new(name = "mu", display_name="&mu;", description="The mean (location).", value=0, default_val=0,min_val=-Inf, max_val=Inf)
@@ -503,7 +509,6 @@ NormalDistribution <- R6Class(classname = "NormalDistribution", inherit = Abstra
       data <- data.frame(x=x,y=y)
       ggplot(data, aes(x=x,y=y)) + geom_line() + scale_y_continuous(breaks = NULL)
     },
-    # adjustedParameters = function(y, x=NULL, is.gaussian, is.regCoef, is.intercept){
     adjustedParameters = function(){
       x = self$dataX
       y = self$dataY
@@ -512,18 +517,17 @@ NormalDistribution <- R6Class(classname = "NormalDistribution", inherit = Abstra
       factor <- ifelse(self$is.gaussian,sd(y),1)
       #Intercept
       if(self$is.intercept){
-        res$mu <- ifelse(self$is.gaussian,mean(y),0)
+        # res$mu <- ifelse(self$is.gaussian,mean(y),0) #check: https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
+        res$mu <- 0
         res$sigma <- 2.5*factor
       }else if(self$is.regCoef){
         res$mu <- 0
         if(length(unique(x))==1){
           res$sigma <- 2.5*factor
-        # }else if(length(unique(x)) == 2){
-        #   res$sigma <- (2.5*factor)/(abs(unique(x)[2]-unique(x)[1]))
         }else{
-          res$sigma <- (2.5*factor)/sd(x)          
+          res$sigma <- (2.5*factor)/sd(x)
         }
-      }else{ #Auxiliary parameter e.g. sigma 
+      }else{ #Auxiliary parameter e.g. sigma
         if(self$is.gaussian){
           malfunction_report(code=malfunctionCode()$distributions, msg="Distribution.R --> A non regCoef or intercept have a normal prior in a gaussian GLM.",
                              type="error")
@@ -531,10 +535,8 @@ NormalDistribution <- R6Class(classname = "NormalDistribution", inherit = Abstra
         }else{
           res$mu <- 0
           res$sigma <- 1
-          # stop("Still empty. Distribution.R") #When will be a normal distribution used for an auxiliary parameter?
         }
       }
-      # print0("sigma: ", res$sigma)
       return(res)
     },
     getPrior = function(brms=F){
@@ -550,7 +552,7 @@ NormalDistribution <- R6Class(classname = "NormalDistribution", inherit = Abstra
       tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
       if(self$is.vector){
         return(paste0(tags$span("Normal", class="formulaDistribution"),
-                      " ( ", "<b>&mu;",tags$sub(index) ,"</b> , <b>", "&sigma;", tags$sub(index),"</b> )"))      
+                      " ( ", "<b>&mu;",tags$sub(index) ,"</b> , <b>", "&sigma;", tags$sub(index),"</b> )"))
       }else{
         return(paste0(tags$span("Normal", class="formulaDistribution"),
                " ( ",tmp_mu," , ",tmp_sigma," )"))
@@ -584,110 +586,124 @@ NormalDistribution <- R6Class(classname = "NormalDistribution", inherit = Abstra
     }
   )
 )
+}
 
-LogNormalDistribution <- R6Class(classname = "LogNormalDistribution", inherit = AbstractDistribution,
-                                 public = list(
-                                   dEnum=distributionEnum()$Lognormal,
-                                   setInitVals = function(){
-                                     if(is.null(self$display_name)){
-                                       self$display_name <- "Lognormal distribution"
-                                     }
-                                     if(is.null(self$description)){
-                                       self$description <- "Lognormal distribution covers a range from >0 to +Inf"
-                                     } 
-                                   },
-                                   setDefaultAuxParameter = function(){
-                                     self$auxParameter[[1]] <- DistributionParameter$new(name = "mu", display_name="&mu;", description="The mean (location).", value=0, default_val=0,min_val=-Inf, max_val=Inf)
-                                     self$auxParameter[[2]] <- DistributionParameter$new(name = "sigma", display_name="&sigma;", description="The standard deviation.", value=2, default_val=2,min_val=greaterZero, max_val=Inf)
-                                   },
-                                   plotMe = function(values){ #1:mu, 2:sigma
-                                     tmpMu <- self$getValueOf("mu")
-                                     tmpSigma <- self$getValueOf("sigma")
-                                     if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpMu <- values[1]
-                                     if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpSigma <- values[2]
-                                     min <- qlnorm(0.01,tmpMu,tmpSigma)
-                                     max <- qlnorm(0.89,tmpMu,tmpSigma)
-                                     x <- seq(from=min, to=max, length=1000)
-                                     y <- dlnorm(x,tmpMu,tmpSigma)
-                                     data <- data.frame(x=x,y=y)
-                                     ggplot(data, aes(x=x,y=y)) + geom_line() + scale_x_continuous(trans = 'pseudo_log') + scale_y_continuous(breaks = NULL)
-                                   },
-                                   adjustedParameters = function(){
-                                     x = self$dataX
-                                     y = self$dataY
-                                     if(printDist) print("adjusted by lognormal")
-                                     res <- list(mu=NA,sigma=NA)
-                                     factor <- ifelse(self$is.gaussian,sd(y),1)
-                                     #Intercept
-                                     if(self$is.intercept){
-                                       res$mu <- 0
-                                       res$sigma <- 2*factor
-                                     }else if(self$is.regCoef){
-                                       res$mu <- 0
-                                       if(length(unique(x))==1){
-                                         res$sigma <- 1.5*factor
-                                       }else if(length(unique(x)) == 2){
-                                         res$sigma <- (1.5*factor)/(abs(unique(x)[2]-unique(x)[1]))
-                                       }else{
-                                         res$sigma <- (1.5*factor)/sd(x)          
-                                       }
-                                     }else{ #Auxiliary parameter e.g. sigma 
-                                       if(self$is.gaussian){
-                                         malfunction_report(code=malfunctionCode()$distributions, msg="Distribution.R --> A non regCoef or intercept have a normal prior in a gaussian GLM.",
-                                                            type="error")
-                                         stop("Something went wrong. Distribution.R --> A non regCoef or intercept have a normal prior in a gaussian GLM.")
-                                       }else{
-                                         malfunction_report(code=malfunctionCode()$distributions, msg="Distribution.R --> A non regCoef or intercept have a normal prior in a gaussian GLM.",
-                                                            type="error")
-                                         stop("Still empty. Distribution.R") #When will a normal distribution will be used for an auxiliary parameter?
-                                       }
-                                     }
-                                     return(res)
-                                   },
-                                   getPrior = function(brms=F){
-                                     stop("Not yet implemented")
-                                   },
-                                   getFormula = function(rounded=T, index=NULL){
-                                     tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
-                                     tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
-                                     if(self$is.vector){
-                                       return(paste0(tags$span("Log-Normal", class="formulaDistribution"),
-                                                     " ( ", "<b>&mu;",tags$sub(index) ,"</b> , <b>", "&sigma;", tags$sub(index),"</b> )"))    
-                                     }else{
-                                       return(paste0(tags$span("Log-Normal", class="formulaDistribution"),
-                                                     " ( ",tmp_mu," , ",tmp_sigma," )"))
-                                     }
-                                   },
-                                   getFormulaLatex = function(rounded=T, index=NULL){
-                                     tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
-                                     tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
-                                     if(self$is.vector){
-                                       param1 <- list(name="\\mu",index=index, vector=self$is.vector)
-                                       param2 <- list(name="\\sigma",index=index, vector=self$is.vector)
-                                       return(distToLatex("Log-Normal",list(param1,param2)))
-                                     }else{
-                                       param1 <- list(name=tmp_mu,index=NULL, vector=F)
-                                       param2 <- list(name=tmp_sigma,index=NULL, vector=F)
-                                       return(distToLatex("Log-Normal",list(param1,param2)))
-                                     }
-                                   },
-                                   getAuxParametersLatex = function(index=NULL){
-                                     tmp_mu <- self$getValueOf("mu")
-                                     tmp_sigma <- self$getValueOf("sigma")
-                                     if(self$is.vector){
-                                       param1 <- list(name="\\mu",index=index, vector=self$is.vector)
-                                       param2 <- list(name="\\sigma",index=index, vector=self$is.vector)
-                                       return(distAuxToLatex(list(param1,param2)))
-                                     }else{
-                                       param1 <- list(name=tmp_mu,index=NULL, vector=F)
-                                       param2 <- list(name=tmp_sigma,index=NULL, vector=F)
-                                       return(distAuxToLatex(list(param1,param2)))
-                                     }
-                                   }
-                                 )
+{
+LogNormalDistribution <- R6Class(
+  classname = "LogNormalDistribution", 
+  inherit = AbstractDistribution,
+  
+  public = list(
+   dEnum=distributionEnum()$Lognormal,
+   setInitVals = function(){
+     if(is.null(self$display_name)){
+       self$display_name <- "Lognormal distribution"
+     }
+     if(is.null(self$description)){
+       self$description <- paste0(
+         "The log-normal distribution describes a variable whose logarithm follows a normal distribution, characterized by location (μ) and scale (σ) parameters. ",
+         "It is skewed right, meaning it has a long tail on the positive side. Larger values of σ increase the skewness, while μ shifts the distribution without affecting the shape.",
+         "The Lognormal distribution covers a range from >0 to +∞"
+       )
+     } 
+   },
+   setDefaultAuxParameter = function(){
+     self$auxParameter[[1]] <- DistributionParameter$new(name = "mu", display_name="&mu;", description="The mean (location).", value=0, default_val=0,min_val=-Inf, max_val=Inf)
+     self$auxParameter[[2]] <- DistributionParameter$new(name = "sigma", display_name="&sigma;", description="The standard deviation.", value=2, default_val=2,min_val=greaterZero, max_val=Inf)
+   },
+   plotMe = function(values){ #1:mu, 2:sigma
+     tmpMu <- self$getValueOf("mu")
+     tmpSigma <- self$getValueOf("sigma")
+     if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpMu <- values[1]
+     if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpSigma <- values[2]
+     min <- qlnorm(0.01,tmpMu,tmpSigma)
+     max <- qlnorm(0.89,tmpMu,tmpSigma)
+     x <- seq(from=min, to=max, length=1000)
+     y <- dlnorm(x,tmpMu,tmpSigma)
+     data <- data.frame(x=x,y=y)
+     ggplot(data, aes(x=x,y=y)) + geom_line() + scale_x_continuous(trans = 'pseudo_log') + scale_y_continuous(breaks = NULL)
+   },
+   adjustedParameters = function(){
+     x = self$dataX
+     y = self$dataY
+     if(printDist) print("adjusted by lognormal")
+     res <- list(mu=NA,sigma=NA)
+     factor <- ifelse(self$is.gaussian,sd(y),1)
+     #Intercept
+     if(self$is.intercept){
+       res$mu <- 0
+       res$sigma <- 2*factor
+     }else if(self$is.regCoef){
+       res$mu <- 0
+       if(length(unique(x))==1){
+         res$sigma <- 1.5*factor
+       }else if(length(unique(x)) == 2){
+         res$sigma <- (1.5*factor)/(abs(unique(x)[2]-unique(x)[1]))
+       }else{
+         res$sigma <- (1.5*factor)/sd(x)          
+       }
+     }else{ #Auxiliary parameter e.g. sigma 
+       if(self$is.gaussian){
+         malfunction_report(code=malfunctionCode()$distributions, msg="Distribution.R --> A non regCoef or intercept have a normal prior in a gaussian GLM.",
+                            type="error")
+         stop("Something went wrong. Distribution.R --> A non regCoef or intercept have a normal prior in a gaussian GLM.")
+       }else{
+         malfunction_report(code=malfunctionCode()$distributions, msg="Distribution.R --> A non regCoef or intercept have a normal prior in a gaussian GLM.",
+                            type="error")
+         stop("Still empty. Distribution.R") #When will a normal distribution will be used for an auxiliary parameter?
+       }
+     }
+     return(res)
+   },
+   getPrior = function(brms=F){
+     stop("Not yet implemented")
+   },
+   getFormula = function(rounded=T, index=NULL){
+     tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
+     tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
+     if(self$is.vector){
+       return(paste0(tags$span("Log-Normal", class="formulaDistribution"),
+                     " ( ", "<b>&mu;",tags$sub(index) ,"</b> , <b>", "&sigma;", tags$sub(index),"</b> )"))    
+     }else{
+       return(paste0(tags$span("Log-Normal", class="formulaDistribution"),
+                     " ( ",tmp_mu," , ",tmp_sigma," )"))
+     }
+   },
+   getFormulaLatex = function(rounded=T, index=NULL){
+     tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
+     tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
+     if(self$is.vector){
+       param1 <- list(name="\\mu",index=index, vector=self$is.vector)
+       param2 <- list(name="\\sigma",index=index, vector=self$is.vector)
+       return(distToLatex("Log-Normal",list(param1,param2)))
+     }else{
+       param1 <- list(name=tmp_mu,index=NULL, vector=F)
+       param2 <- list(name=tmp_sigma,index=NULL, vector=F)
+       return(distToLatex("Log-Normal",list(param1,param2)))
+     }
+   },
+   getAuxParametersLatex = function(index=NULL){
+     tmp_mu <- self$getValueOf("mu")
+     tmp_sigma <- self$getValueOf("sigma")
+     if(self$is.vector){
+       param1 <- list(name="\\mu",index=index, vector=self$is.vector)
+       param2 <- list(name="\\sigma",index=index, vector=self$is.vector)
+       return(distAuxToLatex(list(param1,param2)))
+     }else{
+       param1 <- list(name=tmp_mu,index=NULL, vector=F)
+       param2 <- list(name=tmp_sigma,index=NULL, vector=F)
+       return(distAuxToLatex(list(param1,param2)))
+     }
+   }
+  )
 )
+}
 
-ExponentialDistribution <- R6Class(classname = "ExponentialDistribution", inherit = AbstractDistribution,
+{
+ExponentialDistribution <- R6Class(
+  classname = "ExponentialDistribution", 
+  inherit = AbstractDistribution,
+  
   public = list(
     dEnum=distributionEnum()$Exponential,
     setInitVals = function(){
@@ -695,7 +711,10 @@ ExponentialDistribution <- R6Class(classname = "ExponentialDistribution", inheri
         self$display_name <- "Exponential distribution"
       }
       if(is.null(self$description)){
-        self$description <- "The exponential distribution is strictly positive"
+        self$description <- paste0(
+          "The exponential distribution is often used as a prior for scale parameters, ",
+          "particularly for positive-valued quantities like standard deviations or rates. ",
+          "Its λ (lambda) parameter controls the decay, favoring smaller values, which can encourage sparsity in models such as Lasso regression. ")
       } 
     },
     setDefaultAuxParameter = function(){
@@ -780,1124 +799,1392 @@ ExponentialDistribution <- R6Class(classname = "ExponentialDistribution", inheri
     }
   )
 )
+}
 
-BetaDistribution <- R6Class(classname = "BetaDistribution", inherit = AbstractDistribution,
-                              public = list(
-                                dEnum=distributionEnum()$Beta,
-                                setInitVals = function(){
-                                  if(is.null(self$display_name)){
-                                    self$display_name <- "Beta distribution"
-                                  }
-                                  if(is.null(self$description)){
-                                    self$description <- "Beta distribution covers a range from >0 to <1"
-                                  } 
-                                },
-                                setDefaultAuxParameter = function(){
-                                  self$auxParameter[[1]] <- DistributionParameter$new(name = "mu", display_name="&mu;", description="The mean.", value=0.5, default_val=0.5,min_val=0, max_val=1)
-                                  self$auxParameter[[2]] <- DistributionParameter$new(name = "kappa", display_name="&kappa;", description="The (Wright's genetic) distance.", value=4, default_val=4,min_val=greaterZero, max_val=Inf)
-                                },
-                                plotMe = function(values){ #1:mu, 2:kappa
-                                  tmpMu <- self$getValueOf("mu")
-                                  tmpKappa <- self$getValueOf("sigma")
-                                  if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpMu <- values[1]
-                                  if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpKappa <- values[2]
-                                  tmpAlpha <- tmpMu*tmpKappa
-                                  tmpBeta <- (1-tmpMu)*tmpKappa
-                                  min <- qbeta(0.005, tmpAlpha,tmpBeta)
-                                  max <- qbeta(0.995, tmpAlpha,tmpBeta)
-                                  x <- seq(from=min, to=max, length=1000)
-                                  y <- dbeta(x,tmpAlpha,tmpBeta)
-                                  data <- data.frame(x=x,y=y)
-                                  ggplot(data, aes(x=x,y=y)) + geom_line() + scale_y_continuous(breaks = NULL)
-                                },
-                                adjustedParameters = function(){
-                                  x = self$dataX
-                                  y = self$dataY
-                                  if(printDist) print("adjusted by beta")
-                                  malfunction_report(code=malfunctionCode()$distributions, msg="Beta distribution is not adjustable!",
-                                                     type="error")
-                                  stop("Beta distribution is not adjustable!")
-                                },
-                                getPrior = function(brms=F){
-                                  malfunction_report(code=malfunctionCode()$distributions, msg="Not yet implemented. BetaDistribution",
-                                                     type="error")
-                                  stop("Not yet implemented")
-                                },
-                                getFormula = function(rounded=T, index=NULL){
-                                  tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
-                                  tmp_kappa <- ifelse(rounded,round(self$getValueOf("kappa"),2), self$getValueOf("kappa"))
-                                  if(self$is.vector){
-                                    return(paste0(tags$span("Beta", class="formulaDistribution"),
-                                                  " ( ", "<b>&mu;",tags$sub(index) ,"</b> , <b>", "&kappa;", tags$sub(index),"</b> )"))     
-                                  }else{
-                                    return(paste0(tags$span("Beta", class="formulaDistribution"),
-                                                  " ( ",tmp_mu," , ",tmp_kappa," )"))  
-                                  }
-                                },
-                                getFormulaLatex = function(rounded=T, index=NULL){
-                                  tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
-                                  tmp_kappa <- ifelse(rounded,round(self$getValueOf("kappa"),2), self$getValueOf("kappa"))
-                                  if(self$is.vector){
-                                    param1 <- list(name="\\mu",index=index, vector=self$is.vector)
-                                    param2 <- list(name="\\kappa",index=index, vector=self$is.vector)
-                                    return(distToLatex("Beta",list(param1,param2)))
-                                  }else{
-                                    param1 <- list(name=tmp_mu,index=NULL, vector=F)
-                                    param2 <- list(name=tmp_kappa,index=NULL, vector=F)
-                                    return(distToLatex("Beta",list(param1,param2)))
-                                  }
-                                },
-                                getAuxParametersLatex = function(index=NULL){
-                                  tmp_mu <- self$getValueOf("mu")
-                                  tmp_kappa <- self$getValueOf("kappa")
-                                  if(self$is.vector){
-                                    param1 <- list(name="\\mu",index=index, vector=self$is.vector)
-                                    param2 <- list(name="\\kappa",index=index, vector=self$is.vector)
-                                    return(distAuxToLatex(list(param1,param2)))
-                                  }else{
-                                    param1 <- list(name=tmp_mu,index=NULL, vector=F)
-                                    param2 <- list(name=tmp_kappa,index=NULL, vector=F)
-                                    return(distAuxToLatex(list(param1,param2)))
-                                  }
-                                }
-                              )
+{
+BetaDistribution <- R6Class(
+  classname = "BetaDistribution", 
+  inherit = AbstractDistribution,
+  
+  public = list(
+    dEnum=distributionEnum()$Beta,
+    setInitVals = function(){
+      if(is.null(self$display_name)){
+        self$display_name <- "Beta distribution"
+      }
+      if(is.null(self$description)){
+        self$description <- "Beta distribution covers a range from >0 to <1"
+        self$description <- paste0(
+          "The beta distribution is a flexible prior for modeling probabilities or proportions, defined on [0,1] and controlled by the mean and (Wright's genetic) distance. ",
+          "Different values of these parameters shape the distribution, allowing it to express prior beliefs, such as favoring values close to 0, 1, or the middle."
+        )
+      } 
+    },
+    setDefaultAuxParameter = function(){
+      self$auxParameter[[1]] <- DistributionParameter$new(name = "mu", display_name="&mu;", description="The mean.", value=0.5, default_val=0.5,min_val=0, max_val=1)
+      self$auxParameter[[2]] <- DistributionParameter$new(name = "kappa", display_name="&kappa;", description="The (Wright's genetic) distance.", value=4, default_val=4,min_val=greaterZero, max_val=Inf)
+    },
+    plotMe = function(values){ #1:mu, 2:kappa
+      tmpMu <- self$getValueOf("mu")
+      tmpKappa <- self$getValueOf("sigma")
+      if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpMu <- values[1]
+      if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpKappa <- values[2]
+      tmpAlpha <- tmpMu*tmpKappa
+      tmpBeta <- (1-tmpMu)*tmpKappa
+      min <- qbeta(0.005, tmpAlpha,tmpBeta)
+      max <- qbeta(0.995, tmpAlpha,tmpBeta)
+      x <- seq(from=min, to=max, length=1000)
+      y <- dbeta(x,tmpAlpha,tmpBeta)
+      data <- data.frame(x=x,y=y)
+      ggplot(data, aes(x=x,y=y)) + geom_line() + scale_y_continuous(breaks = NULL)
+    },
+    adjustedParameters = function(){
+      x = self$dataX
+      y = self$dataY
+      if(printDist) print("adjusted by beta")
+      malfunction_report(code=malfunctionCode()$distributions, msg="Beta distribution is not adjustable!",
+                         type="error")
+      stop("Beta distribution is not adjustable!")
+    },
+    getPrior = function(brms=F){
+      malfunction_report(code=malfunctionCode()$distributions, msg="Not yet implemented. BetaDistribution",
+                         type="error")
+      stop("Not yet implemented")
+    },
+    getFormula = function(rounded=T, index=NULL){
+      tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
+      tmp_kappa <- ifelse(rounded,round(self$getValueOf("kappa"),2), self$getValueOf("kappa"))
+      if(self$is.vector){
+        return(paste0(tags$span("Beta", class="formulaDistribution"),
+                      " ( ", "<b>&mu;",tags$sub(index) ,"</b> , <b>", "&kappa;", tags$sub(index),"</b> )"))     
+      }else{
+        return(paste0(tags$span("Beta", class="formulaDistribution"),
+                      " ( ",tmp_mu," , ",tmp_kappa," )"))  
+      }
+    },
+    getFormulaLatex = function(rounded=T, index=NULL){
+      tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
+      tmp_kappa <- ifelse(rounded,round(self$getValueOf("kappa"),2), self$getValueOf("kappa"))
+      if(self$is.vector){
+        param1 <- list(name="\\mu",index=index, vector=self$is.vector)
+        param2 <- list(name="\\kappa",index=index, vector=self$is.vector)
+        return(distToLatex("Beta",list(param1,param2)))
+      }else{
+        param1 <- list(name=tmp_mu,index=NULL, vector=F)
+        param2 <- list(name=tmp_kappa,index=NULL, vector=F)
+        return(distToLatex("Beta",list(param1,param2)))
+      }
+    },
+    getAuxParametersLatex = function(index=NULL){
+      tmp_mu <- self$getValueOf("mu")
+      tmp_kappa <- self$getValueOf("kappa")
+      if(self$is.vector){
+        param1 <- list(name="\\mu",index=index, vector=self$is.vector)
+        param2 <- list(name="\\kappa",index=index, vector=self$is.vector)
+        return(distAuxToLatex(list(param1,param2)))
+      }else{
+        param1 <- list(name=tmp_mu,index=NULL, vector=F)
+        param2 <- list(name=tmp_kappa,index=NULL, vector=F)
+        return(distAuxToLatex(list(param1,param2)))
+      }
+    }
+  )
 )
+}
 
-
-BinomialDistribution <- R6Class(classname = "BinomialDistribution", inherit = AbstractDistribution,
-                                 public = list(
-                                   dEnum=distributionEnum()$Binomial,
-                                   setInitVals = function(){
-                                     if(is.null(self$display_name)){
-                                       self$display_name <- "Binomial distribution"
-                                     }
-                                     if(is.null(self$description)){
-                                       self$description <- "Binomial distribution covers integers from 0 to N (+Inf)"
-                                     } 
-                                   },
-                                   setDefaultAuxParameter = function(){
-                                     self$auxParameter[[1]] <- DistributionParameter$new(name = "N", display_name="<i>n</i>", description="Number of trials.", value=100, default_val=100,min_val=0, max_val=Inf, discrete = T)
-                                     self$auxParameter[[2]] <- DistributionParameter$new(name = "p", display_name="<i>p</i>", description="Success probability.", value=0.5, default_val=0.5,min_val=0, max_val=1)
-                                   },
-                                   plotMe = function(values){ #1:N, 2:p
-                                     tmpN <- self$getValueOf("N")
-                                     tmpP <- self$getValueOf("p")
-                                     if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpN <- values[1]
-                                     if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpP <- values[2]
-                                     min <- 0
-                                     max <- tmpN
-                                     x <- c(min:max)
-                                     y <- dbinom(x,tmpN,tmpP)
-                                     data <- data.frame(x=x,y=y)
-                                     ggplot(data) + geom_bar(aes(x=x,y=y),stat="identity")
-                                   },
-                                   adjustedParameters = function(){
-                                     x = self$dataX
-                                     y = self$dataY
-                                     if(printDist) print("adjusted by lognormal")
-                                     malfunction_report(code=malfunctionCode()$distributions, msg="Binomial distribution is not adjustable!",
-                                                        type="error")
-                                     stop("Binomial distribution is not adjustable!")
-                                   },
-                                   getPrior = function(brms=F){
-                                     malfunction_report(code=malfunctionCode()$distributions, msg="Not yet implemented. BinomialDistribution",
-                                                        type="error")
-                                     stop("Not yet implemented")
-                                   },
-                                   getFormula = function(rounded=T, index=NULL){
-                                     tmp_N <- ifelse(rounded,round(self$getValueOf("N"),2), self$getValueOf("N"))
-                                     tmp_p <- ifelse(rounded,round(self$getValueOf("p"),2), self$getValueOf("p"))
-                                     if(self$is.vector){
-                                       return(paste0(tags$span("Binomial", class="formulaDistribution"),
-                                                     " ( ", "<b>N",tags$sub(index) ,"</b> , <b>", "p", tags$sub(index),"</b> )"))     
-                                     }else{
-                                       return(paste0(tags$span("Binomial", class="formulaDistribution"),
-                                                     " ( ",tmp_N," , ",tmp_p," )"))  
-                                     }
-                                   },
-                                   getFormulaLatex = function(rounded=T, index=NULL){
-                                     tmp_N <- ifelse(rounded,round(self$getValueOf("N"),2), self$getValueOf("N"))
-                                     tmp_p <- ifelse(rounded,round(self$getValueOf("p"),2), self$getValueOf("p"))
-                                     if(self$is.vector){
-                                       param1 <- list(name="N",index=index, vector=self$is.vector)
-                                       param2 <- list(name="p",index=index, vector=self$is.vector)
-                                       return(distToLatex("Binomial",list(param1,param2)))
-                                     }else{
-                                       param1 <- list(name=tmp_N,index=NULL, vector=F)
-                                       param2 <- list(name=tmp_p,index=NULL, vector=F)
-                                       return(distToLatex("Binomial",list(param1,param2)))
-                                     }
-                                   },
-                                   getAuxParametersLatex = function(index=NULL){
-                                     tmp_N <- self$getValueOf("N")
-                                     tmp_p <- self$getValueOf("p")
-                                     if(self$is.vector){
-                                       param1 <- list(name="N",index=index, vector=self$is.vector)
-                                       param2 <- list(name="p",index=index, vector=self$is.vector)
-                                       return(distAuxToLatex(list(param1,param2)))
-                                     }else{
-                                       param1 <- list(name=tmp_N,index=NULL, vector=F)
-                                       param2 <- list(name=tmp_p,index=NULL, vector=F)
-                                       return(distAuxToLatex(list(param1,param2)))
-                                     }
-                                   }
-                                 )
+{
+BinomialDistribution <- R6Class(
+  classname = "BinomialDistribution", 
+  inherit = AbstractDistribution,
+  
+  public = list(
+   dEnum=distributionEnum()$Binomial,
+   setInitVals = function(){
+     if(is.null(self$display_name)){
+       self$display_name <- "Binomial distribution"
+     }
+     if(is.null(self$description)){
+       self$description <- paste0(
+         "The binomial distribution models the number of successes in a fixed number of independent trials, each with a probability p of success. ",
+         "It is controlled by n (number of trials) and p (success probability), where higher n increases the range of possible outcomes. ",
+         "It is commonly used in survey data, quality control, and medical trials."
+       )
+     } 
+   },
+   setDefaultAuxParameter = function(){
+     self$auxParameter[[1]] <- DistributionParameter$new(name = "N", display_name="<i>n</i>", description="Number of trials.", value=100, default_val=100,min_val=0, max_val=Inf, discrete = T)
+     self$auxParameter[[2]] <- DistributionParameter$new(name = "p", display_name="<i>p</i>", description="Success probability.", value=0.5, default_val=0.5,min_val=0, max_val=1)
+   },
+   plotMe = function(values){ #1:N, 2:p
+     tmpN <- self$getValueOf("N")
+     tmpP <- self$getValueOf("p")
+     if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpN <- values[1]
+     if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpP <- values[2]
+     min <- 0
+     max <- tmpN
+     x <- c(min:max)
+     y <- dbinom(x,tmpN,tmpP)
+     data <- data.frame(x=x,y=y)
+     ggplot(data) + geom_bar(aes(x=x,y=y),stat="identity")
+   },
+   adjustedParameters = function(){
+     x = self$dataX
+     y = self$dataY
+     if(printDist) print("adjusted by lognormal")
+     malfunction_report(code=malfunctionCode()$distributions, msg="Binomial distribution is not adjustable!",
+                        type="error")
+     stop("Binomial distribution is not adjustable!")
+   },
+   getPrior = function(brms=F){
+     malfunction_report(code=malfunctionCode()$distributions, msg="Not yet implemented. BinomialDistribution",
+                        type="error")
+     stop("Not yet implemented")
+   },
+   getFormula = function(rounded=T, index=NULL){
+     tmp_N <- ifelse(rounded,round(self$getValueOf("N"),2), self$getValueOf("N"))
+     tmp_p <- ifelse(rounded,round(self$getValueOf("p"),2), self$getValueOf("p"))
+     if(self$is.vector){
+       return(paste0(tags$span("Binomial", class="formulaDistribution"),
+                     " ( ", "<b>N",tags$sub(index) ,"</b> , <b>", "p", tags$sub(index),"</b> )"))     
+     }else{
+       return(paste0(tags$span("Binomial", class="formulaDistribution"),
+                     " ( ",tmp_N," , ",tmp_p," )"))  
+     }
+   },
+   getFormulaLatex = function(rounded=T, index=NULL){
+     tmp_N <- ifelse(rounded,round(self$getValueOf("N"),2), self$getValueOf("N"))
+     tmp_p <- ifelse(rounded,round(self$getValueOf("p"),2), self$getValueOf("p"))
+     if(self$is.vector){
+       param1 <- list(name="N",index=index, vector=self$is.vector)
+       param2 <- list(name="p",index=index, vector=self$is.vector)
+       return(distToLatex("Binomial",list(param1,param2)))
+     }else{
+       param1 <- list(name=tmp_N,index=NULL, vector=F)
+       param2 <- list(name=tmp_p,index=NULL, vector=F)
+       return(distToLatex("Binomial",list(param1,param2)))
+     }
+   },
+   getAuxParametersLatex = function(index=NULL){
+     tmp_N <- self$getValueOf("N")
+     tmp_p <- self$getValueOf("p")
+     if(self$is.vector){
+       param1 <- list(name="N",index=index, vector=self$is.vector)
+       param2 <- list(name="p",index=index, vector=self$is.vector)
+       return(distAuxToLatex(list(param1,param2)))
+     }else{
+       param1 <- list(name=tmp_N,index=NULL, vector=F)
+       param2 <- list(name=tmp_p,index=NULL, vector=F)
+       return(distAuxToLatex(list(param1,param2)))
+     }
+   }
+  )
 )
+}
 
-PoissonDistribution <- R6Class(classname = "PoissonDistribution", inherit = AbstractDistribution,
-                                public = list(
-                                  dEnum=distributionEnum()$Poisson,
-                                  setInitVals = function(){
-                                    if(is.null(self$display_name)){
-                                      self$display_name <- "Poisson distribution"
-                                    }
-                                    if(is.null(self$description)){
-                                      self$description <- "Poisson distribution covers integers from 0 to Inf"
-                                    } 
-                                  },
-                                  setDefaultAuxParameter = function(){
-                                    self$auxParameter[[1]] <- DistributionParameter$new(name = "lambda", display_name="&lambda;", description="lambda controls the mean and variance. (&lambda; = &mu; = var)", value=10, default_val=10,min_val=greaterZero, max_val=Inf, discrete = T)
-                                  },
-                                  plotMe = function(values){ #1:lambda
-                                    tmpLambda <- self$getValueOf("N")
-                                    if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpLambda <- values[1]
-                                    min <- qpois(0.005,tmpLambda)
-                                    max <- qpois(0.995,tmpLambda)
-                                    x <- c(min:max)
-                                    y <- dpois(x,tmpLambda)
-                                    data <- data.frame(x=x,y=y)
-                                    ggplot(data) + geom_bar(aes(x=x,y=y),stat="identity")
-                                  },
-                                  adjustedParameters = function(){
-                                    x = self$dataX
-                                    y = self$dataY
-                                    if(printDist) print("adjusted by poisson")
-                                    malfunction_report(code=malfunctionCode()$distributions, msg="Poisson distribution is not adjustable!",
-                                                       type="error")
-                                    stop("Poisson distribution is not adjustable!")
-                                  },
-                                  getPrior = function(brms=F){
-                                    malfunction_report(code=malfunctionCode()$distributions, msg="Not yet implemented Poisson.",
-                                                       type="error")
-                                    stop("Not yet implemented")
-                                  },
-                                  getFormula = function(rounded=T, index=NULL){
-                                    tmp_lambda <- ifelse(rounded,round(self$getValueOf("lambda"),2), self$getValueOf("lambda"))
+{
+PoissonDistribution <- R6Class(
+  classname = "PoissonDistribution",
+  inherit = AbstractDistribution,
+  
+  public = list(
+    dEnum=distributionEnum()$Poisson,
+    setInitVals = function(){
+      if(is.null(self$display_name)){
+        self$display_name <- "Poisson distribution"
+      }
+      if(is.null(self$description)){
+        self$description <- paste0(
+          "The Poisson distribution models the number of events occurring in a fixed interval of time or space, given a constant average rate λ (lambda). ",
+          "Possible values are non-negative integer, higher λ shifts the distribution right and increases variance. ",
+          "It is widely used in count data applications, such as accident rates, call center arrivals, or genetic mutations. ",
+          "The Normal distribution covers a range from -Inf to +Inf"
+        )
+      } 
+    },
+    setDefaultAuxParameter = function(){
+      self$auxParameter[[1]] <- DistributionParameter$new(name = "lambda", display_name="&lambda;", description="lambda controls the mean and variance. (&lambda; = &mu; = var)", value=10, default_val=10,min_val=greaterZero, max_val=Inf, discrete = T)
+    },
+    plotMe = function(values){ #1:lambda
+      tmpLambda <- self$getValueOf("N")
+      if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpLambda <- values[1]
+      min <- qpois(0.005,tmpLambda)
+      max <- qpois(0.995,tmpLambda)
+      x <- c(min:max)
+      y <- dpois(x,tmpLambda)
+      data <- data.frame(x=x,y=y)
+      ggplot(data) + geom_bar(aes(x=x,y=y),stat="identity")
+    },
+    adjustedParameters = function(){
+      x = self$dataX
+      y = self$dataY
+      if(printDist) print("adjusted by poisson")
+      malfunction_report(code=malfunctionCode()$distributions, msg="Poisson distribution is not adjustable!",
+                         type="error")
+      stop("Poisson distribution is not adjustable!")
+    },
+    getPrior = function(brms=F){
+      malfunction_report(code=malfunctionCode()$distributions, msg="Not yet implemented Poisson.",
+                         type="error")
+      stop("Not yet implemented")
+    },
+    getFormula = function(rounded=T, index=NULL){
+      tmp_lambda <- ifelse(rounded,round(self$getValueOf("lambda"),2), self$getValueOf("lambda"))
 
-                                    if(self$is.vector){
-                                      return(paste0(tags$span("Poisson", class="formulaDistribution"),
-                                                    " ( ", "<b>&lambda;",tags$sub(index) ,"</b> )"))      
-                                    }else{
-                                      return(paste0(tags$span("Poisson", class="formulaDistribution"),
-                                                    " ( ",tmp_lambda," )"))
-                                    }
-                                  },
-                                  getFormulaLatex = function(rounded=T, index=NULL){
-                                    tmp_lambda <- ifelse(rounded,round(self$getValueOf("lambda"),2), self$getValueOf("lambda"))
-                                    if(self$is.vector){
-                                      warning("This distribution (poisson) includes vectors that are not highlighted as such..")
-                                      
-                                      return(paste0("\\text{Poisson}(\\lambda_",index,")"))
-                                    }else{
-                                      return(paste0("\\text{Poisson}(",tmp_lambda ,")"))
-                                    }
-                                    if(self$is.vector){
-                                      param1 <- list(name="\\lambda",index=index, vector=self$is.vector)
-                                      return(distToLatex("Poisson",list(param1)))
-                                    }else{
-                                      param1 <- list(name=tmp_lambda,index=NULL, vector=F)
-                                      return(distToLatex("Poisson",list(param1)))
-                                    }
-                                  },
-                                  getAuxParametersLatex = function(index=NULL){
-                                    tmp_lambda <- self$getValueOf("lambda")
-                                    if(self$is.vector){
-                                      warning("This distribution (poisson) includes vectors that are not highlighted as such..")
-                                      
-                                      return(paste0("\\text{Poisson}(\\lambda_",index,")"))
-                                    }else{
-                                      return(paste0("\\text{Poisson}(",tmp_lambda ,")"))
-                                    }
-                                    if(self$is.vector){
-                                      param1 <- list(name="\\lambda",index=index, vector=self$is.vector)
-                                      return(distAuxToLatex(list(param1)))
-                                    }else{
-                                      param1 <- list(name=tmp_lambda,index=NULL, vector=F)
-                                      return(distAuxToLatex(list(param1)))
-                                    }
-                                  }
-                                )
+      if(self$is.vector){
+        return(paste0(tags$span("Poisson", class="formulaDistribution"),
+                      " ( ", "<b>&lambda;",tags$sub(index) ,"</b> )"))      
+      }else{
+        return(paste0(tags$span("Poisson", class="formulaDistribution"),
+                      " ( ",tmp_lambda," )"))
+      }
+    },
+    getFormulaLatex = function(rounded=T, index=NULL){
+      tmp_lambda <- ifelse(rounded,round(self$getValueOf("lambda"),2), self$getValueOf("lambda"))
+      if(self$is.vector){
+        warning("This distribution (poisson) includes vectors that are not highlighted as such..")
+        
+        return(paste0("\\text{Poisson}(\\lambda_",index,")"))
+      }else{
+        return(paste0("\\text{Poisson}(",tmp_lambda ,")"))
+      }
+      if(self$is.vector){
+        param1 <- list(name="\\lambda",index=index, vector=self$is.vector)
+        return(distToLatex("Poisson",list(param1)))
+      }else{
+        param1 <- list(name=tmp_lambda,index=NULL, vector=F)
+        return(distToLatex("Poisson",list(param1)))
+      }
+    },
+    getAuxParametersLatex = function(index=NULL){
+      tmp_lambda <- self$getValueOf("lambda")
+      if(self$is.vector){
+        warning("This distribution (poisson) includes vectors that are not highlighted as such..")
+        
+        return(paste0("\\text{Poisson}(\\lambda_",index,")"))
+      }else{
+        return(paste0("\\text{Poisson}(",tmp_lambda ,")"))
+      }
+      if(self$is.vector){
+        param1 <- list(name="\\lambda",index=index, vector=self$is.vector)
+        return(distAuxToLatex(list(param1)))
+      }else{
+        param1 <- list(name=tmp_lambda,index=NULL, vector=F)
+        return(distAuxToLatex(list(param1)))
+      }
+    }
+  )
 )
+}
 
-NegBinomDistribution <- R6Class(classname = "NegBinomDistribution", inherit = AbstractDistribution,
-                               public = list(
-                                 dEnum=distributionEnum()$NegBinom,
-                                 setInitVals = function(){
-                                   if(is.null(self$display_name)){
-                                     self$display_name <- "Negative binomial distribution"
-                                   }
-                                   if(is.null(self$description)){
-                                     self$description <- "Negative binomial distribution covers integers from 0 to Inf"
-                                   } 
-                                 },
-                                 setDefaultAuxParameter = function(){
-                                   self$auxParameter[[1]] <- DistributionParameter$new(name = "Mean", display_name="&mu;", description="The mean.", value=10, default_val=10,min_val=greaterZero, max_val=Inf, discrete = T)
-                                   self$auxParameter[[2]] <- DistributionParameter$new(name = "Dispersion", display_name="&Phi;", description="The dispersion.", value=2, default_val=2,min_val=greaterZero, max_val=Inf)
-                                 },
-                                 plotMe = function(values){ #1:Mean, 2:Dispersion
-                                   tmpMu <- self$getValueOf("Mean")
-                                   tmpDis <- self$getValueOf("Dispersion")
-                                   if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpMu <- values[1]
-                                   if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpDis <- values[2]
-                                   min <- qnbinom(0.005,size=tmpDis,mu=tmpMu)
-                                   max <- qnbinom(0.995,size=tmpDis,mu=tmpMu)
-                                   x <- c(min:max)
-                                   y <- dnbinom(x,size=tmpDis,mu=tmpMu)
-                                   data <- data.frame(x=x,y=y)
-                                   ggplot(data) + geom_bar(aes(x=x,y=y),stat="identity")
-                                 },
-                                 adjustedParameters = function(){
-                                   x = self$dataX
-                                   y = self$dataY
-                                   if(printDist) print("adjusted by lognormal")
-                                   malfunction_report(code=malfunctionCode()$distributions, msg="Negative Binomial distribution is not adjustable!",
-                                                      type="error")
-                                   stop("Binomial distribution is not adjustable!")
-                                 },
-                                 getPrior = function(brms=F){
-                                   malfunction_report(code=malfunctionCode()$distributions, msg="Not yet implemented NegBinomDistribution",
-                                                      type="error")
-                                   stop("Not yet implemented")
-                                 },
-                                 getFormula = function(rounded=T, index=NULL){
-                                   tmp_Mu <- ifelse(rounded,round(self$getValueOf("Mean"),2), self$getValueOf("Mean"))
-                                   tmp_Dis <- ifelse(rounded,round(self$getValueOf("Dispersion"),2), self$getValueOf("Dispersion"))
-                                   if(self$is.vector){
-                                     return(paste0(tags$span("Neg-Binomial", class="formulaDistribution"),
-                                                   " ( ", "<b>&mu;",tags$sub(index) ,"</b> , <b>", "&Phi;", tags$sub(index),"</b> )"))      
-                                   }else{
-                                     return(paste0(tags$span("Neg-Binomial", class="formulaDistribution"),
-                                                   " ( ",tmp_Mu," , ",tmp_Dis," )"))
-                                   }
-                                 },
-                                 getFormulaLatex = function(rounded=T, index=NULL){
-                                   tmp_Mu <- ifelse(rounded,round(self$getValueOf("Mean"),2), self$getValueOf("Mean"))
-                                   tmp_Dis <- ifelse(rounded,round(self$getValueOf("Dispersion"),2), self$getValueOf("Dispersion"))
-                                   if(self$is.vector){
-                                     param1 <- list(name="\\mu",index=index, vector=self$is.vector)
-                                     param2 <- list(name="\\phi",index=index, vector=self$is.vector)
-                                     return(distToLatex("Neg-Binomial",list(param1,param2)))
-                                   }else{
-                                     param1 <- list(name=tmp_Mu,index=NULL, vector=F)
-                                     param2 <- list(name=tmp_Dis,index=NULL, vector=F)
-                                     return(distToLatex("Neg-Binomial",list(param1,param2)))
-                                   }
-                                 },
-                                 getAuxParametersLatex = function(index=NULL){
-                                   tmp_Mu <- self$getValueOf("Mean")
-                                   tmp_Dis <- self$getValueOf("Dispersion")
-                                   if(self$is.vector){
-                                     param1 <- list(name="\\mu",index=index, vector=self$is.vector)
-                                     param2 <- list(name="\\phi",index=index, vector=self$is.vector)
-                                     return(distAuxToLatex(list(param1,param2)))
-                                   }else{
-                                     param1 <- list(name=tmp_Mu,index=NULL, vector=F)
-                                     param2 <- list(name=tmp_Dis,index=NULL, vector=F)
-                                     return(distAuxToLatex(list(param1,param2)))
-                                   }
-                                 }
-                               )
+{
+NegBinomDistribution <- R6Class(
+  classname = "NegBinomDistribution", 
+  inherit = AbstractDistribution,
+  
+  public = list(
+   dEnum=distributionEnum()$NegBinom,
+   setInitVals = function(){
+     if(is.null(self$display_name)){
+       self$display_name <- "Negative binomial distribution"
+     }
+     if(is.null(self$description)){
+       self$description <- paste0(
+         "The negative binomial distribution models overdispersed count data with a mean and an overdispersion parameter phi. ",
+         "The possible values are non-negative integers, with larger phi leading to lower variance. ",
+         "It is often used as an overdispersed Poisson distribution."
+       )
+     } 
+   },
+   setDefaultAuxParameter = function(){
+     self$auxParameter[[1]] <- DistributionParameter$new(name = "Mean", display_name="&mu;", description="The mean.", value=10, default_val=10,min_val=greaterZero, max_val=Inf, discrete = T)
+     self$auxParameter[[2]] <- DistributionParameter$new(name = "Dispersion", display_name="&Phi;", description="The dispersion.", value=2, default_val=2,min_val=greaterZero, max_val=Inf)
+   },
+   plotMe = function(values){ #1:Mean, 2:Dispersion
+     tmpMu <- self$getValueOf("Mean")
+     tmpDis <- self$getValueOf("Dispersion")
+     if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpMu <- values[1]
+     if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpDis <- values[2]
+     min <- qnbinom(0.005,size=tmpDis,mu=tmpMu)
+     max <- qnbinom(0.995,size=tmpDis,mu=tmpMu)
+     x <- c(min:max)
+     y <- dnbinom(x,size=tmpDis,mu=tmpMu)
+     data <- data.frame(x=x,y=y)
+     ggplot(data) + geom_bar(aes(x=x,y=y),stat="identity")
+   },
+   adjustedParameters = function(){
+     x = self$dataX
+     y = self$dataY
+     if(printDist) print("adjusted by lognormal")
+     malfunction_report(code=malfunctionCode()$distributions, msg="Negative Binomial distribution is not adjustable!",
+                        type="error")
+     stop("Binomial distribution is not adjustable!")
+   },
+   getPrior = function(brms=F){
+     malfunction_report(code=malfunctionCode()$distributions, msg="Not yet implemented NegBinomDistribution",
+                        type="error")
+     stop("Not yet implemented")
+   },
+   getFormula = function(rounded=T, index=NULL){
+     tmp_Mu <- ifelse(rounded,round(self$getValueOf("Mean"),2), self$getValueOf("Mean"))
+     tmp_Dis <- ifelse(rounded,round(self$getValueOf("Dispersion"),2), self$getValueOf("Dispersion"))
+     if(self$is.vector){
+       return(paste0(tags$span("Neg-Binomial", class="formulaDistribution"),
+                     " ( ", "<b>&mu;",tags$sub(index) ,"</b> , <b>", "&Phi;", tags$sub(index),"</b> )"))      
+     }else{
+       return(paste0(tags$span("Neg-Binomial", class="formulaDistribution"),
+                     " ( ",tmp_Mu," , ",tmp_Dis," )"))
+     }
+   },
+   getFormulaLatex = function(rounded=T, index=NULL){
+     tmp_Mu <- ifelse(rounded,round(self$getValueOf("Mean"),2), self$getValueOf("Mean"))
+     tmp_Dis <- ifelse(rounded,round(self$getValueOf("Dispersion"),2), self$getValueOf("Dispersion"))
+     if(self$is.vector){
+       param1 <- list(name="\\mu",index=index, vector=self$is.vector)
+       param2 <- list(name="\\phi",index=index, vector=self$is.vector)
+       return(distToLatex("Neg-Binomial",list(param1,param2)))
+     }else{
+       param1 <- list(name=tmp_Mu,index=NULL, vector=F)
+       param2 <- list(name=tmp_Dis,index=NULL, vector=F)
+       return(distToLatex("Neg-Binomial",list(param1,param2)))
+     }
+   },
+   getAuxParametersLatex = function(index=NULL){
+     tmp_Mu <- self$getValueOf("Mean")
+     tmp_Dis <- self$getValueOf("Dispersion")
+     if(self$is.vector){
+       param1 <- list(name="\\mu",index=index, vector=self$is.vector)
+       param2 <- list(name="\\phi",index=index, vector=self$is.vector)
+       return(distAuxToLatex(list(param1,param2)))
+     }else{
+       param1 <- list(name=tmp_Mu,index=NULL, vector=F)
+       param2 <- list(name=tmp_Dis,index=NULL, vector=F)
+       return(distAuxToLatex(list(param1,param2)))
+     }
+   }
+  )
 )
+}
 
-
-StudentTDistribution <- R6Class(classname = "StudentTDistribution", inherit = AbstractDistribution,
-                              public = list(
-                                dEnum=distributionEnum()$StudentT,
-                                setInitVals = function(){
-                                  if(is.null(self$display_name)){
-                                    self$display_name <- "Student's t-distribution"
-                                  }
-                                  if(is.null(self$description)){
-                                    self$description <- "Student's t-distribution covers a range from -Inf to +Inf"
-                                  } 
-                                },
-                                setDefaultAuxParameter = function(){
-                                  self$auxParameter[[1]] <- DistributionParameter$new(name = "nu", display_name="&nu;", description="The degree of freedom.", value=3, default_val=3,min_val=greaterZero, max_val=Inf)
-                                  self$auxParameter[[2]] <- DistributionParameter$new(name = "mu", display_name="&mu;", description="The mean (location).", value=0, default_val=0,min_val=-Inf, max_val=Inf)
-                                  self$auxParameter[[3]] <- DistributionParameter$new(name = "sigma", display_name="&sigma;", description="The variance (squared scale).", value=2.5, default_val=2.5,min_val=greaterZero, max_val=Inf)
-                                },
-                                plotMe = function(values){ #1:nu, 2:mu, 3:sigma
-                                  tmpNu <- self$getValueOf("nu")
-                                  tmpMu <- self$getValueOf("mu")
-                                  tmpSigma <- self$getValueOf("sigma")
-                                  if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpNu <- values[1]
-                                  if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpMu <- values[2]
-                                  if(!is.null(values[3]) && !is.na(values[3]) && is.numeric(values[3])) tmpSigma <- values[3]
-                                  min <- qst(0.01,nu=tmpNu,mu=tmpMu,sigma=tmpSigma)
-                                  max <- qst(0.99,nu=tmpNu,mu=tmpMu,sigma=tmpSigma)
-                                  if(min == Inf || min == -Inf || max == Inf || max == -Inf){
-                                    return(ggplot())
-                                  }
-                                  x <- seq(from=min, to=max, length=1000)
-                                  y <- dst(x,nu=tmpNu,mu=tmpMu,sigma=tmpSigma)
-                                  data <- data.frame(x=x,y=y)
-                                  ggplot(data, aes(x=x,y=y)) + geom_line() + scale_y_continuous(breaks = NULL)
-                                },
-                                adjustedParameters = function(){
-                                  x = self$dataX
-                                  y = self$dataY
-                                  if(printDist) print("adjusted by student-t")
-                                  res <- list(nu=NA,mu=NA,sigma=NA)
-                                  factor <- ifelse(self$is.gaussian,sd(y),1)
-                                  #Intercept
-                                  res$nu <- 3
-                                  if(self$is.intercept){
-                                    res$mu <- 0
-                                    res$sigma <- 10*factor
-                                  }else if(self$is.regCoef){
-                                    res$mu <- 0
-                                    if(length(unique(x))==1){
-                                      res$sigma <- 2.5*factor
-                                    }else if(length(unique(x)) == 2){
-                                      res$sigma <- (2.5*factor)/(abs(unique(x)[2]-unique(x)[1]))
-                                    }else{
-                                      res$sigma <- (2.5*factor)/sd(x)          
-                                    }
-                                  }else{ #Auxiliary parameter e.g. sigma 
-                                    if(self$is.gaussian){
-                                      malfunction_report(code=malfunctionCode()$distributions, msg="Distribution.R --> A non regCoef or intercept have a student-t prior in a gaussian GLM.",
-                                                         type="error")
-                                      stop("Something went wrong. Distribution.R --> A non regCoef or intercept have a student-t prior in a gaussian GLM.")
-                                    }else{
-                                      malfunction_report(code=malfunctionCode()$distributions, msg="Still empty. Distribution.R",
-                                                         type="error")
-                                      stop("Still empty. Distribution.R") #When will a normal distribution will be used for an auxiliary parameter?
-                                    }
-                                  }
-                                  return(res)
-                                },
-                                getPrior = function(brms=F){
-                                  if(brms){
-                                    p <- brms::set_prior(paste0("student_t(",self$auxParameter[[1]]$value,",",self$auxParameter[[2]]$value,",",self$auxParameter[[3]]$value,")"))
-                                    return(p)
-                                  }else{
-                                    return(student_t(self$auxParameter[[1]]$value,self$auxParameter[[2]]$value,self$auxParameter[[3]]$value, autoscale=F))
-                                  }
-                                },
-                                getFormula = function(rounded=T, index=NULL){
-                                  tmp_nu <- ifelse(rounded,round(self$getValueOf("nu"),2), self$getValueOf("nu"))
-                                  tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
-                                  tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
-                                  if(self$is.vector){
-                                    return(paste0(tags$span("StudentT", class="formulaDistribution"),
-                                                  " ( ", "<b>&nu;",tags$sub(index) ,"</b> , <b>&mu;",tags$sub(index) ,"</b> , <b>", "&sigma;", tags$sub(index),"</b> )"))      
-                                  }else{
-                                    return(paste0(tags$span("StudentT", class="formulaDistribution"),
-                                                  " ( ",tmp_nu," , ",tmp_mu," , ",tmp_sigma," )"))
-                                  }
-                                },
-                                getFormulaLatex = function(rounded=T, index=NULL){
-                                  tmp_nu <- ifelse(rounded,round(self$getValueOf("nu"),2), self$getValueOf("nu"))
-                                  tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
-                                  tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
-                                  if(self$is.vector){
-                                    param1 <- list(name="\\nu",index=index, vector=self$is.vector)
-                                    param2 <- list(name="\\mu",index=index, vector=self$is.vector)
-                                    param3 <- list(name="\\sigma",index=index, vector=self$is.vector)
-                                    return(distToLatex("StudentT",list(param1,param2,param3)))
-                                  }else{
-                                    param1 <- list(name=tmp_nu,index=NULL, vector=F)
-                                    param2 <- list(name=tmp_mu,index=NULL, vector=F)
-                                    param3 <- list(name=tmp_sigma,index=NULL, vector=F)
-                                    return(distToLatex("StudentT",list(param1,param2,param3)))
-                                  }
-                                },
-                                getAuxParametersLatex = function(index=NULL){
-                                  tmp_nu <- self$getValueOf("nu")
-                                  tmp_mu <- self$getValueOf("mu")
-                                  tmp_sigma <- self$getValueOf("sigma")
-                                  if(self$is.vector){
-                                    param1 <- list(name="\\nu",index=index, vector=self$is.vector)
-                                    param2 <- list(name="\\mu",index=index, vector=self$is.vector)
-                                    param3 <- list(name="\\sigma",index=index, vector=self$is.vector)
-                                    return(distAuxToLatex(list(param1,param2,param3)))
-                                  }else{
-                                    param1 <- list(name=tmp_nu,index=NULL, vector=F)
-                                    param2 <- list(name=tmp_mu,index=NULL, vector=F)
-                                    param3 <- list(name=tmp_sigma,index=NULL, vector=F)
-                                    return(distAuxToLatex(list(param1,param2,param3)))
-                                  }
-                                }
-                              )
+{
+StudentTDistribution <- R6Class(
+  classname = "StudentTDistribution", 
+  inherit = AbstractDistribution,
+  
+  public = list(
+    dEnum=distributionEnum()$StudentT,
+    setInitVals = function(){
+      if(is.null(self$display_name)){
+        self$display_name <- "Student's t-distribution"
+      }
+      if(is.null(self$description)){
+        self$description <- paste0(
+          "The (generalized) Student's t-distribution is defined by the parameters μ (location), σ (scale), and ν (degrees of freedom). ",
+          "It allows for a flexible prior with heavier tails when ν is small, indicating more robustness to extreme values. ",
+          "The distribution is defined over (−∞, ∞), with μ shifting the center and σ controlling the spread."
+        )
+      } 
+    },
+    setDefaultAuxParameter = function(){
+      self$auxParameter[[1]] <- DistributionParameter$new(name = "nu", display_name="&nu;", description="The degree of freedom.", value=3, default_val=3,min_val=greaterZero, max_val=Inf)
+      self$auxParameter[[2]] <- DistributionParameter$new(name = "mu", display_name="&mu;", description="The mean (location).", value=0, default_val=0,min_val=-Inf, max_val=Inf)
+      self$auxParameter[[3]] <- DistributionParameter$new(name = "sigma", display_name="&sigma;", description="The variance (squared scale).", value=2.5, default_val=2.5,min_val=greaterZero, max_val=Inf)
+    },
+    plotMe = function(values){ #1:nu, 2:mu, 3:sigma
+      tmpNu <- self$getValueOf("nu")
+      tmpMu <- self$getValueOf("mu")
+      tmpSigma <- self$getValueOf("sigma")
+      if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpNu <- values[1]
+      if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpMu <- values[2]
+      if(!is.null(values[3]) && !is.na(values[3]) && is.numeric(values[3])) tmpSigma <- values[3]
+      min <- qst(0.01,nu=tmpNu,mu=tmpMu,sigma=tmpSigma)
+      max <- qst(0.99,nu=tmpNu,mu=tmpMu,sigma=tmpSigma)
+      if(min == Inf || min == -Inf || max == Inf || max == -Inf){
+        return(ggplot())
+      }
+      x <- seq(from=min, to=max, length=1000)
+      y <- dst(x,nu=tmpNu,mu=tmpMu,sigma=tmpSigma)
+      data <- data.frame(x=x,y=y)
+      ggplot(data, aes(x=x,y=y)) + geom_line() + scale_y_continuous(breaks = NULL)
+    },
+    adjustedParameters = function(){
+      x = self$dataX
+      y = self$dataY
+      if(printDist) print("adjusted by student-t")
+      res <- list(nu=NA,mu=NA,sigma=NA)
+      factor <- ifelse(self$is.gaussian,sd(y),1)
+      #Intercept
+      res$nu <- 3
+      if(self$is.intercept){
+        res$mu <- 0
+        res$sigma <- 2.5*factor
+      }else if(self$is.regCoef){
+        res$mu <- 0
+        if(length(unique(x))==1){
+          res$sigma <- 2.5*factor
+        }else if(length(unique(x)) == 2){
+          res$sigma <- (2.5*factor)/(abs(unique(x)[2]-unique(x)[1]))
+        }else{
+          res$sigma <- (2.5*factor)/sd(x)          
+        }
+      }else{ #Auxiliary parameter e.g. sigma 
+        if(self$is.gaussian){
+          malfunction_report(code=malfunctionCode()$distributions, msg="Distribution.R --> A non regCoef or intercept have a student-t prior in a gaussian GLM.",
+                             type="error")
+          stop("Something went wrong. Distribution.R --> A non regCoef or intercept have a student-t prior in a gaussian GLM.")
+        }else{
+          malfunction_report(code=malfunctionCode()$distributions, msg="Still empty. Distribution.R",
+                             type="error")
+          stop("Still empty. Distribution.R") #When will a normal distribution will be used for an auxiliary parameter?
+        }
+      }
+      return(res)
+    },
+    getPrior = function(brms=F){
+      if(brms){
+        p <- brms::set_prior(paste0("student_t(",self$auxParameter[[1]]$value,",",self$auxParameter[[2]]$value,",",self$auxParameter[[3]]$value,")"))
+        return(p)
+      }else{
+        return(student_t(self$auxParameter[[1]]$value,self$auxParameter[[2]]$value,self$auxParameter[[3]]$value, autoscale=F))
+      }
+    },
+    getFormula = function(rounded=T, index=NULL){
+      tmp_nu <- ifelse(rounded,round(self$getValueOf("nu"),2), self$getValueOf("nu"))
+      tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
+      tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
+      if(self$is.vector){
+        return(paste0(tags$span("StudentT", class="formulaDistribution"),
+                      " ( ", "<b>&nu;",tags$sub(index) ,"</b> , <b>&mu;",tags$sub(index) ,"</b> , <b>", "&sigma;", tags$sub(index),"</b> )"))      
+      }else{
+        return(paste0(tags$span("StudentT", class="formulaDistribution"),
+                      " ( ",tmp_nu," , ",tmp_mu," , ",tmp_sigma," )"))
+      }
+    },
+    getFormulaLatex = function(rounded=T, index=NULL){
+      tmp_nu <- ifelse(rounded,round(self$getValueOf("nu"),2), self$getValueOf("nu"))
+      tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
+      tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
+      if(self$is.vector){
+        param1 <- list(name="\\nu",index=index, vector=self$is.vector)
+        param2 <- list(name="\\mu",index=index, vector=self$is.vector)
+        param3 <- list(name="\\sigma",index=index, vector=self$is.vector)
+        return(distToLatex("StudentT",list(param1,param2,param3)))
+      }else{
+        param1 <- list(name=tmp_nu,index=NULL, vector=F)
+        param2 <- list(name=tmp_mu,index=NULL, vector=F)
+        param3 <- list(name=tmp_sigma,index=NULL, vector=F)
+        return(distToLatex("StudentT",list(param1,param2,param3)))
+      }
+    },
+    getAuxParametersLatex = function(index=NULL){
+      tmp_nu <- self$getValueOf("nu")
+      tmp_mu <- self$getValueOf("mu")
+      tmp_sigma <- self$getValueOf("sigma")
+      if(self$is.vector){
+        param1 <- list(name="\\nu",index=index, vector=self$is.vector)
+        param2 <- list(name="\\mu",index=index, vector=self$is.vector)
+        param3 <- list(name="\\sigma",index=index, vector=self$is.vector)
+        return(distAuxToLatex(list(param1,param2,param3)))
+      }else{
+        param1 <- list(name=tmp_nu,index=NULL, vector=F)
+        param2 <- list(name=tmp_mu,index=NULL, vector=F)
+        param3 <- list(name=tmp_sigma,index=NULL, vector=F)
+        return(distAuxToLatex(list(param1,param2,param3)))
+      }
+    }
+  )
 )
+}
 
-HalfStudentTDistribution <- R6Class(classname = "HalfStudentT", inherit = AbstractDistribution,
-                                public = list(
-                                  dEnum=distributionEnum()$HalfStudentT,
-                                  setInitVals = function(){
-                                    if(is.null(self$display_name)){
-                                      self$display_name <- "Half-Student's t-distribution"
-                                    }
-                                    if(is.null(self$description)){
-                                      self$description <- "Half-Student's t-distribution covers a range from 0 to +Inf"
-                                    } 
-                                  },
-                                  setDefaultAuxParameter = function(){
-                                    self$auxParameter[[1]] <- DistributionParameter$new(name = "nu", display_name="&nu;", description="The degree of freedom.", value=3, default_val=3,min_val=greaterZero, max_val=Inf)
-                                    self$auxParameter[[2]] <- DistributionParameter$new(name = "mu", display_name="&mu;", description="The mean (location).", value=0, default_val=0,min_val=-Inf, max_val=Inf)
-                                    self$auxParameter[[3]] <- DistributionParameter$new(name = "sigma", display_name="&sigma;", description="The variance (squared scale).", value=2.5, default_val=2.5,min_val=greaterZero, max_val=Inf)
-                                  },
-                                  plotMe = function(values){ #1:nu, 2:mu, 3:sigma
-                                    tmpNu <- self$getValueOf("nu")
-                                    tmpMu <- self$getValueOf("mu")
-                                    tmpSigma <- self$getValueOf("sigma")
-                                    if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpNu <- values[1]
-                                    if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpMu <- values[2]
-                                    if(!is.null(values[3]) && !is.na(values[3]) && is.numeric(values[3])) tmpSigma <- values[3]
-                                    min <- qst(0.01,nu=tmpNu,mu=tmpMu,sigma=tmpSigma)
-                                    max <- qst(0.99,nu=tmpNu,mu=tmpMu,sigma=tmpSigma)
-                                    x <- seq(from=min, to=max, length=1000)
-                                    y <- dst(x,nu=tmpNu,mu=tmpMu,sigma=tmpSigma)
-                                    data <- data.frame(x=x,y=y)
-                                    ggplot(data, aes(x=x,y=y)) + geom_line() + scale_y_continuous(breaks = NULL)
-
-                                  },
-                                  adjustedParameters = function(){
-                                    x = self$dataX
-                                    y = self$dataY
-                                    if(printDist) print("adjusted by student-t")
-                                    res <- list(nu=NA,mu=NA,sigma=NA)
-                                    factor <- ifelse(self$is.gaussian,sd(y),1)
-                                    #Intercept
-                                    res$nu <- 3
-                                    if(self$is.intercept){
-                                      res$mu <- 0
-                                      res$sigma <- 10*factor
-                                    }else if(self$is.regCoef){
-                                      res$mu <- 0
-                                      if(length(unique(x))==1){
-                                        res$sigma <- 2.5*factor
-                                      }else if(length(unique(x)) == 2){
-                                        res$sigma <- (2.5*factor)/(abs(unique(x)[2]-unique(x)[1]))
-                                      }else{
-                                        res$sigma <- (2.5*factor)/sd(x)          
-                                      }
-                                    }else{ #Auxiliary parameter e.g. sigma 
-                                      if(length(unique(x))==1){
-                                        res$sigma <- 2.5*factor
-                                      }else if(length(unique(x)) == 2){
-                                        res$sigma <- (2.5*factor)/(abs(unique(x)[2]-unique(x)[1]))
-                                      }else{
-                                        res$sigma <- (2.5*factor)/sd(x)          
-                                      }
-                                    }
-                                    return(res)
-                                  },
-                                  getPrior = function(brms=F){
-                                    warning("This function should only be used in a context, where this function is used as a half-student-t.")
-                                    if(brms){
-                                      p <- brms::set_prior(paste0("student_t(",self$auxParameter[[1]]$value,",",
-                                                              self$auxParameter[[2]]$value,",",
-                                                              self$auxParameter[[3]]$value,")"),
-                                                       lb=0)
-                                      
-                                      return(p)
-                                    }else{
-                                      return(student_t(self$auxParameter[[1]]$value,self$auxParameter[[2]]$value,self$auxParameter[[3]]$value, autoscale=F))
-                                    }
-                                  },
-                                  getFormula = function(rounded=T, index=NULL){
-                                    tmp_nu <- ifelse(rounded,round(self$getValueOf("nu"),2), self$getValueOf("nu"))
-                                    tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
-                                    tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
-                                    if(self$is.vector){
-                                      return(paste0(tags$span("Half-StudentT", class="formulaDistribution"),
-                                                    " ( ", "<b>&nu;",tags$sub(index) ,"</b> , <b>&mu;",tags$sub(index) ,"</b> , <b>", "&sigma;", tags$sub(index),"</b> )"))      
-                                    }else{
-                                      return(paste0(tags$span("Half-StudentT", class="formulaDistribution"),
-                                                    " ( ",tmp_nu," , ",tmp_mu," , ",tmp_sigma," )"))
-                                    }
-                                  },
-                                  getFormulaLatex = function(rounded=T, index=NULL){
-                                    tmp_nu <- ifelse(rounded,round(self$getValueOf("nu"),2), self$getValueOf("nu"))
-                                    tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
-                                    tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
-                                    if(self$is.vector){
-                                      param1 <- list(name="\\nu",index=index, vector=self$is.vector)
-                                      param2 <- list(name="\\mu",index=index, vector=self$is.vector)
-                                      param3 <- list(name="\\sigma",index=index, vector=self$is.vector)
-                                      return(distToLatex("Half-StudentT",list(param1,param2,param3)))
-                                    }else{
-                                      param1 <- list(name=tmp_nu,index=NULL, vector=F)
-                                      param2 <- list(name=tmp_mu,index=NULL, vector=F)
-                                      param3 <- list(name=tmp_sigma,index=NULL, vector=F)
-                                      return(distToLatex("Half-StudentT",list(param1,param2,param3)))
-                                    }
-                                  },
-                                  getAuxParametersLatex = function(index=NULL){
-                                    tmp_nu <- self$getValueOf("nu")
-                                    tmp_mu <- self$getValueOf("mu")
-                                    tmp_sigma <- self$getValueOf("sigma")
-                                    if(self$is.vector){
-                                      param1 <- list(name="\\nu",index=index, vector=self$is.vector)
-                                      param2 <- list(name="\\mu",index=index, vector=self$is.vector)
-                                      param3 <- list(name="\\sigma",index=index, vector=self$is.vector)
-                                      return(distAuxToLatex(list(param1,param2,param3)))
-                                    }else{
-                                      param1 <- list(name=tmp_nu,index=NULL, vector=F)
-                                      param2 <- list(name=tmp_mu,index=NULL, vector=F)
-                                      param3 <- list(name=tmp_sigma,index=NULL, vector=F)
-                                      return(distAuxToLatex(list(param1,param2,param3)))
-                                    }
-                                  }
-                                )
+{
+HalfStudentTDistribution <- R6Class(
+  classname = "HalfStudentT", 
+  inherit = AbstractDistribution,
+  
+  public = list(
+    dEnum=distributionEnum()$HalfStudentT,
+    setInitVals = function(){
+      if(is.null(self$display_name)){
+        self$display_name <- "Half-Student's t-distribution"
+      }
+      if(is.null(self$description)){
+        self$description <- paste0(
+          "The half-Student's t-distribution is a truncated version of the Student's t-distribution, defined for positive values. ",
+          "It is controlled by the degrees of freedom (ν > 0) and scale (σ > 0), with the distribution being heavy-tailed for smaller ν and approaching a normal distribution as ν increases. ",
+          "It is commonly used for positive-valued parameters with robust uncertainty."
+        )
+      } 
+    },
+    setDefaultAuxParameter = function(){
+      self$auxParameter[[1]] <- DistributionParameter$new(name = "nu", display_name="&nu;", description="The degree of freedom.", value=3, default_val=3,min_val=greaterZero, max_val=Inf)
+      self$auxParameter[[2]] <- DistributionParameter$new(name = "mu", display_name="&mu;", description="The mean (location).", value=0, default_val=0,min_val=-Inf, max_val=Inf)
+      self$auxParameter[[3]] <- DistributionParameter$new(name = "sigma", display_name="&sigma;", description="The variance (squared scale).", value=2.5, default_val=2.5,min_val=greaterZero, max_val=Inf)
+    },
+    plotMe = function(values){ #1:nu, 2:mu, 3:sigma
+      tmpNu <- self$getValueOf("nu")
+      tmpMu <- self$getValueOf("mu")
+      tmpSigma <- self$getValueOf("sigma")
+      if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpNu <- values[1]
+      if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpMu <- values[2]
+      if(!is.null(values[3]) && !is.na(values[3]) && is.numeric(values[3])) tmpSigma <- values[3]
+      min <- qst(0.01,nu=tmpNu,mu=tmpMu,sigma=tmpSigma)
+      max <- qst(0.99,nu=tmpNu,mu=tmpMu,sigma=tmpSigma)
+      x <- seq(from=min, to=max, length=1000)
+      y <- dst(x,nu=tmpNu,mu=tmpMu,sigma=tmpSigma)
+      data <- data.frame(x=x,y=y)
+      ggplot(data, aes(x=x,y=y)) + geom_line() + scale_y_continuous(breaks = NULL)
+      
+      #TODO qhalft returns NA
+      # LaplacesDemon::qhalft(0.5,nu=10,scale=1)
+      # LaplacesDemon::dhalft()
+      
+    },
+    adjustedParameters = function(){
+      x = self$dataX
+      y = self$dataY
+      if(printDist) print("adjusted by student-t")
+      res <- list(nu=NA,mu=NA,sigma=NA)
+      factor <- ifelse(self$is.gaussian,sd(y),1)
+      #Intercept
+      res$nu <- 3
+      if(self$is.intercept){
+        res$mu <- 0
+        res$sigma <- 2.5*factor
+      }else if(self$is.regCoef){
+        res$mu <- 0
+        if(length(unique(x))==1){
+          res$sigma <- 2.5*factor
+        }else if(length(unique(x)) == 2){
+          res$sigma <- (2.5*factor)/(abs(unique(x)[2]-unique(x)[1]))
+        }else{
+          res$sigma <- (2.5*factor)/sd(x)          
+        }
+      }else{ #Auxiliary parameter e.g. sigma 
+        res$sigma <- 1*factor
+      }
+      return(res)
+    },
+    getPrior = function(brms=F){
+      warning("This function should only be used in a context, where this function is used as a half-student-t.")
+      if(brms){
+        p <- brms::set_prior(paste0("student_t(",self$auxParameter[[1]]$value,",",
+                                self$auxParameter[[2]]$value,",",
+                                self$auxParameter[[3]]$value,")"),
+                         lb=0)
+        
+        return(p)
+      }else{
+        return(student_t(self$auxParameter[[1]]$value,self$auxParameter[[2]]$value,self$auxParameter[[3]]$value, autoscale=F))
+      }
+    },
+    getFormula = function(rounded=T, index=NULL){
+      tmp_nu <- ifelse(rounded,round(self$getValueOf("nu"),2), self$getValueOf("nu"))
+      tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
+      tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
+      if(self$is.vector){
+        return(paste0(tags$span("Half-StudentT", class="formulaDistribution"),
+                      " ( ", "<b>&nu;",tags$sub(index) ,"</b> , <b>&mu;",tags$sub(index) ,"</b> , <b>", "&sigma;", tags$sub(index),"</b> )"))      
+      }else{
+        return(paste0(tags$span("Half-StudentT", class="formulaDistribution"),
+                      " ( ",tmp_nu," , ",tmp_mu," , ",tmp_sigma," )"))
+      }
+    },
+    getFormulaLatex = function(rounded=T, index=NULL){
+      tmp_nu <- ifelse(rounded,round(self$getValueOf("nu"),2), self$getValueOf("nu"))
+      tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
+      tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
+      if(self$is.vector){
+        param1 <- list(name="\\nu",index=index, vector=self$is.vector)
+        param2 <- list(name="\\mu",index=index, vector=self$is.vector)
+        param3 <- list(name="\\sigma",index=index, vector=self$is.vector)
+        return(distToLatex("Half-StudentT",list(param1,param2,param3)))
+      }else{
+        param1 <- list(name=tmp_nu,index=NULL, vector=F)
+        param2 <- list(name=tmp_mu,index=NULL, vector=F)
+        param3 <- list(name=tmp_sigma,index=NULL, vector=F)
+        return(distToLatex("Half-StudentT",list(param1,param2,param3)))
+      }
+    },
+    getAuxParametersLatex = function(index=NULL){
+      tmp_nu <- self$getValueOf("nu")
+      tmp_mu <- self$getValueOf("mu")
+      tmp_sigma <- self$getValueOf("sigma")
+      if(self$is.vector){
+        param1 <- list(name="\\nu",index=index, vector=self$is.vector)
+        param2 <- list(name="\\mu",index=index, vector=self$is.vector)
+        param3 <- list(name="\\sigma",index=index, vector=self$is.vector)
+        return(distAuxToLatex(list(param1,param2,param3)))
+      }else{
+        param1 <- list(name=tmp_nu,index=NULL, vector=F)
+        param2 <- list(name=tmp_mu,index=NULL, vector=F)
+        param3 <- list(name=tmp_sigma,index=NULL, vector=F)
+        return(distAuxToLatex(list(param1,param2,param3)))
+      }
+    }
+  )
 )
+}
 
-
-CauchyDistribution <- R6Class(classname = "CauchyDistribution", inherit = AbstractDistribution,
-                                public = list(
-                                  dEnum=distributionEnum()$Cauchy,
-                                  setInitVals = function(){
-                                    if(is.null(self$display_name)){
-                                      self$display_name <- "Cauchy distribution"
-                                    }
-                                    if(is.null(self$description)){
-                                      self$description <- "Cauchy distribution covers a range from -Inf to +Inf"
-                                    } 
-                                  },
-                                  setDefaultAuxParameter = function(){
-                                    self$auxParameter[[1]] <- DistributionParameter$new(name = "mu", display_name="&mu;", description="The mean (location).", value=0, default_val=0,min_val=-Inf, max_val=Inf)
-                                    self$auxParameter[[2]] <- DistributionParameter$new(name = "sigma", display_name="&sigma;", description="The variance (scale).", value=10, default_val=10,min_val=greaterZero, max_val=Inf)
-                                  },
-                                  plotMe = function(values){ #1:mu, 2:sigma
-                                    tmpMu <- self$getValueOf("mu")
-                                    tmpSigma <- self$getValueOf("sigma")
-                                    if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpMu <- values[1]
-                                    if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpSigma <- values[2]
-                                    min <- qcauchy(0.05,location=tmpMu,scale=tmpSigma)
-                                    max <- qcauchy(0.95,location=tmpMu,scale=tmpSigma)
-                                    x <- seq(from=min, to=max, length=1000)
-                                    y <- dcauchy(x,location=tmpMu,scale=tmpSigma)
-                                    data <- data.frame(x=x,y=y)
-                                    ggplot(data, aes(x=x,y=y)) + geom_line() + scale_y_continuous(breaks = NULL)
-                                  },
-                                  adjustedParameters = function(){
-                                    x = self$dataX
-                                    y = self$dataY
-                                    if(printDist) print("adjusted by cauchy")
-                                    res <- list(mu=NA,sigma=NA)
-                                    factor <- ifelse(self$is.gaussian,sd(y),1)
-                                    #Intercept
-                                    if(self$is.intercept){
-                                      res$mu <- 0
-                                      res$sigma <- 10*factor
-                                    }else if(self$is.regCoef){
-                                      res$mu <- 0
-                                      if(length(unique(x))==1){
-                                        res$sigma <- 2.5*factor
-                                      }else if(length(unique(x)) == 2){
-                                        res$sigma <- (2.5*factor)/(abs(unique(x)[2]-unique(x)[1]))
-                                      }else{
-                                        res$sigma <- (2.5*factor)/sd(x)          
-                                      }
-                                    }else{ #Auxiliary parameter e.g. sigma 
-                                      if(self$is.gaussian){
-                                        malfunction_report(code=malfunctionCode()$distributions, msg="Distribution.R --> A non regCoef or intercept have a student-t prior in a gaussian GLM.",
-                                                           type="error")
-                                        stop("Something went wrong. Distribution.R --> A non regCoef or intercept have a Cauchy prior in a gaussian GLM.")
-                                      }else{
-                                        malfunction_report(code=malfunctionCode()$distributions, msg="Still empty. Distribution.R",
-                                                           type="error")
-                                        stop("Still empty. Distribution.R") #When will a normal distribution will be used for an auxiliary parameter?
-                                      }
-                                    }
-                                    return(res)
-                                  },
-                                  getPrior = function(brms=F){
-                                    if(brms){
-                                      p <- brms::set_prior(paste0("cauchy(",self$auxParameter[[1]]$value,",",
-                                                                  self$auxParameter[[2]]$value,")"))
-                                      return(p)
-                                    }else{
-                                      return(cauchy(self$auxParameter[[1]]$value,self$auxParameter[[2]]$value, autoscale=F))
-                                    }
-                                  },
-                                  getFormula = function(rounded=T, index=NULL){
-                                    tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
-                                    tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
-                                    if(self$is.vector){
-                                      return(paste0(tags$span("Cauchy", class="formulaDistribution"),
-                                                    " ( ", "<b>&mu;",tags$sub(index) ,"</b> , <b>", "&sigma;", tags$sub(index),"</b> )"))      
-                                    }else{
-                                      return(paste0(tags$span("Cauchy", class="formulaDistribution"),
-                                                    " ( ",tmp_mu," , ",tmp_sigma," )"))
-                                    }
-                                  },
-                                  getFormulaLatex = function(rounded=T, index=NULL){
-                                    tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
-                                    tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
-                                    if(self$is.vector){
-                                      param1 <- list(name="\\mu",index=index, vector=self$is.vector)
-                                      param2 <- list(name="\\sigma",index=index, vector=self$is.vector)
-                                      return(distToLatex("Cauchy",list(param1,param2)))
-                                    }else{
-                                      param1 <- list(name=tmp_mu,index=NULL, vector=F)
-                                      param2 <- list(name=tmp_sigma,index=NULL, vector=F)
-                                      return(distToLatex("Cauchy",list(param1,param2)))
-                                    }
-                                  },
-                                  getAuxParametersLatex = function(index=NULL){
-                                    tmp_mu <- self$getValueOf("mu")
-                                    tmp_sigma <- self$getValueOf("sigma")
-                                    if(self$is.vector){
-                                      param1 <- list(name="\\mu",index=index, vector=self$is.vector)
-                                      param2 <- list(name="\\sigma",index=index, vector=self$is.vector)
-                                      return(distAuxToLatex(list(param1,param2)))
-                                    }else{
-                                      param1 <- list(name=tmp_mu,index=NULL, vector=F)
-                                      param2 <- list(name=tmp_sigma,index=NULL, vector=F)
-                                      return(distAuxToLatex(list(param1,param2)))
-                                    }
-                                  }
-                                )
+{
+CauchyDistribution <- R6Class(
+  classname = "CauchyDistribution", 
+  inherit = AbstractDistribution,
+  
+  public = list(
+    dEnum=distributionEnum()$Cauchy,
+    setInitVals = function(){
+      if(is.null(self$display_name)){
+        self$display_name <- "Cauchy distribution"
+      }
+      if(is.null(self$description)){
+        self$description <- paste0(
+          "The Cauchy distribution is a heavy-tailed distribution with location (μ) and scale (σ > 0) parameters. ",
+          "It has very heavy tails, meaning it allows for more extreme values compared to the normal distribution. ",
+          "The distribution is defined over (−∞, ∞) and is often used for parameters with high uncertainty."
+        )
+      } 
+    },
+    setDefaultAuxParameter = function(){
+      self$auxParameter[[1]] <- DistributionParameter$new(name = "mu", display_name="&mu;", description="The mean (location).", value=0, default_val=0,min_val=-Inf, max_val=Inf)
+      self$auxParameter[[2]] <- DistributionParameter$new(name = "sigma", display_name="&sigma;", description="The variance (scale).", value=10, default_val=10,min_val=greaterZero, max_val=Inf)
+    },
+    plotMe = function(values){ #1:mu, 2:sigma
+      tmpMu <- self$getValueOf("mu")
+      tmpSigma <- self$getValueOf("sigma")
+      if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpMu <- values[1]
+      if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpSigma <- values[2]
+      min <- qcauchy(0.05,location=tmpMu,scale=tmpSigma)
+      max <- qcauchy(0.95,location=tmpMu,scale=tmpSigma)
+      x <- seq(from=min, to=max, length=1000)
+      y <- dcauchy(x,location=tmpMu,scale=tmpSigma)
+      data <- data.frame(x=x,y=y)
+      ggplot(data, aes(x=x,y=y)) + geom_line() + scale_y_continuous(breaks = NULL)
+    },
+    adjustedParameters = function(){
+      x = self$dataX
+      y = self$dataY
+      if(printDist) print("adjusted by cauchy")
+      res <- list(mu=NA,sigma=NA)
+      factor <- ifelse(self$is.gaussian,sd(y),1)
+      #Intercept
+      if(self$is.intercept){
+        res$mu <- 0
+        res$sigma <- 2.5*factor
+      }else if(self$is.regCoef){
+        res$mu <- 0
+        if(length(unique(x))==1){
+          res$sigma <- 2.5*factor
+        }else if(length(unique(x)) == 2){
+          res$sigma <- (2.5*factor)/(abs(unique(x)[2]-unique(x)[1]))
+        }else{
+          res$sigma <- (2.5*factor)/sd(x)          
+        }
+      }else{ #Auxiliary parameter e.g. sigma 
+        if(self$is.gaussian){
+          malfunction_report(code=malfunctionCode()$distributions, msg="Distribution.R --> A non regCoef or intercept have a student-t prior in a gaussian GLM.",
+                             type="error")
+          stop("Something went wrong. Distribution.R --> A non regCoef or intercept have a Cauchy prior in a gaussian GLM.")
+        }else{
+          malfunction_report(code=malfunctionCode()$distributions, msg="Still empty. Distribution.R",
+                             type="error")
+          stop("Still empty. Distribution.R") #When will a normal distribution will be used for an auxiliary parameter?
+        }
+      }
+      return(res)
+    },
+    getPrior = function(brms=F){
+      if(brms){
+        p <- brms::set_prior(paste0("cauchy(",self$auxParameter[[1]]$value,",",
+                                    self$auxParameter[[2]]$value,")"))
+        return(p)
+      }else{
+        return(cauchy(self$auxParameter[[1]]$value,self$auxParameter[[2]]$value, autoscale=F))
+      }
+    },
+    getFormula = function(rounded=T, index=NULL){
+      tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
+      tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
+      if(self$is.vector){
+        return(paste0(tags$span("Cauchy", class="formulaDistribution"),
+                      " ( ", "<b>&mu;",tags$sub(index) ,"</b> , <b>", "&sigma;", tags$sub(index),"</b> )"))      
+      }else{
+        return(paste0(tags$span("Cauchy", class="formulaDistribution"),
+                      " ( ",tmp_mu," , ",tmp_sigma," )"))
+      }
+    },
+    getFormulaLatex = function(rounded=T, index=NULL){
+      tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
+      tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
+      if(self$is.vector){
+        param1 <- list(name="\\mu",index=index, vector=self$is.vector)
+        param2 <- list(name="\\sigma",index=index, vector=self$is.vector)
+        return(distToLatex("Cauchy",list(param1,param2)))
+      }else{
+        param1 <- list(name=tmp_mu,index=NULL, vector=F)
+        param2 <- list(name=tmp_sigma,index=NULL, vector=F)
+        return(distToLatex("Cauchy",list(param1,param2)))
+      }
+    },
+    getAuxParametersLatex = function(index=NULL){
+      tmp_mu <- self$getValueOf("mu")
+      tmp_sigma <- self$getValueOf("sigma")
+      if(self$is.vector){
+        param1 <- list(name="\\mu",index=index, vector=self$is.vector)
+        param2 <- list(name="\\sigma",index=index, vector=self$is.vector)
+        return(distAuxToLatex(list(param1,param2)))
+      }else{
+        param1 <- list(name=tmp_mu,index=NULL, vector=F)
+        param2 <- list(name=tmp_sigma,index=NULL, vector=F)
+        return(distAuxToLatex(list(param1,param2)))
+      }
+    }
+  )
 )
+}
 
-HalfCauchyDistribution <- R6Class(classname = "HalfCauchyDistribution", inherit = AbstractDistribution,
-                              public = list(
-                                dEnum=distributionEnum()$HalfCauchy,
-                                setInitVals = function(){
-                                  if(is.null(self$display_name)){
-                                    self$display_name <- "Half-cauchy distribution"
-                                  }
-                                  if(is.null(self$description)){
-                                    self$description <- "Half-cauchy distribution covers a range from 0 to +Inf"
-                                  } 
-                                },
-                                setDefaultAuxParameter = function(){
-                                  # fit<-rstanarm::stan_glm("y~1", data=data.frame(y=rnorm(100)), prior_intercept=cauchy(-1,5), prior_aux=cauchy(0,5))
-                                  # self$auxParameter[[1]] <- DistributionParameter$new(name = "mu", display_name="&mu;", description="The mean (location).", value=0, default_val=0,min_val=0, max_val=Inf)
-                                  self$auxParameter[[1]] <- DistributionParameter$new(name = "sigma", display_name="&sigma;", description="The variance (scale).", value=10, default_val=10,min_val=greaterZero, max_val=Inf)
-                                },
-                                plotMe = function(values){#1:sigma
-                                  tmpSigma <- self$getValueOf("sigma")
-                                  if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpSigma <- values[1]
-                                  min <- 0
-                                  max <- qhalfcauchy(0.95,scale=tmpSigma)
-                                  x <- seq(from=min, to=max, length=1000)
-                                  y <- dhalfcauchy(x,scale=tmpSigma)
-                                  data <- data.frame(x=x,y=y)
-                                  ggplot(data, aes(x=x,y=y)) + geom_line() + scale_y_continuous(breaks = NULL)
-                                },
-                                adjustedParameters = function(){
-                                  x = self$dataX
-                                  y = self$dataY
-                                  if(printDist) print("adjusted by half-cauchy")
-                                  res <- list(sigma=NA)
-                                  factor <- ifelse(self$is.gaussian,sd(y),1)
-                                  #Intercept
-                                  if(self$is.intercept){
-                                    res$sigma <- 10*factor
-                                  }else if(self$is.regCoef){
-                                    if(length(unique(x))==1){
-                                      res$sigma <- 2.5*factor
-                                    }else if(length(unique(x)) == 2){
-                                      res$sigma <- (2.5*factor)/(abs(unique(x)[2]-unique(x)[1]))
-                                    }else{
-                                      res$sigma <- (2.5*factor)/sd(x)          
-                                    }
-                                  }else{ #Auxiliary parameter e.g. sigma 
-                                    res$sigma <- 2.5*factor
-                                  }
-                                  return(res)
-                                },
-                                getPrior = function(brms=F){                                  
-                                  # return(cauchy(self$auxParameter[[1]]$value,self$auxParameter[[2]]$value, autoscale=F))
-                                  warning("This function should only be used in a context, where this function is used as a half-student-t.")
-                                  if(brms){
-                                    p <- brms::set_prior(paste0("cauchy(",0,",",
-                                                                self$auxParameter[[2]]$value,")"),
-                                                         lb=0)
-                                    return(p)
-                                  }else{
-                                    return(cauchy(0,self$auxParameter[[1]]$value, autoscale=F))
-                                  }
-                                },
-                                getFormula = function(rounded=T, index=NULL){
-                                  tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
-                                  if(self$is.vector){
-                                    return(paste0(tags$span("Half-Cauchy", class="formulaDistribution"),
-                                                  " ( 0 ,", "<b>&sigma;",tags$sub(index) ,"</b> )"))      
-                                  }else{
-                                    return(paste0(tags$span("Half-Cauchy", class="formulaDistribution"),
-                                                  " ( 0 , ",tmp_sigma," )"))
-                                  }
-                                },
-                                getFormulaLatex = function(rounded=T, index=NULL){
-                                  tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
-                                  if(self$is.vector){
-                                    param1 <- list(name="0",index=NULL, vector=F)
-                                    param2 <- list(name="\\sigma",index=index, vector=self$is.vector)
-                                    return(distToLatex("Half-Cauchy",list(param1,param2)))
-                                  }else{
-                                    param1 <- list(name=0,index=NULL, vector=F)
-                                    param2 <- list(name=tmp_sigma,index=NULL, vector=F)
-                                    return(distToLatex("Half-Cauchy",list(param1,param2)))
-                                  }
-                                },
-                                getAuxParametersLatex = function(index=NULL){
-                                  tmp_sigma <- self$getValueOf("sigma")
-                                  if(self$is.vector){
-                                    param1 <- list(name="0",index=NULL, vector=F)
-                                    param2 <- list(name="\\sigma",index=index, vector=self$is.vector)
-                                    return(distAuxToLatex(list(param1,param2)))
-                                  }else{
-                                    param1 <- list(name=0,index=NULL, vector=F)
-                                    param2 <- list(name=tmp_sigma,index=NULL, vector=F)
-                                    return(distAuxToLatex(list(param1,param2)))
-                                  }
-                                }
-                              )
+{
+HalfCauchyDistribution <- R6Class(
+  classname = "HalfCauchyDistribution", 
+  inherit = AbstractDistribution,
+  
+  public = list(
+    dEnum=distributionEnum()$HalfCauchy,
+    setInitVals = function(){
+      if(is.null(self$display_name)){
+        self$display_name <- "Half-cauchy distribution"
+      }
+      if(is.null(self$description)){
+        self$description <- paste0(
+          "The half-Cauchy distribution is the truncated version of the Cauchy distribution, restricted to positive values. ",
+          "It is controlled by the scale (σ > 0), and it has heavy tails, making it suitable for positive-valued parameters with potential for large values."
+        )
+      } 
+    },
+    setDefaultAuxParameter = function(){
+      # fit<-rstanarm::stan_glm("y~1", data=data.frame(y=rnorm(100)), prior_intercept=cauchy(-1,5), prior_aux=cauchy(0,5))
+      # self$auxParameter[[1]] <- DistributionParameter$new(name = "mu", display_name="&mu;", description="The mean (location).", value=0, default_val=0,min_val=0, max_val=Inf)
+      self$auxParameter[[1]] <- DistributionParameter$new(name = "sigma", display_name="&sigma;", description="The variance (scale).", value=10, default_val=10,min_val=greaterZero, max_val=Inf)
+    },
+    plotMe = function(values){#1:sigma
+      tmpSigma <- self$getValueOf("sigma")
+      if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpSigma <- values[1]
+      min <- 0
+      max <- qhalfcauchy(0.95,scale=tmpSigma)
+      x <- seq(from=min, to=max, length=1000)
+      y <- dhalfcauchy(x,scale=tmpSigma)
+      data <- data.frame(x=x,y=y)
+      ggplot(data, aes(x=x,y=y)) + geom_line() + scale_y_continuous(breaks = NULL)
+    },
+    adjustedParameters = function(){
+      x = self$dataX
+      y = self$dataY
+      if(printDist) print("adjusted by half-cauchy")
+      res <- list(sigma=NA)
+      factor <- ifelse(self$is.gaussian,sd(y),1)
+      #Intercept
+      if(self$is.intercept){
+        res$sigma <- 2.5*factor
+      }else if(self$is.regCoef){
+        if(length(unique(x))==1){
+          res$sigma <- 2.5*factor
+        }else if(length(unique(x)) == 2){
+          res$sigma <- (2.5*factor)/(abs(unique(x)[2]-unique(x)[1]))
+        }else{
+          res$sigma <- (2.5*factor)/sd(x)          
+        }
+      }else{ #Auxiliary parameter e.g. sigma 
+        res$sigma <- 1*factor
+      }
+      return(res)
+    },
+    getPrior = function(brms=F){                                  
+      # return(cauchy(self$auxParameter[[1]]$value,self$auxParameter[[2]]$value, autoscale=F))
+      warning("This function should only be used in a context, where this function is used as a half-student-t.")
+      if(brms){
+        p <- brms::set_prior(paste0("cauchy(",0,",",
+                                    self$auxParameter[[2]]$value,")"),
+                             lb=0)
+        return(p)
+      }else{
+        return(cauchy(0,self$auxParameter[[1]]$value, autoscale=F))
+      }
+    },
+    getFormula = function(rounded=T, index=NULL){
+      tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
+      if(self$is.vector){
+        return(paste0(tags$span("Half-Cauchy", class="formulaDistribution"),
+                      " ( 0 ,", "<b>&sigma;",tags$sub(index) ,"</b> )"))      
+      }else{
+        return(paste0(tags$span("Half-Cauchy", class="formulaDistribution"),
+                      " ( 0 , ",tmp_sigma," )"))
+      }
+    },
+    getFormulaLatex = function(rounded=T, index=NULL){
+      tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
+      if(self$is.vector){
+        param1 <- list(name="0",index=NULL, vector=F)
+        param2 <- list(name="\\sigma",index=index, vector=self$is.vector)
+        return(distToLatex("Half-Cauchy",list(param1,param2)))
+      }else{
+        param1 <- list(name=0,index=NULL, vector=F)
+        param2 <- list(name=tmp_sigma,index=NULL, vector=F)
+        return(distToLatex("Half-Cauchy",list(param1,param2)))
+      }
+    },
+    getAuxParametersLatex = function(index=NULL){
+      tmp_sigma <- self$getValueOf("sigma")
+      if(self$is.vector){
+        param1 <- list(name="0",index=NULL, vector=F)
+        param2 <- list(name="\\sigma",index=index, vector=self$is.vector)
+        return(distAuxToLatex(list(param1,param2)))
+      }else{
+        param1 <- list(name=0,index=NULL, vector=F)
+        param2 <- list(name=tmp_sigma,index=NULL, vector=F)
+        return(distAuxToLatex(list(param1,param2)))
+      }
+    }
+  )
 )
+}
 
-GammaDistribution <- R6Class(classname = "GammaDistribution", inherit = AbstractDistribution,
-                              public = list(
-                                dEnum=distributionEnum()$Gamma,
-                                setInitVals = function(){
-                                  if(is.null(self$display_name)){
-                                    self$display_name <- "Gamma distribution"
-                                  }
-                                  if(is.null(self$description)){
-                                    self$description <- "Gamma distribution covers a range from 0 to +Inf"
-                                  } 
-                                },
-                                setDefaultAuxParameter = function(){
-                                  self$auxParameter[[1]] <- DistributionParameter$new(name = "shape", display_name="&alpha;", description="The shape parameter.", value=2, default_val=2,min_val=greaterZero, max_val=Inf)
-                                  self$auxParameter[[2]] <- DistributionParameter$new(name = "rate", display_name="&beta;", description="The rate parameter.", value=2, default_val=2,min_val=greaterZero, max_val=Inf)
-                                },
-                                plotMe = function(values){ #1:shape, 2:rate
-                                  tmpShape <- self$getValueOf("shape")
-                                  tmpRate <- self$getValueOf("rate")
-                                  if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpShape <- values[1]
-                                  if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpRate <- values[2]
-                                  min <- qgamma(0,shape=tmpShape,rate=tmpRate)
-                                  max <- qgamma(0.99,shape=tmpShape,rate=tmpRate)
-                                  x <- seq(from=min, to=max, length=1000)
-                                  y <- dgamma(x,shape=tmpShape,rate=tmpRate)
-                                  data <- data.frame(x=x,y=y)
-                                  ggplot(data, aes(x=x,y=y)) + geom_line() + scale_y_continuous(breaks = NULL)
-                                },
-                                adjustedParameters = function(){
-                                  x = self$dataX
-                                  y = self$dataY
-                                  if(printDist) print("adjusted by gamma")
-                                  malfunction_report(code=malfunctionCode()$distributions, msg="adjustedParameters not implemented GammaDistribution",
-                                                     type="error")
-                                  stop("Not implemented!")
-                                  
-                                  
-                                },
-                                getPrior = function(brms=F){
-                                  malfunction_report(code=malfunctionCode()$distributions, msg="Not yet implemented GammaDistribution",
-                                                     type="error")
-                                  stop("Not yet implemented")
-                                },
-                                getFormula = function(rounded=T, index=NULL){
-                                  tmp_shape <- ifelse(rounded,round(self$getValueOf("shape"),2), self$getValueOf("shape"))
-                                  tmp_rate <- ifelse(rounded,round(self$getValueOf("rate"),2), self$getValueOf("rate"))
-                                  if(self$is.vector){
-                                    return(paste0(tags$span("Gamma", class="formulaDistribution"),
-                                                  " ( ", "<b>&alpha;",tags$sub(index) ,"</b> , <b>", "&beta;", tags$sub(index),"</b> )"))      
-                                  }else{
-                                    return(paste0(tags$span("Gamma", class="formulaDistribution"),
-                                                  " ( ",tmp_shape," , ",tmp_rate," )"))
-                                  }
-                                },
-                                getFormulaLatex = function(rounded=T, index=NULL){
-                                  tmp_shape <- ifelse(rounded,round(self$getValueOf("shape"),2), self$getValueOf("shape"))
-                                  tmp_rate <- ifelse(rounded,round(self$getValueOf("rate"),2), self$getValueOf("rate"))
-                                  if(self$is.vector){
-                                    param1 <- list(name="\\alpha",index=index, vector=self$is.vector)
-                                    param2 <- list(name="\\beta",index=index, vector=self$is.vector)
-                                    return(distToLatex("Gamma",list(param1,param2)))
-                                  }else{
-                                    param1 <- list(name=tmp_shape,index=NULL, vector=F)
-                                    param2 <- list(name=tmp_rate,index=NULL, vector=F)
-                                    return(distToLatex("Gamma",list(param1,param2)))
-                                  }
-                                },
-                                getAuxParametersLatex = function(index=NULL){
-                                  tmp_shape <- self$getValueOf("shape")
-                                  tmp_rate <- self$getValueOf("rate")
-                                  if(self$is.vector){
-                                    param1 <- list(name="\\alpha",index=index, vector=self$is.vector)
-                                    param2 <- list(name="\\beta",index=index, vector=self$is.vector)
-                                    return(distAuxToLatex(list(param1,param2)))
-                                  }else{
-                                    param1 <- list(name=tmp_shape,index=NULL, vector=F)
-                                    param2 <- list(name=tmp_rate,index=NULL, vector=F)
-                                    return(distAuxToLatex(list(param1,param2)))
-                                  }
-                                }
-                              )
+{
+GammaDistribution <- R6Class(
+  classname = "GammaDistribution", 
+  inherit = AbstractDistribution,
+  
+  public = list(
+    dEnum=distributionEnum()$Gamma,
+    setInitVals = function(){
+      if(is.null(self$display_name)){
+        self$display_name <- "Gamma distribution"
+      }
+      if(is.null(self$description)){
+        self$description <- paste0(
+          "The Gamma distribution is a flexible distribution often used for positive-valued parameters. ",
+          "It is controlled by the shape (α > 0) and scale (β > 0) parameters. ",
+          "The distribution can take different forms depending on the shape parameter, with smaller α leading to a more skewed distribution and larger α approaching a normal distribution."
+        )
+      } 
+    },
+    setDefaultAuxParameter = function(){
+      self$auxParameter[[1]] <- DistributionParameter$new(name = "shape", display_name="&alpha;", description="The shape parameter.", value=2, default_val=2,min_val=greaterZero, max_val=Inf)
+      self$auxParameter[[2]] <- DistributionParameter$new(name = "rate", display_name="&beta;", description="The rate parameter.", value=2, default_val=2,min_val=greaterZero, max_val=Inf)
+    },
+    plotMe = function(values){ #1:shape, 2:rate
+      tmpShape <- self$getValueOf("shape")
+      tmpRate <- self$getValueOf("rate")
+      if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpShape <- values[1]
+      if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpRate <- values[2]
+      min <- qgamma(0,shape=tmpShape,rate=tmpRate)
+      max <- qgamma(0.99,shape=tmpShape,rate=tmpRate)
+      x <- seq(from=min, to=max, length=1000)
+      y <- dgamma(x,shape=tmpShape,rate=tmpRate)
+      data <- data.frame(x=x,y=y)
+      ggplot(data, aes(x=x,y=y)) + geom_line() + scale_y_continuous(breaks = NULL)
+    },
+    adjustedParameters = function(){
+      x = self$dataX
+      y = self$dataY
+      if(printDist) print("adjusted by gamma")
+      malfunction_report(code=malfunctionCode()$distributions, msg="adjustedParameters not implemented GammaDistribution",
+                         type="error")
+      stop("Not implemented!")
+      
+      # flog.warn("For interaction terms, check!")
+      # # if x contains more than one column (interaction), mulitply each row to obtain one column
+      # if(length(x[1,]) > 1){
+      #   #TODO
+      #   x_tmp <- data.frame(tmp = rep(1,length(x[,1])))
+      #   for(i in 1:length(x[,1])){
+      #     for(j in 1:length(x[1,])){
+      #       x_tmp$tmp[i] <- x_tmp$tmp[i]*x[i,j]
+      #     }
+      #   }
+      #   x <- x_tmp
+      # }
+      # x <- x[,1]
+      # res <- list(shape=NA,rate=NA)
+      # factor <- ifelse(self$is.gaussian,sd(y),1)
+      # #Intercept
+      # if(self$is.intercept){
+      #   res$mu <- 0
+      #   res$sigma <- 2.5*factor
+      # }else if(self$is.regCoef){
+      #   res$mu <- 0
+      #   if(length(unique(x))==1){
+      #     res$sigma <- 2.5*factor
+      #   }else if(length(unique(x)) == 2){
+      #     res$sigma <- (2.5*factor)/(abs(unique(x)[2]-unique(x)[1]))
+      #   }else{
+      #     res$sigma <- (2.5*factor)/sd(x)          
+      #   }
+      # }else{ #Auxiliary parameter e.g. sigma 
+      #   if(self$is.gaussian){
+      #     stop("Something went wrong. Distribution.R --> A non regCoef or intercept have a normal prior in a gaussian GLM.")
+      #   }else{
+      #     stop("Still empty. Distribution.R") #When will a normal distribution will be used for an auxiliary parameter?
+      #   }
+      # }
+      # return(res)
+    },
+    getPrior = function(brms=F){
+      malfunction_report(code=malfunctionCode()$distributions, msg="Not yet implemented GammaDistribution",
+                         type="error")
+      stop("Not yet implemented")
+    },
+    getFormula = function(rounded=T, index=NULL){
+      tmp_shape <- ifelse(rounded,round(self$getValueOf("shape"),2), self$getValueOf("shape"))
+      tmp_rate <- ifelse(rounded,round(self$getValueOf("rate"),2), self$getValueOf("rate"))
+      if(self$is.vector){
+        return(paste0(tags$span("Gamma", class="formulaDistribution"),
+                      " ( ", "<b>&alpha;",tags$sub(index) ,"</b> , <b>", "&beta;", tags$sub(index),"</b> )"))      
+      }else{
+        return(paste0(tags$span("Gamma", class="formulaDistribution"),
+                      " ( ",tmp_shape," , ",tmp_rate," )"))
+      }
+    },
+    getFormulaLatex = function(rounded=T, index=NULL){
+      tmp_shape <- ifelse(rounded,round(self$getValueOf("shape"),2), self$getValueOf("shape"))
+      tmp_rate <- ifelse(rounded,round(self$getValueOf("rate"),2), self$getValueOf("rate"))
+      if(self$is.vector){
+        param1 <- list(name="\\alpha",index=index, vector=self$is.vector)
+        param2 <- list(name="\\beta",index=index, vector=self$is.vector)
+        return(distToLatex("Gamma",list(param1,param2)))
+      }else{
+        param1 <- list(name=tmp_shape,index=NULL, vector=F)
+        param2 <- list(name=tmp_rate,index=NULL, vector=F)
+        return(distToLatex("Gamma",list(param1,param2)))
+      }
+    },
+    getAuxParametersLatex = function(index=NULL){
+      tmp_shape <- self$getValueOf("shape")
+      tmp_rate <- self$getValueOf("rate")
+      if(self$is.vector){
+        param1 <- list(name="\\alpha",index=index, vector=self$is.vector)
+        param2 <- list(name="\\beta",index=index, vector=self$is.vector)
+        return(distAuxToLatex(list(param1,param2)))
+      }else{
+        param1 <- list(name=tmp_shape,index=NULL, vector=F)
+        param2 <- list(name=tmp_rate,index=NULL, vector=F)
+        return(distAuxToLatex(list(param1,param2)))
+      }
+    }
+  )
 )
+}
 
-HalfNormalDistribution <- R6Class(classname = "HalfNormalDistribution", inherit = AbstractDistribution,
-                              public = list(
-                                dEnum=distributionEnum()$HalfNormal,
-                                setInitVals = function(){
-                                  if(is.null(self$display_name)){
-                                    self$display_name <- "Half-Normal distribution"
-                                  }
-                                  if(is.null(self$description)){
-                                    self$description <- "Half-Normal distribution covers a range from 0 to +Inf"
-                                  } 
-                                },
-                                setDefaultAuxParameter = function(){
-                                  self$auxParameter[[1]] <- DistributionParameter$new(name = "mu", display_name="&mu;", description="The mean (location).", value=0, default_val=0,min_val=-Inf, max_val=Inf)
-                                  self$auxParameter[[2]] <- DistributionParameter$new(name = "sigma", display_name="&sigma;", description="The variance (squared scale).", value=10, default_val=10,min_val=greaterZero, max_val=Inf)
-                                },
-                                plotMe = function(values){ #1:mu, 2:sigma
-                                  tmpMu <- self$getValueOf("mu")
-                                  tmpSigma <- self$getValueOf("sigma")
-                                  if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpMu <- values[1]
-                                  if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpSigma <- values[2]
-                                  min <- qhalfnorm(0.01,mean=tmpMu,sd=tmpSigma)
-                                  max <- qhalfnorm(0.99,mean=tmpMu,sd=tmpSigma)
-                                  x <- seq(from=min, to=max, length=1000)
-                                  y <- dhalfnorm(x,mean=tmpMu,tmpSigma)
-                                  data <- data.frame(x=x,y=y)
-                                  ggplot(data, aes(x=x,y=y)) + geom_line() + scale_y_continuous(breaks = NULL)
-                                },
-                                adjustedParameters = function(){
-                                  x = self$dataX
-                                  y = self$dataY
-                                  if(printDist) print("adjusted by half-normal")
-                                  res <- list(mu=NA,sigma=NA)
-                                  factor <- ifelse(self$is.gaussian,sd(y),1)
-                                  #Intercept
-                                  if(self$is.intercept){
-                                    res$mu <- 0
-                                    res$sigma <- 10*factor
-                                  }else if(self$is.regCoef){
-                                    res$mu <- 0
-                                    if(length(unique(x))==1){
-                                      res$sigma <- 2.5*factor
-                                    }else if(length(unique(x)) == 2){
-                                      res$sigma <- (2.5*factor)/(abs(unique(x)[2]-unique(x)[1]))
-                                    }else{
-                                      res$sigma <- (2.5*factor)/sd(x)          
-                                    }
-                                  }else{ #Auxiliary parameter e.g. sigma 
-                                    res$mu <- 0
-                                    res$sigma <- 2.5*factor
-                                  }
-                                  return(res)
-                                },
-                                getPrior = function(brms=F){
-                                  warning("This function should only be used in a context, where this function is used as a half-normal.")
-                                  if(brms){
-                                    p <- brms::set_prior(paste0("normal(",self$auxParameter[[1]]$value,",",
-                                                                self$auxParameter[[2]]$value,")"),
-                                                         lb=0)
-                                    return(p)
-                                  }else{
-                                    return(normal(self$auxParameter[[1]]$value,self$auxParameter[[2]]$value, autoscale=F))
-                                  }
-                                },
-                                getFormula = function(rounded=T, index=NULL){
-                                  tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
-                                  tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
-                                  if(self$is.vector){
-                                    return(paste0(tags$span("Half-Normal", class="formulaDistribution"),
-                                                  " ( ", "<b>&mu;",tags$sub(index) ,"</b> , <b>", "&sigma;", tags$sub(index),"</b> )"))      
-                                  }else{
-                                    return(paste0(tags$span("Half-Normal", class="formulaDistribution"),
-                                                  " ( ",tmp_mu," , ",tmp_sigma," )"))
-                                  }
-                                },
-                                getFormulaLatex = function(rounded=T, index=NULL){
-                                  tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
-                                  tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
-                                  if(self$is.vector){
-                                    param1 <- list(name="\\mu",index=index, vector=self$is.vector)
-                                    param2 <- list(name="\\sigma",index=index, vector=self$is.vector)
-                                    return(distToLatex("Half-Normal",list(param1,param2)))
-                                  }else{
-                                    param1 <- list(name=tmp_mu,index=NULL, vector=F)
-                                    param2 <- list(name=tmp_sigma,index=NULL, vector=F)
-                                    return(distToLatex("Half-Normal",list(param1,param2)))
-                                  }
-                                },
-                                getAuxParametersLatex = function(index=NULL){
-                                  tmp_mu <- self$getValueOf("mu")
-                                  tmp_sigma <- self$getValueOf("sigma")
-                                  if(self$is.vector){
-                                    param1 <- list(name="\\mu",index=index, vector=self$is.vector)
-                                    param2 <- list(name="\\sigma",index=index, vector=self$is.vector)
-                                    return(distAuxToLatex(list(param1,param2)))
-                                  }else{
-                                    param1 <- list(name=tmp_mu,index=NULL, vector=F)
-                                    param2 <- list(name=tmp_sigma,index=NULL, vector=F)
-                                    return(distAuxToLatex(list(param1,param2)))
-                                  }
-                                }
-                              )
+{
+HalfNormalDistribution <- R6Class(
+  classname = "HalfNormalDistribution", 
+  inherit = AbstractDistribution,
+  
+  public = list(
+    dEnum=distributionEnum()$HalfNormal,
+    setInitVals = function(){
+      if(is.null(self$display_name)){
+        self$display_name <- "Half-Normal distribution"
+      }
+      if(is.null(self$description)){
+        self$description <- paste0(
+          "The half-normal distribution with μ (location) and σ (scale > 0) is a truncated normal distribution defined for positive values. ",
+          "It is symmetric around μ, with σ controlling the spread and the distribution restricted to positive values."
+        )
+      } 
+    },
+    setDefaultAuxParameter = function(){
+      self$auxParameter[[1]] <- DistributionParameter$new(name = "mu", display_name="&mu;", description="The mean (location).", value=0, default_val=0,min_val=-Inf, max_val=Inf)
+      self$auxParameter[[2]] <- DistributionParameter$new(name = "sigma", display_name="&sigma;", description="The variance (squared scale).", value=10, default_val=10,min_val=greaterZero, max_val=Inf)
+    },
+    plotMe = function(values){ #1:mu, 2:sigma
+      tmpMu <- self$getValueOf("mu")
+      tmpSigma <- self$getValueOf("sigma")
+      if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpMu <- values[1]
+      if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpSigma <- values[2]
+      min <- qhalfnorm(0.01,mean=tmpMu,sd=tmpSigma)
+      max <- qhalfnorm(0.99,mean=tmpMu,sd=tmpSigma)
+      x <- seq(from=min, to=max, length=1000)
+      y <- dhalfnorm(x,mean=tmpMu,tmpSigma)
+      data <- data.frame(x=x,y=y)
+      ggplot(data, aes(x=x,y=y)) + geom_line() + scale_y_continuous(breaks = NULL)
+    },
+    adjustedParameters = function(){
+      x = self$dataX
+      y = self$dataY
+      if(printDist) print("adjusted by half-normal")
+      res <- list(mu=NA,sigma=NA)
+      factor <- ifelse(self$is.gaussian,sd(y),1)
+      #Intercept
+      if(self$is.intercept){
+        res$mu <- 0
+        res$sigma <- 2.5*factor
+      }else if(self$is.regCoef){
+        res$mu <- 0
+        if(length(unique(x))==1){
+          res$sigma <- 2.5*factor
+        }else if(length(unique(x)) == 2){
+          res$sigma <- (2.5*factor)/(abs(unique(x)[2]-unique(x)[1]))
+        }else{
+          res$sigma <- (2.5*factor)/sd(x)          
+        }
+      }else{ #Auxiliary parameter e.g. sigma 
+        res$mu <- 0
+        res$sigma <- 1*factor
+      }
+      return(res)
+    },
+    getPrior = function(brms=F){
+      warning("This function should only be used in a context, where this function is used as a half-normal.")
+      if(brms){
+        p <- brms::set_prior(paste0("normal(",self$auxParameter[[1]]$value,",",
+                                    self$auxParameter[[2]]$value,")"),
+                             lb=0)
+        return(p)
+      }else{
+        return(normal(self$auxParameter[[1]]$value,self$auxParameter[[2]]$value, autoscale=F))
+      }
+    },
+    getFormula = function(rounded=T, index=NULL){
+      tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
+      tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
+      if(self$is.vector){
+        return(paste0(tags$span("Half-Normal", class="formulaDistribution"),
+                      " ( ", "<b>&mu;",tags$sub(index) ,"</b> , <b>", "&sigma;", tags$sub(index),"</b> )"))      
+      }else{
+        return(paste0(tags$span("Half-Normal", class="formulaDistribution"),
+                      " ( ",tmp_mu," , ",tmp_sigma," )"))
+      }
+    },
+    getFormulaLatex = function(rounded=T, index=NULL){
+      tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
+      tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
+      if(self$is.vector){
+        param1 <- list(name="\\mu",index=index, vector=self$is.vector)
+        param2 <- list(name="\\sigma",index=index, vector=self$is.vector)
+        return(distToLatex("Half-Normal",list(param1,param2)))
+      }else{
+        param1 <- list(name=tmp_mu,index=NULL, vector=F)
+        param2 <- list(name=tmp_sigma,index=NULL, vector=F)
+        return(distToLatex("Half-Normal",list(param1,param2)))
+      }
+    },
+    getAuxParametersLatex = function(index=NULL){
+      tmp_mu <- self$getValueOf("mu")
+      tmp_sigma <- self$getValueOf("sigma")
+      if(self$is.vector){
+        param1 <- list(name="\\mu",index=index, vector=self$is.vector)
+        param2 <- list(name="\\sigma",index=index, vector=self$is.vector)
+        return(distAuxToLatex(list(param1,param2)))
+      }else{
+        param1 <- list(name=tmp_mu,index=NULL, vector=F)
+        param2 <- list(name=tmp_sigma,index=NULL, vector=F)
+        return(distAuxToLatex(list(param1,param2)))
+      }
+    }
+  )
 )
+}
 
-FixedValues <- R6Class(classname = "FixedValues", inherit = AbstractDistribution,
-                                  public = list(
-                                    dEnum=distributionEnum()$FixedValues,
-                                    setInitVals = function(){
-                                      self$fixedValue <- T
-                                      if(is.null(self$display_name)){
-                                        self$display_name <- "Fixed values"
-                                      }
-                                      if(is.null(self$description)){
-                                        self$description <- "Use single fixed value or a variable containing fixed values."
-                                      } 
-                                    },
-                                    setDefaultAuxParameter = function(){
-                                      para <- self$paraProp
-                                      if(is.null(para)) return()
-                                      lower <- 0
-                                      upper <- 1
-                                      discrete <- F
-                                      if(para$lower_limit=="-INF" || para$lower_limit=="VAR"){
-                                        lower <- -Inf
-                                      }else if(para$lower_limit==">0"){
-                                        lower <- greaterZero
-                                      }else if(para$lower_limit=="0"){
-                                        lower <- 0
-                                      }
-                                      if(para$upper_limit=="INF" || para$upper_limit=="VAR"){
-                                        upper <- Inf
-                                      }else if(para$upper_limit=="1"){
-                                        upper <- 1
-                                      }
-                                      self$auxParameter[[1]] <- DistributionParameter$new(name = "Value", display_name=para$display_name, description="The fixed value", value=1, default_val=1,min_val=lower, max_val=upper, discrete)
-                                    },
-                                    plotMe = function(values){ #1:Value, 
-                                      x <- c(1:length(values))
-                                      y <- self$getValueOf("Value")
-                                      data <- data.frame(x=x,y=y)
-                                      ggplot(data, aes(x=x,y=y)) 
-                                    },
-                                    adjustedParameters = function(){
-                                      print("No adjustment possible, since this is a fixed value. Returning 1.")
-                                      return(list(Value=1))
-                                    },
-                                    getPrior = function(brms=F){
-                                      print("No prior, since this is a fixed value.")
-                                    },
-                                    getFormula = function(rounded=T, index=NULL){
-                                      tmp_values <- ifelse(rounded,round(self$getValueOf("Value"),2), self$getValueOf("Value"))
-                                      if(self$is.vector){
-                                        return(paste0(tags$span(tmp_values)))
-                                      }else{
-                                        return(paste0(tags$span(tmp_values)))
-                                      }
-                                    },
-                                    getFormulaLatex = function(rounded=T, index=NULL){
-                                      tmp_values <- ifelse(rounded,round(self$getValueOf("Value"),2), self$getValueOf("Value"))
-                                      if(self$is.vector){
-                                        return(paste0(tmp_values))
-                                      }else{
-                                        return(paste0(tmp_values))
-                                      }
-                                    },
-                                    getAuxParametersLatex = function(index=NULL){
-                                      tmp_values <- self$getValueOf("Value")
-                                      if(self$is.vector){
-                                        return(list(tmp_values))
-                                      }else{
-                                        return(list(tmp_values))
-                                      }
-                                    }
-                                  )
+{
+HorseshoeDistribution <- R6Class(
+  classname = "HorseshoeDistribution", 
+  inherit = AbstractDistribution,
+  
+  public = list(
+    dEnum=distributionEnum()$Horseshoe,
+    
+    singleParameterization = T,
+    
+    setInitVals = function(){
+      if(is.null(self$display_name)){
+        self$display_name <- "Horseshoe distribution"
+      }
+      if(is.null(self$description)){
+        self$description <- paste0(
+          "The (regularized) horseshoe prior", tags$sup(tags$a(href='https://doi.org/10.1214/17-EJS1337SI', "1", target="_blank"))," is controlled by five parameters: ",
+          "local shrinkage degrees of freedom (&nu; > 0), which determines the shrinkage rate for local scales; ",
+          "global shrinkage degrees of freedom (&nu;<sub>&tau;</sub> > 0), governing the shrinkage rate of the global scale; ",
+          "global shrinkage scale (&tau; > 0), which controls the global shrinkage; ",
+          "slab degrees of freedom (&nu;<sub>s</sub> > 0), affecting the tail heaviness of the slab distribution; ",
+          "and slab scale (s<sub>0;</sub> > 0), which controls the scale of the slab, allowing for sparsity in the regression coefficients. ",
+          "This prior enables flexibility by encouraging shrinkage of most parameters toward zero while allowing some to take larger values. <br>",
+          "The regularized horseshoe prior is presented in more detail in the final report.<br>",
+          "<b>Important: This distribution and its parameterization is applied to all coefficients.</b>"
+        )
+      } 
+    },
+    setDefaultAuxParameter = function(){
+      self$auxParameter[[1]] <- DistributionParameter$new(name = "df", display_name="&nu;", description="Local shrinkage degrees of freedom", value=4, default_val=4,min_val=greaterZero, max_val=Inf)
+      self$auxParameter[[2]] <- DistributionParameter$new(name = "global_df", display_name="&nu;<sub>&tau;</sub>", description="Global shrinkage degrees of freedom", value=1, default_val=1,min_val=greaterZero, max_val=Inf)
+      self$auxParameter[[3]] <- DistributionParameter$new(name = "global_scale", display_name="&tau;<sub>0</sub>", description="Global shrinkage scale", value=1, default_val=1,min_val=greaterZero, max_val=Inf)
+      self$auxParameter[[4]] <- DistributionParameter$new(name = "slab_df", display_name="&nu;<sub>s</sub>", description="Slab degrees of freedom", value=3, default_val=3,min_val=greaterZero, max_val=Inf)
+      self$auxParameter[[5]] <- DistributionParameter$new(name = "slab_scale", display_name="s<sub>0;</sub>", description="Slab scale", value=1, default_val=1,min_val=greaterZero, max_val=Inf)
+    },
+    plotMe = function(values){ 
+      tmpDf <- self$getValueOf("df")
+      tmpGlobal_df <- self$getValueOf("global_df")
+      tmpGlobal_scale <- self$getValueOf("global_scale")
+      tmpSlab_df <- self$getValueOf("slab_df")
+      tmpSlab_scale <- self$getValueOf("slab_scale")
+      if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpDf <- values[1]
+      if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpGlobal_df <- values[2]
+      if(!is.null(values[3]) && !is.na(values[3]) && is.numeric(values[3])) tmpGlobal_scale <- values[3]
+      if(!is.null(values[4]) && !is.na(values[4]) && is.numeric(values[4])) tmpSlab_df <- values[4]
+      if(!is.null(values[5]) && !is.na(values[5]) && is.numeric(values[5])) tmpSlab_scale <- values[5]
+      
+      min <- qhs(0.005, df=tmpDf, global_df=tmpGlobal_df, global_scale=tmpGlobal_scale, slab_df=tmpSlab_df, slab_scale=tmpSlab_scale)
+      max <- qhs(0.995, df=tmpDf, global_df=tmpGlobal_df, global_scale=tmpGlobal_scale, slab_df=tmpSlab_df, slab_scale=tmpSlab_scale)
+      x <- seq(from=min, to=max, length=1000)
+      y <- dhs(x, df=tmpDf, global_df=tmpGlobal_df, global_scale=tmpGlobal_scale, slab_df=tmpSlab_df, slab_scale=tmpSlab_scale)
+      data <- data.frame(x=x,y=y)
+      ggplot(data, aes(x=x,y=y)) + geom_line() + scale_y_continuous(breaks = NULL)
+    },
+    
+    #No adjustment (autoscale) available for hs
+    adjustedParameters = function(){
+      
+      if(localUse) browser()
+      warning("No autoscale available")
+      
+      res <- list(df = self$auxParameter[[1]]$value,
+                  global_df = self$auxParameter[[2]]$value,
+                  global_scale = self$auxParameter[[3]]$value,
+                  slab_df = self$auxParameter[[4]]$value,
+                  slab_scale = self$auxParameter[[5]]$value )
+      
+      return(res)
+    },
+    getPrior = function(brms=F){
+      if(brms){
+        p <- brms::set_prior(paste0("horseshoe(",self$auxParameter[[1]]$value,",",self$auxParameter[[2]]$value, ",",
+                                    self$auxParameter[[3]]$value,",",self$auxParameter[[4]]$value, ",",
+                                    self$auxParameter[[5]]$value, ")"))
+        return(p)
+      }else{
+        return(hs(self$auxParameter[[1]]$value,self$auxParameter[[2]]$value,
+                  self$auxParameter[[3]]$value,self$auxParameter[[4]]$value,
+                  self$auxParameter[[5]]$value))
+      }
+    },
+    getFormula = function(rounded=T, index=NULL){
+      
+      tmpDf <- ifelse(rounded,round(self$getValueOf("df"),2), self$getValueOf("df"))
+      tmpGlobal_df <- ifelse(rounded,round(self$getValueOf("global_df"),2), self$getValueOf("global_df"))
+      tmpGlobal_scale <- ifelse(rounded,round(self$getValueOf("global_scale"),2), self$getValueOf("global_scale"))
+      tmpSlab_df <- ifelse(rounded,round(self$getValueOf("slab_df"),2), self$getValueOf("slab_df"))
+      tmpSlab_scale <- ifelse(rounded,round(self$getValueOf("slab_scale"),2), self$getValueOf("slab_scale"))
+      
+      # The Horseshoe prior is only used, when all parameters uses the same parameterization. 
+      # Therefore it is not neccessary to print the aux names.
+      if(self$is.vector){
+        # return(paste0(tags$span("Horseshoe", class="formulaDistribution"),
+        #               " ( ", "<b>&lambda;",tags$sub(index) ,"</b> , <b>", "&tau;", tags$sub(index),"</b> )"))
+        return(paste0(tags$span("Horseshoe", class="formulaDistribution"),
+                      " ( <b>",tmpDf," , ",tmpGlobal_df," , ", tmpGlobal_scale," , ", tmpSlab_df," , ", tmpSlab_scale,"</b> )"))
+      }else{
+        return(paste0(tags$span("Horseshoe", class="formulaDistribution"),
+                      " ( ",tmpDf," , ",tmpGlobal_df," , ", tmpGlobal_scale," , ", tmpSlab_df," , ", tmpSlab_scale," )"))
+      }
+    },
+    getFormulaLatex = function(rounded=T, index=NULL){
+      tmpDf <- ifelse(rounded,round(self$getValueOf("df"),2), self$getValueOf("df"))
+      tmpGlobal_df <- ifelse(rounded,round(self$getValueOf("global_df"),2), self$getValueOf("global_df"))
+      tmpGlobal_scale <- ifelse(rounded,round(self$getValueOf("global_scale"),2), self$getValueOf("global_scale"))
+      tmpSlab_df <- ifelse(rounded,round(self$getValueOf("slab_df"),2), self$getValueOf("slab_df"))
+      tmpSlab_scale <- ifelse(rounded,round(self$getValueOf("slab_scale"),2), self$getValueOf("slab_scale"))
+
+      # if(self$is.vector){
+      #   param1 <- list(name="\\nu",index=index, vector=self$is.vector)
+      #   param2 <- list(name="\\nu_\\tau",index=index, vector=self$is.vector)
+      #   param3 <- list(name="\\tau_0",index=index, vector=self$is.vector)
+      #   param4 <- list(name="\\nu_s",index=index, vector=self$is.vector)
+      #   param5 <- list(name="s_0",index=index, vector=self$is.vector)
+      #   return(distToLatex("Horseshoe",list(param1,param2,param3,param4,param5)))
+      # }else{
+        param1 <- list(name=tmpDf,index=NULL, vector=F)
+        param2 <- list(name=tmpGlobal_df,index=NULL, vector=F)
+        param3 <- list(name=tmpGlobal_scale,index=NULL, vector=F)
+        param4 <- list(name=tmpSlab_df,index=NULL, vector=F)
+        param5 <- list(name=tmpSlab_scale,index=NULL, vector=F)
+        return(distToLatex("Horseshoe",list(param1,param2,param3,param4,param5)))
+      # }
+    },
+    getAuxParametersLatex = function(index=NULL){
+      
+      tmpDf <- self$getValueOf("df")
+      tmpGlobal_df <- self$getValueOf("global_df")
+      tmpGlobal_scale <- self$getValueOf("global_scale")
+      tmpSlab_df <- self$getValueOf("slab_df")
+      tmpSlab_scale <- self$getValueOf("slab_scale")
+      
+      # if(self$is.vector){
+      #   param1 <- list(name="\\nu",index=index, vector=self$is.vector)
+      #   param2 <- list(name="\\nu_\\tau",index=index, vector=self$is.vector)
+      #   param3 <- list(name="\\tau_0",index=index, vector=self$is.vector)
+      #   param4 <- list(name="\\nu_s",index=index, vector=self$is.vector)
+      #   param5 <- list(name="s_0",index=index, vector=self$is.vector)
+      #   return(distAuxToLatex(list(param1,param2,param3,param4,param5)))
+      # }else{
+        param1 <- list(name=tmpDf,index=NULL, vector=F)
+        param2 <- list(name=tmpGlobal_df,index=NULL, vector=F)
+        param3 <- list(name=tmpGlobal_scale,index=NULL, vector=F)
+        param4 <- list(name=tmpSlab_df,index=NULL, vector=F)
+        param5 <- list(name=tmpSlab_scale,index=NULL, vector=F)
+        return(distAuxToLatex(list(param1,param2,param3,param4,param5)))
+      # }
+    }
+  )
 )
+}
 
-
-FixedBinomialN <- R6Class(classname = "FixedBinomialN", inherit = AbstractDistribution,
-                       public = list(
-                         dEnum=distributionEnum()$FixedBinomialN,
-                         setInitVals = function(){
-                           self$fixedValue <- T
-                           if(is.null(self$display_name)){
-                             self$display_name <- "Fixed values"
-                           }
-                           if(is.null(self$description)){
-                             self$description <- "Use single fixed value or a variable containing fixed values."
-                           } 
-                         },
-                         setDefaultAuxParameter = function(){
-                           para <- self$paraProp
-                           if(is.null(para)) return()
-                           lower <- 1
-                           upper <- Inf
-                           discrete <- T
-                           # if(para$lower_limit=="-INF" || para$lower_limit=="VAR"){
-                           #   lower <- -Inf
-                           # }else if(para$lower_limit==">0"){
-                           #   lower <- greaterZero
-                           # }else if(para$lower_limit=="0"){
-                           #   lower <- 0
-                           # }
-                           # if(para$upper_limit=="INF" || para$upper_limit=="VAR"){
-                           #   upper <- Inf
-                           # }else if(para$upper_limit=="1"){
-                           #   upper <- 1
-                           # }
-                           self$auxParameter[[1]] <- DistributionParameter$new(name = "Value", display_name=para$display_name, description="The fixed value", value="?", default_val="?",min_val=lower, max_val=upper, discrete)
-                         },
-                         plotMe = function(values){ #1:Value, 
-                           x <- c(1:length(values))
-                           y <- self$getValueOf("Value")
-                           data <- data.frame(x=x,y=y)
-                           ggplot(data, aes(x=x,y=y)) 
-                         },
-                         adjustedParameters = function(){
-                           return(list(Value=NA))
-                           return(list(Value=max(1,max(self$dataY))))
-                         },
-                         getPrior = function(brms=F){
-                           print("No prior, since this is a fixed value.")
-                         },
-                         getFormula = function(rounded=T, index=NULL){
-                           tmp_values <- self$getValueOf("Value")
-                           if(is.numeric(tmp_values)){
-                             tmp_values <- ifelse(rounded,round(self$getValueOf("Value"),2), self$getValueOf("Value"))
-                           }
-                           if(self$is.vector){
-                             return(paste0(tags$span(tmp_values)))
-                           }else{
-                             return(paste0(tags$span(tmp_values)))
-                           }
-                         },
-                         getFormulaLatex = function(rounded=T, index=NULL){
-                           tmp_values <- self$getValueOf("Value")
-                           if(is.numeric(tmp_values)){
-                             tmp_values <- ifelse(rounded,round(self$getValueOf("Value"),2), self$getValueOf("Value"))
-                           }
-                           if(self$is.vector){
-                             return(paste0(tmp_values))
-                           }else{
-                             return(paste0(tmp_values))
-                           }
-                         },
-                         getAuxParametersLatex = function(index=NULL){
-                           tmp_values <- self$getValueOf("Value")
-                           if(is.numeric(tmp_values)){
-                             tmp_values <- self$getValueOf("Value")
-                           }
-                           if(self$is.vector){
-                             return(list(tmp_values))
-                           }else{
-                             return(list(tmp_values))
-                           }
-                         }
-                       )
+{
+FixedValues <- R6Class(
+  classname = "FixedValues", 
+  inherit = AbstractDistribution,
+  
+  public = list(
+    dEnum=distributionEnum()$FixedValues,
+    setInitVals = function(){
+      self$fixedValue <- T
+      if(is.null(self$display_name)){
+        self$display_name <- "Fixed values"
+      }
+      if(is.null(self$description)){
+        self$description <- "Use single fixed value or a variable containing fixed values."
+      } 
+    },
+    setDefaultAuxParameter = function(){
+      para <- self$paraProp
+      if(is.null(para)) return()
+      lower <- 0
+      upper <- 1
+      discrete <- F
+      if(para$lower_limit=="-INF" || para$lower_limit=="VAR"){
+        lower <- -Inf
+      }else if(para$lower_limit==">0"){
+        lower <- greaterZero
+      }else if(para$lower_limit=="0"){
+        lower <- 0
+      }
+      if(para$upper_limit=="INF" || para$upper_limit=="VAR"){
+        upper <- Inf
+      }else if(para$upper_limit=="1"){
+        upper <- 1
+      }
+      self$auxParameter[[1]] <- DistributionParameter$new(name = "Value", display_name=para$display_name, description="The fixed value", value=1, default_val=1,min_val=lower, max_val=upper, discrete)
+    },
+    plotMe = function(values){ #1:Value, 
+      x <- c(1:length(values))
+      y <- self$getValueOf("Value")
+      data <- data.frame(x=x,y=y)
+      ggplot(data, aes(x=x,y=y)) 
+    },
+    adjustedParameters = function(){
+      print("No adjustment possible, since this is a fixed value. Returning 1.")
+      return(list(Value=1))
+    },
+    getPrior = function(brms=F){
+      print("No prior, since this is a fixed value.")
+    },
+    getFormula = function(rounded=T, index=NULL){
+      tmp_values <- ifelse(rounded,round(self$getValueOf("Value"),2), self$getValueOf("Value"))
+      if(self$is.vector){
+        return(paste0(tags$span(tmp_values)))
+      }else{
+        return(paste0(tags$span(tmp_values)))
+      }
+    },
+    getFormulaLatex = function(rounded=T, index=NULL){
+      tmp_values <- ifelse(rounded,round(self$getValueOf("Value"),2), self$getValueOf("Value"))
+      if(self$is.vector){
+        return(paste0(tmp_values))
+      }else{
+        return(paste0(tmp_values))
+      }
+    },
+    getAuxParametersLatex = function(index=NULL){
+      tmp_values <- self$getValueOf("Value")
+      if(self$is.vector){
+        return(list(tmp_values))
+      }else{
+        return(list(tmp_values))
+      }
+    }
+  )
 )
+}
 
+{
+FixedBinomialN <- R6Class(
+  classname = "FixedBinomialN", 
+  inherit = AbstractDistribution,
+  
+  public = list(
+   dEnum=distributionEnum()$FixedBinomialN,
+   setInitVals = function(){
+     self$fixedValue <- T
+     if(is.null(self$display_name)){
+       self$display_name <- "Fixed values"
+     }
+     if(is.null(self$description)){
+       self$description <- "Use single fixed value or a variable containing fixed values."
+     } 
+   },
+   setDefaultAuxParameter = function(){
+     para <- self$paraProp
+     if(is.null(para)) return()
+     lower <- 1
+     upper <- Inf
+     discrete <- T
+     self$auxParameter[[1]] <- DistributionParameter$new(name = "Value", display_name=para$display_name, description="The fixed value", value="?", default_val="?",min_val=lower, max_val=upper, discrete)
+   },
+   plotMe = function(values){ #1:Value, 
+     x <- c(1:length(values))
+     y <- self$getValueOf("Value")
+     data <- data.frame(x=x,y=y)
+     ggplot(data, aes(x=x,y=y)) 
+   },
+   adjustedParameters = function(){
+     return(list(Value=NA))
+     return(list(Value=max(1,max(self$dataY))))
+   },
+   getPrior = function(brms=F){
+     print("No prior, since this is a fixed value.")
+   },
+   getFormula = function(rounded=T, index=NULL){
+     tmp_values <- self$getValueOf("Value")
+     if(is.numeric(tmp_values)){
+       tmp_values <- ifelse(rounded,round(self$getValueOf("Value"),2), self$getValueOf("Value"))
+     }
+     if(self$is.vector){
+       return(paste0(tags$span(tmp_values)))
+     }else{
+       return(paste0(tags$span(tmp_values)))
+     }
+   },
+   getFormulaLatex = function(rounded=T, index=NULL){
+     tmp_values <- self$getValueOf("Value")
+     if(is.numeric(tmp_values)){
+       tmp_values <- ifelse(rounded,round(self$getValueOf("Value"),2), self$getValueOf("Value"))
+     }
+     if(self$is.vector){
+       return(paste0(tmp_values))
+     }else{
+       return(paste0(tmp_values))
+     }
+   },
+   getAuxParametersLatex = function(index=NULL){
+     tmp_values <- self$getValueOf("Value")
+     if(is.numeric(tmp_values)){
+       tmp_values <- self$getValueOf("Value")
+     }
+     if(self$is.vector){
+       return(list(tmp_values))
+     }else{
+       return(list(tmp_values))
+     }
+   }
+  )
+)
+}
 
 
 # "auxiliary" parameters for the distributions, e.g. mu and sigma for normal distribution
@@ -2181,33 +2468,5 @@ distAuxToLatex <- function(params){
   }
   return(ret)
 }
-
-
-#density and quantile function for half-normal
-dhalfnorm <- function (x, mean = 0,sd = 1, log = FALSE) {
-  dens <- log(2) + dnorm(x, mean = mean, sd = sd, 
-                         log = TRUE)
-  if (log == FALSE) 
-    dens <- exp(dens)
-  return(dens)
-}
-qhalfnorm <- function (p, mean = 0,sd = 1, lower.tail = TRUE, log.p = FALSE) {
-  p <- as.vector(p)
-  sd <- as.vector(sd)
-  if (any(p < 0) || any(p > 1)) 
-    stop("p must be in [0,1].")
-  if (any(sd <= 0)) 
-    stop("The sd parameter must be positive.")
-  NN <- max(length(p), length(sd))
-  p <- rep(p, len = NN)
-  sd <- rep(sd, len = NN)
-  if (log.p == TRUE) 
-    p <- exp(p)
-  if (lower.tail == FALSE) 
-    p <- 1 - p
-  q <- qnorm((p + 1)/2, mean = mean, sd = sd)
-  return(q)
-}
-
 
 

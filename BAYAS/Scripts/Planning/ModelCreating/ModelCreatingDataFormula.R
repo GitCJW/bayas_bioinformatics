@@ -265,6 +265,7 @@ ModelCreatingDataFormula <- R6Class(
      if(is.null(private$linearPredictorId) && !is.null(responseLink)){
        element <- formula$createElement(pFE$glmLinPred)
        element$setLatex(type="center", value="=")
+       #TODO position of 2 depends on the distribution (binom has the N parameter which should be on pos 2)
        formula$addElement(element, where=2)
        private$linearPredictorId <- element$getId()
      }
@@ -811,12 +812,6 @@ ModelCreatingDataFormula <- R6Class(
                                   paste0(paraName, collapse=".")),
                                 collapse="..", recycle0=T)
              
-             # predParaName <- paste0(predName,paraName)
-             # concName <- paste0(predParaName,collapse=":")
-             
-             # predNameCat <- predName[!predName %in% oVCont]
-             # paraNameCat <- paraName[!predName %in% oVCont]
-             
              if(length(oVCont)==length(predName)){
                concName <- paste0(predName, collapse=":")
              }else{
@@ -850,7 +845,6 @@ ModelCreatingDataFormula <- R6Class(
            }
          }
        }
-       
        compiled_model <- brms::brm(formula=linPred1_revised, data=dd, 
                                    family=family, prior=priors,
                                    chains=0, seed=seed)
@@ -863,6 +857,7 @@ ModelCreatingDataFormula <- R6Class(
      
      
      if(is.null(compiled_model)){
+       if(localUse) browser()
        showNotification("Something went wrong. The operator is notified.", type="error")
        malfunction_report(code=malfunctionCode()$planningFormula, msg="building planning formula",
                           type="error", askForReport=T)

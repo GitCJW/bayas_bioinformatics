@@ -407,10 +407,6 @@ verify_loo <- function(x){
 plot_verification_loo <- function(verify_loo){
   df <- verify_loo$df
 
-  # res <- verify_loo(l, c("fit1","fit2"))
-  # df <- res$df
-  # df[2,] <- c(60,35,4,1,df[2,5])
-  # df[1,5] <- "Ein ganz langer model fit name"
   ggdata <- tidyr::gather(df, key="category", "counts", -name)
   ggdata$category[ggdata$category=="veryBad"] <- "very bad"
   ggdata$category <- factor(ggdata$category, levels=c("very bad","bad","ok","good"))

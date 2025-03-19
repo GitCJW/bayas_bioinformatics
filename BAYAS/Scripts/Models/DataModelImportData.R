@@ -78,32 +78,11 @@ DataModelImportData <- R6Class(
   
 )
 
-if(F){
-  data <- read.csv2("E:/Dateien/Arbeit/Bioinf/BAYAS/BAYSIS/BAYSIS/Data/0_fake_wrong.csv")
-  processed_data <- importData(data)
-  
-  data <- read.csv2("E:/Dateien/Arbeit/Bioinf/BAYAS/BAYSIS/BAYSIS/Data/0_fake_wrong.csv")
-  data <- data[c(3:6), c(3:8)]
-  processed_data <- importData(data)
-  processed_data2 <- importData(processed_data, header="row")
-  
-  
-  #Merge headers
-  data <- read.csv2("E:/Dateien/Arbeit/Bioinf/BAYAS/BAYSIS/BAYSIS/Data/DIPG 17, 24, 33 Normalized Rad response.csv",
-                    header=F)
-  data <- data[,-1]
-  processed_data <- importData(data)
-  processed_data2 <- importData(processed_data, header="col")
-  processed_data3 <- importData(processed_data2)
-  processed_data4 <- importData(processed_data3, combineHeaders=T)
-  processed_data5 <- importData(processed_data4, mergeColumns=T, mergeColNames=processed_data4$header)
-
-}
-
 
 #Import functions
 
-#Either a data.frame (first touch), or a object returned by this function
+# Either a data.frame (first touch), or a object returned by this function
+# Possible status: c("hasMult", "nonMult", "invalidHeaderTypeDefined", "transposed", "dupHeaders", "uniqueHeaders", "invalidCombineHeadersTypeDefined", "failed", "invalidMergeColumnsTypeDefined")
 importData = function(data, header=c("row", "col"), combineHeaders=c(T,F),
                       mergeColumns=c(T,F), mergeColNames = c()){
   obj <- list(data=data, header=c(), status="init", requires = list())
@@ -129,10 +108,26 @@ importData = function(data, header=c("row", "col"), combineHeaders=c(T,F),
       obj$status <- "invalidHeaderTypeDefined"
       warning("Parameter 'header' has to be either 'row' or 'col'.")
     }else{
-      if(header=="row")  obj <- importData_transpose(obj)
-      obj$data <- obj$data[-1,,F]
-      obj$status <- "transposed"
-      obj$requires <- NULL
+      obj$required$header <- header
+      if(header=="row"){
+        obj <- importData_transpose(obj)
+      }else{
+        data <- obj$data
+        header <- data[1,]
+        if(any(is.na(header))){
+          obj$status <- "failed"
+        }else{
+          obj$header <- header
+          data <- data[-1,,F]
+          colnames(data) <- header
+          obj$data <- data
+          obj$requires <- NULL
+        }
+      }
+      if(obj$status != "failed"){
+        obj$requires <- NULL
+        obj$status <- "transposed"
+      }
     }
   }else if(obj$status == "transposed"){
     dupHead <- hasDuplicateHeaders(header=obj$header)
@@ -144,6 +139,7 @@ importData = function(data, header=c("row", "col"), combineHeaders=c(T,F),
       obj$requires <- list(mergeColumns=c(T,F))
     }
   }else if(obj$status == "dupHeaders"){
+    obj$required$combineHeaders <- combineHeaders
     if(!(length(combineHeaders) == 1 && combineHeaders %in% c(T,F))){
       obj$status <- "invalidCombineHeadersTypeDefined"
       warning("Parameter 'combineHeaders' has to be either TRUE or FALSE.")
@@ -151,7 +147,7 @@ importData = function(data, header=c("row", "col"), combineHeaders=c(T,F),
       objNew <- NULL
       if(combineHeaders) objNew <- importData_combineHeaders(obj)
       if(is.null(objNew)){
-        obj$status <- "error"
+        obj$status <- "failed"
       }else{
         obj <- objNew
         obj$status <- "uniqueHeaders"
@@ -165,7 +161,7 @@ importData = function(data, header=c("row", "col"), combineHeaders=c(T,F),
     }else{
       if(mergeColumns) objNew <- importData_mergeColumns(obj, mergeColNames)
       if(is.null(objNew)){
-        obj$status <- "error"
+        obj$status <- "failed"
       }else{
         obj <- objNew
         obj$status <- "uniqueHeaders"
@@ -209,14 +205,13 @@ importData_transpose = function(obj){
   if(any(is.na(header))){
     obj$status <- "failed"
   }else{
-    
-    hasDup <- hasDuplicateHeaders(header=header)
-    
-    data_transposed <- as.data.frame(t(data))
+    data_transposed <- transpose(data)
     obj$header <- header
     rownames(data_transposed) <- NULL
-    obj$data <- data_transposed
-    obj$status <- "transposed"
+    data_transposed <- data_transposed[-1,,F]
+    colnames(data_transposed) <- header
+    obj$data <- data_transposed 
+    obj$requires <- NULL
   }
   
   return(obj)
@@ -229,7 +224,7 @@ importData_combineHeaders = function(obj){
 
     data <- obj$data
     header <- obj$header
-    
+    header <- unlist(header)
     if(dim(data)[2] != length(header)){
       stop("data and header must be the same size")
     }
@@ -349,6 +344,7 @@ find_clusters <- function(mat) {
 
 hasDuplicateHeaders <- function(x, headers=NULL){
   if(is.null(headers)) headers <- colnames(x)
+  headers <- unlist(headers)
   headers_table <- table(headers)
   ret <- list(hasMultiple=length(unique(headers)) != length(headers),
               count=length(headers_table[headers_table > 1]))

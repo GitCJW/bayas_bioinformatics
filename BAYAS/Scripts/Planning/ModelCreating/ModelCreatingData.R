@@ -1,40 +1,4 @@
-planningDistribtionsEnum <- function(type=c("response", "predictor", "all")){
-  l <- list(Beta="Beta", Cauchy="Cauchy", 
-              Chi_squared_non_1 ="Chi_squared_non_1", Chi_squared_1="Chi_squared_1", 
-              Exponential="Exponential", F="F", Gamma="Gamma", Inverse_Gaussian="Inverse_Gaussian",
-              Log_Normal="Log_Normal", Logistic="Logistic", Normal="Normal",
-              Student_t="Student_t", Uniform="Uniform", Weibull="Weibull",
-              Bernoulli="Bernoulli", Beta_Binomial="Beta_Binomial", Binomial="Binomial",
-              Geometric="Geometric", Hypergeometric="Hypergeometric", Negative_Binomial="Negative_Binomial",
-              Poisson="Poisson", FixedValue="FixedValue")
-
-  l_sorted <- c(l$Log_Normal, l$Gamma, l$Inverse_Gaussian, l$F, l$Chi_squared_1,
-                l$Exponential, l$Chi_squared_non_1, l$Weibull,
-                l$Beta,
-                l$Normal, l$Cauchy, l$Logistic, l$Uniform, l$Student_t,
-                l$Poisson, l$Negative_Binomial, l$Geometric, l$Hypergeometric,
-                l$Binomial, l$Beta_Binomial,
-                l$Bernoulli, 
-                l$FixedValue)
-
-  names(l_sorted) <-   names(l)[match(l_sorted,unlist(l))] 
-  
-  if(type=="response"){
-    l_sorted <- l_sorted[c(1,2,3,
-                         6,
-                         9,
-                         10,12,
-                         15,16,
-                         19,20,
-                         21)]
-  }else if(type=="predictor"){
-    l_sorted <- l_sorted[1:21]
-  }
-  return(as.list(l_sorted))
-}
-
 distEnum <- planningDistribtionsEnum("response")
-
 
 ModelCreatingData <- R6Class(
   classname = "ModelCreatingData", 
@@ -347,7 +311,7 @@ ModelCreatingData <- R6Class(
          
          return(data)
        }else{
-         
+         #TODO
          warning("TODO: ModelCreatingData")
        }
      },
@@ -2456,7 +2420,7 @@ ModelCreatingData <- R6Class(
              latex <- paste0("\\",sub,"subsection{`",wordToLatexConform(ov$getName()), "'}\n")
              latex <- paste0(latex, "Type: ", wordToLatexItalic("Categorical replacement"), "\\\\\n")
              latex <- paste0(latex, "Replaced values of: `", wordToLatexConform(replaceOfOv$getName()), "' \\\\\n")
-             latex <- paste0(latex, "Elements: see Table~\\ref{", label, "}\\\\\n")
+             latex <- paste0(latex, "Elements: see table~\\ref{", label, "}\\\\\n")
              latex <- paste0(latex, dfToLatexTable(df, caption=caption, label=label))
            }
            
@@ -2574,7 +2538,7 @@ ModelCreatingData <- R6Class(
      
      
      getLatexParameter = function(id, sub){
-       
+
        pre <- "\\subsection{Parameter seeds} \n"
        
        latex <- ""
@@ -2814,33 +2778,33 @@ ModelCreatingData <- R6Class(
          resultsSSDHigh <- resultsSSD[resultsSSD$tendency == 1,]
          if(dim(resultsSSDHigh)[1] > 0){
            bestCandidate <- min(resultsSSDHigh$N)
-           mp_p <- ssd$intern$resultsPowerBinomial$power[ssd$intern$resultsPowerBinomial$N==bestCandidate]
-           credibleInterval <- hdi(mp_p, 0.9)
+           power <- ssd$intern$resultsPowerBinomial[ssd$intern$resultsPowerBinomial$N==bestCandidate,]
+           credibleInterval <- c(power$powerLow, power$powerHigh)
          }
          
          pB <- ssd$intern$resultsPowerBinomial
          pB <- pB[pB$N == ssd$intern$N_high,]
-         certainty <- sum(pB$power>=ssd$intern$power_desired)/length(pB$power)
+         
+         labelTable <- paste0("id-",id,"_model-", mcd$getModelName(), "_resultTable")
          
          #Result plot
-         caption <- paste0("Sample sizes (horizontal axis) simulated in sample size determination (", wordToLatexConform(mcd$getModelName()),"), and power (vertical axis) reached for these sample sizes. ",
+         caption <- paste0("Sample sizes (horizontal axis) simulated in sample size determination (`", wordToLatexConform(mcd$getModelName()),"'), and power (vertical axis) reached for these sample sizes. ",
                            "Each circle marks the fraction of trials with the indicated sample size in which the goal was achieved. ",
                            "Vertical error bars are 90\\% credible intervals of power. \n",
-                           "The blue dashed line shows the desired power and the blue circle/bar shows the smallest of the tested sample sizes at which this power is probably surpassed.")
+                           "The blue dashed line shows the desired power and the blue circle/bar shows the smallest of the tested sample sizes at which this power is probably surpassed. ",
+                           "See table~\\ref{",labelTable,"} for more details on the number of simulations per sample size.")
          labelPlot <- paste0("id-",id,"_model-", mcd$getModelName(), "_", id ,"_resultGraph")
          resultPlot <- plotResults(ssd, plotTriangles=F)
          add$result <- removeUnnecessaryEnvInPlot(resultPlot)
          plotLatex <- plotToTex(plotId=labelPlot, plot= resultPlot, caption=caption, label=labelPlot)
          
-         
+
          #Result table
          caption <- paste0("Sample size determination of experiment `", wordToLatexConform(mcd$getModelName()), "'. ",
                            "Simulated ", wordToLatexItalic("N"), " with its number of simulations and empirical power.")
-         labelTable <- paste0("id-",id,"_model-", mcd$getModelName(), "_resultTable")
          tt <- ssd$intern$resultsSSD
          tt <- tt[,1:4]
          tt$power <- formatC(tt$power, digits=3)
-         tt <- tt %>% mutate(certainty = factor(ifelse(certainty == TRUE, "yes", "no")))
          names(tt) <- c("N", "\\#Simulations", "Power", "Certain")
          summaryTableLatex <- dfToLatexTable(tt, caption=caption, label=labelTable)
          
@@ -2848,10 +2812,9 @@ ModelCreatingData <- R6Class(
            resultLatex <- paste0(resultLatex, "Result of sample size determination of `", wordToLatexConform(mcd$getModelName()), 
                                  "', see figure~\\ref{",labelPlot , "} and table~\\ref{", labelTable, "}\\\\\n")
            resultLatex <- paste0(resultLatex, "Potential ", wordToLatexItalic("N"), ": ", wordToLatexItalic(bestCandidate), "\\\\\n")
-           resultLatex <- paste0(resultLatex, "90\\%-credible interval of power: ", wordToLatexItalic(paste0(formatC(credibleInterval$CI_low, digits=3), " - ", 
-                                                                                                             formatC(credibleInterval$CI_high, digits=3))) ,"\\\\\n")
-           resultLatex <- paste0(resultLatex, "Power interval width: ", wordToLatexItalic(formatC(credibleInterval$CI_high-credibleInterval$CI_low, digits=3)), "\\\\\n")
-           resultLatex <- paste0(resultLatex, "Probability of power $\\geq ", ssd$intern$power_desired, "$: ", wordToLatexItalic(certainty*100), "\\% \\\\\n")
+           resultLatex <- paste0(resultLatex, "90\\%-credible interval of power: ", wordToLatexItalic(paste0(formatC(credibleInterval[1], digits=3), " - ", 
+                                                                                                             formatC(credibleInterval[2], digits=3))) ,"\\\\\n")
+           resultLatex <- paste0(resultLatex, "Power interval width: ", wordToLatexItalic(formatC(credibleInterval[2]-credibleInterval[1], digits=3)), "\\\\\n")
            resultLatex <- paste0(resultLatex, "Number of simulations for this N: ", wordToLatexItalic(resultsSSD$i[resultsSSD$N==bestCandidate]), "\\\\\n")
          }else if(ssd$intern$NMaxTooLow){
            resultLatex <- paste0("Potential ", wordToLatexItalic("N"), " candidate: None; 'Max N' reached \\\\\n",

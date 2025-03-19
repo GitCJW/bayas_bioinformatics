@@ -1,0 +1,1 @@
+The shaded regions indicate discrepancies calculated using the z-score between predictions and actual data, with z-scores above 1.5 highlighted in shades from orange to red.

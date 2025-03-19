@@ -39,7 +39,7 @@ GLMExponentialStanModel <- R6Class(classname = "GLMExponentialStanModel",
                                                                 cNum$Continuous, "VAR", "VAR",
                                                                 NULL, 
                                                                 FactoryDistribution(name="RegCoefDist",dist=dEnum$Normal, adjustable=T, is.vector=F),
-                                                                c(dEnum$Normal,dEnum$StudentT,dEnum$Cauchy))
+                                                                c(dEnum$Normal,dEnum$StudentT,dEnum$Cauchy,dEnum$Horseshoe))
                                  )
                                  self$avail_predictor = list(
                                    Intercept = ModelPredictor$new("Intercept", -1, NULL, "It is recommended to use one. But also legit without one.", T,
@@ -48,7 +48,7 @@ GLMExponentialStanModel <- R6Class(classname = "GLMExponentialStanModel",
                                                                   self$avail_parameter$Intercept$getInstance()),
                                    Predictor = ModelPredictor$new("Predictor", -1, "Predictor","Term of the GLM", T,
                                                                   'VAR', 'VAR', 'VAR',
-                                                                  c(1,2,3,4,5,6,7,8,9),Inf,F, 
+                                                                  c(1,2,3,4,5,6,7,8,9),Inf,T, 
                                                                   self$avail_parameter$RegCoef$getInstance())
                                  )
                                },
@@ -138,7 +138,6 @@ GLMExponentialStanModel <- R6Class(classname = "GLMExponentialStanModel",
 
                                #Get priors
                                getPrior = function(type = c("intercept","regCoef"), element_name = NULL){
-                                 
                                  if(type == "intercept"){
                                    p <- self$get_predictor_of_type("Intercept")[[1]]
                                    if(is.null(p)){
@@ -154,7 +153,7 @@ GLMExponentialStanModel <- R6Class(classname = "GLMExponentialStanModel",
                                      para <- p$modelParameter
                                      if(para$is.vector){
                                        for(d in para$distributions){
-                                         if(is.null(d$element_name)) stop("Still null...") 
+                                         if(localUse && is.null(d$element_name)) stop("Still null...") 
                                          if(d$element_name %in% element_name){
                                            index <- match(d$element_name, element_name)
                                            prior_list[[index]] <- d$getPrior(self$brmsClass)
@@ -162,7 +161,7 @@ GLMExponentialStanModel <- R6Class(classname = "GLMExponentialStanModel",
                                        }
                                      }else{
                                        d <- para$distribution
-                                       if(is.null(d$element_name)) stop("Still null...") 
+                                       if(localUse && is.null(d$element_name)) stop("Still null...") 
                                        # e_n <- c("A","B")
                                        # each_permut <- permutations(2,2,e_n)
                                        # s <- sapply(1:length(each_permut[,1]),function(i){paste0(each_permut[i,],collapse = ":")})
@@ -178,7 +177,7 @@ GLMExponentialStanModel <- R6Class(classname = "GLMExponentialStanModel",
                                        }
                                      }
                                    }
-                                   
+
                                    #No cast necessary for brms models
                                    if(length(prior_list)==0){
                                      return(NULL)
@@ -208,7 +207,7 @@ GLMExponentialStanModel <- R6Class(classname = "GLMExponentialStanModel",
                                  
                                  #get priors
                                  usedVars <- self$get_used_vars(extras=T, response=T)
-                                 order_of_elements <- colnames(as.data.frame(model.matrix(formula, self$myDataModel$getDataModelInputData()$getLongFormatVariable(usedVars, completeCases=T))) %>% 
+                                 order_of_elements <- colnames(as.data.frame(model.matrix(formula, self$myPerIterationDataModel$getDataModelInputData()$getLongFormatVariable(usedVars, completeCases=T))) %>% 
                                                                  select_if(~ !is.numeric(.) || sum(.) != 0))
                                  if(order_of_elements[1] == "(Intercept)") order_of_elements <- order_of_elements[-1]
                                  
@@ -216,6 +215,7 @@ GLMExponentialStanModel <- R6Class(classname = "GLMExponentialStanModel",
                                  prior <- self$getPrior(type="regCoef",order_of_elements)
                                  prior_intercept <- self$getPrior(type="intercept")
                                  
+                                 # browser()
                                  
                                  brmsPriors <- brms::get_prior(formula, data=data, family=brms::exponential(link="log"))
 
@@ -223,15 +223,23 @@ GLMExponentialStanModel <- R6Class(classname = "GLMExponentialStanModel",
                                  brmsPriors[brmsPriors$class=="Intercept","lb"] <- prior_intercept[,"lb"]
                                  brmsPriors[brmsPriors$class=="Intercept","ub"] <- prior_intercept[,"ub"]
                                  
-                                 for(el_i in seq_len(length(order_of_elements))){
-                                   el <- order_of_elements[el_i]
-                                   brmsPriors[brmsPriors$coef==el,"prior"] <- prior[[el_i]]["prior"]
-                                   brmsPriors[brmsPriors$coef==el,"lb"] <- prior[[el_i]]["lb"]
-                                   brmsPriors[brmsPriors$coef==el,"ub"] <- prior[[el_i]]["ub"]
+                                 if(length(order_of_elements) > 0){
+                                   if(T){
+                                     brmsPriors[1,"prior"] <- prior[[1]][["prior"]]
+                                     brmsPriors[1,"lb"] <- prior[[1]][["lb"]]
+                                     brmsPriors[1,"ub"] <- prior[[1]][["ub"]]
+                                   }else{
+                                     for(el_i in seq_along(order_of_elements)){
+                                       el <- order_of_elements[el_i]
+                                       brmsPriors[brmsPriors$coef==el,"prior"] <- prior[[el_i]][["prior"]]
+                                       brmsPriors[brmsPriors$coef==el,"lb"] <- prior[[el_i]][["lb"]]
+                                       brmsPriors[brmsPriors$coef==el,"ub"] <- prior[[el_i]][["ub"]]
+                                     }
+                                   }
                                  }
 
                                  env <- new.env(parent = .GlobalEnv)
-                                 family <- brms::exponential(link="log")
+                                 family <- with(env, brms::exponential(link="log"))
                                  
                                  content <- list(class="brms",
                                                  formula=deparse1(formula), 
@@ -315,7 +323,6 @@ GLMExponentialStanModel <- R6Class(classname = "GLMExponentialStanModel",
                                },
                                
                                plot_scale = function(x=F,y=F){
-                                 # if(x) return(scale_x_continuous(trans="log"))
                                  if(x) return(scale_x_continuous(trans=scales::pseudo_log_trans(sigma = 1, base = exp(1))))
                                  return(NULL)
                                }

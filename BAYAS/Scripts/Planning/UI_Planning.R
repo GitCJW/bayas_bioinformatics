@@ -8,7 +8,8 @@ ui_planning <- function(){
     # Navigation bar
     bslib::page_navbar(
       id = "navbar_planning", 
-      bg = BAYAS_COLORS$`--navbar-bg`,
+      navbar_options = navbar_options(position = "static-top", 
+                                      bg = BAYAS_COLORS$`--navbar-bg`),
       
       window_title="BAYAS", 
       
@@ -71,9 +72,6 @@ ui_planning <- function(){
              )
            )
         ),
-       
-       position = "static-top",  #fixed-top , static-top
-       
        
        # planning_creatingData_page()#,
        planning_creatingModel_page()

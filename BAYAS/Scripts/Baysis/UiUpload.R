@@ -30,7 +30,7 @@ upload_page <- function(ns){
                   progressBar=F)
               )),
             column(width=4,                               
-                   tags$div(actionButton("exampleUserData","Example", style="width:-moz-available; width: -webkit-fill-available;")))
+                   tags$div(actionButton("exampleUserData", "Example", style="width:-moz-available; width: -webkit-fill-available;")))
           )
         ),
 
@@ -65,11 +65,13 @@ upload_page <- function(ns){
         actionButton(ns("rawDataToTable"), label="", 
                      icon=tags$i(class="icon icon-angle-double-right-solid"), 
                      style = "margin:10px 0px; display: inline-flex; font-size: large; padding: 9px;"),
-        # actionButton(ns("rawDataToTableAdd"), label="", 
-        #              icon=tags$i(class="icon icon-angle-double-right-add-solid"), 
+        
+        # actionButton(ns("rawDataToTableAdd"), label="",
+        #              icon=tags$i(class="icon icon-angle-double-right-add-solid"),
         #              style = "margin:10px 0px; display: inline-flex; font-size: large; padding: 9px;"),
         # actionButton(ns("rawDataToTableUndo"), label="", icon=icon("undo-alt"), style = "margin:10px 0px"),
         # actionButton(ns("rawDataToTableRedo"), label="", icon=icon("redo-alt"), style = "margin:10px 0px"),
+        
         actionButton(ns("rawDataToTableRemove"), label="", icon=icon("trash"), style = "margin:10px 0px"),
         
         tags$div(
@@ -199,29 +201,135 @@ upload_import <- function(ns, step, obj){
   
   l <- list()
 
+  if(global_browser) browser()
   
-  ###########################
-  ##### Cont vs Discrete ####
-  ###########################
-  if(step==1){
+  # "hasMult"
+  # "nonMult"
+  # "invalidHeaderTypeDefined"
+  # "transposed"
+  # "dupHeaders"
+  # "uniqueHeaders"
+  # "invalidCombineHeadersTypeDefined"
+  # "failed"
+  # "invalidMergeColumnsTypeDefined"
+  status <- obj[[step]]$status
+  
+  print(paste0("status: ", status))
+  
+  ##############################################################################
+  ############################## Cont vs Discrete ##############################
+  ##############################################################################
+  if(status=="hasMult"){
     l$div <- tags$div(
-      id=ns(paste0("stepsContent",step)),
+      # id=ns(paste0("stepsContent",step)),
       style="",
       tags$div(
         style="margin-bottom: 10px;",
-        HTML(paste0("<b>How does your response variable look like?</b>"))
+        HTML(paste0("<b>Unable to proceed</b>"))
       ),
       tags$div(
-
+        HTML(paste0("<b>It appears that your data contains multiple distinct subsets (snippets). Please select each snippet individually and perform the import process for each one separately.</b>"))
       )
     )
   }
-  
-  ###########################
-  ######## ... #######
-  ###########################
-  else if(step==2){
-   
+  ##############################################################################
+  ########################### Header in row or column ##########################
+  ##############################################################################
+  else if(status=="nonMult"){
+    
+    header <- NULL
+    if(length(obj) > step) header <- ifelse(obj[[step+1]]$required$header=="row", "yes","no")
+    
+    l$div <- tags$div(
+      # id=ns(paste0("stepsContent",step)),
+      style="",
+      tags$div(
+        style="margin-bottom: 10px;",
+        HTML(paste0("<b>Are the rows named in any way?</b>"))
+      ),
+
+      tags$div(
+        style="display:flex;",
+        bayasGroupedButtons(ns("groupBtnHeaderInRowOrColumn"), btnNames=c("No", "Yes"), 
+                            btnValues=c("no", "yes"), selected = header)
+      ),
+      tags$div(
+        style="display:flex; gap: 20px;",
+        tags$div(
+          style="flex:1; min-width: 0px;",
+          DTOutput(ns("dtHeaderRow"), height="350px", width="100%")
+        ),
+        tags$div(
+          style="flex:1; min-width: 0px;",
+          uiOutput(ns("dtHeaderColumnMessage")),
+          DTOutput(ns("dtHeaderColumn"), height="350px", width="100%")
+        )
+      )
+    )
+  }
+  ##############################################################################
+  ############################# Duplicate headers? #############################
+  ##############################################################################
+  else if(status=="dupHeaders"){
+    
+    merge <- NULL
+    if(length(obj) > step) merge <- ifelse(obj[[step+1]]$required$combineHeaders, "merge", "rename")
+    
+    l$div <- tags$div(
+      style="",
+      tags$div(
+        style="margin-bottom: 10px;",
+        HTML(paste0("<b>There are some duplicate header names. Header names have to be unique.</b>"))
+      ),
+      
+      tags$div(
+        style="display:flex;",
+        bayasGroupedButtons(ns("groupBtnDuplicateHeaders"), btnNames=c("Merge", "Rename"), 
+                            btnValues=c("merge", "rename"), selected=)
+      ),
+      tags$div(
+        style="display:flex; gap: 20px;",
+        tags$div(
+          style="flex:1; min-width: 0px;",
+          DTOutput(ns("dtDuplicateHeader"), height="350px", width="100%")
+        ),
+        tags$div(
+          style="flex:1; min-width: 0px;",
+          uiOutput(ns("dtDuplicateHeaderMergedMessage")),
+          DTOutput(ns("dtDuplicateHeaderMerged"), height="350px", width="100%")
+        )
+      )
+    )
+  }
+  ##############################################################################
+  ########################## Row single measurement? ###########################
+  ##############################################################################
+  else if(status=="uniqueHeaders"){
+    l$div <- tags$div(
+      style="",
+      tags$div(
+        style="margin-bottom: 10px;",
+        HTML(paste0("<b>Is each row a <i>single</i> measurement?</b>"))
+      ),
+      
+      tags$div(
+        style="display:flex;",
+        bayasGroupedButtons(ns("groupBtnRowSingleMeasurement"), btnNames=c("Yes", "No"), 
+                            btnValues=c("yes", "no"))
+      ),
+      tags$div(
+        style="display:flex; gap: 20px;",
+        tags$div(
+          style="flex:1; min-width: 0px;",
+          DTOutput(ns("dtRowSingleMeasurement"), height="350px", width="100%")
+        ),
+        tags$div(
+          style="flex:1; min-width: 0px;",
+          uiOutput(ns("dtRowSingleMeasurementCombinedMessage")),
+          DTOutput(ns("dtRowSingleMeasurementCombined"), height="350px", width="100%")
+        )
+      )
+    )
   }
   #Empty
   else{
@@ -232,16 +340,12 @@ upload_import <- function(ns, step, obj){
   
   
   l <- tags$div(
-    backButton(ns, "planningModalBack",step, l),
+    backButton(ns, "modalBack", step, l),
     tags$div(
       style="margin-top:20px; margin-left:30px;",
-      icon(class= "fontColor-primary", "info-circle"),
-      tags$div(style="display: inline;font-weight: bold;font-size: 13px;", 
-               "You can change everything later on")
+      icon(class= "fontColor-primary", "info-circle")
     )
   )
-
-  
 }
 
 
@@ -438,7 +542,7 @@ inputPropertiesTable <- function(dMID, onlyData=F){
 ###################################
 
 #Back button
-backButton <- function(ns, id="planningModalBack", step, div){
+backButton <- function(ns, id="modalBack", step, div){
   backButton <- actionButton(ns(id), label=NULL, icon=icon("angle-left"), class="backButton",
                              style=paste0("font-weight:bold; font-size:20px; margin: auto; padding: 5px;",
                                           "min-height:125px; max-height:125px;"))
@@ -447,12 +551,12 @@ backButton <- function(ns, id="planningModalBack", step, div){
   tags$div(
     style="display:flex;",
     tags$div(
-      style=paste0("height:inherit; margin-left:-10px; margin-right:20px;",
-                   "display:flex; min-width:20px;"),
+      style=paste0("flex:0; display: flex; height:inherit; margin-left:-10px; margin-right:20px;",
+                   "min-width:20px; width:20px;"),
       backButton
     ),
     tags$div(
-      style="flex:1;",
+      style="width:100%; flex:1; min-width: 0;",
       div
     )
     

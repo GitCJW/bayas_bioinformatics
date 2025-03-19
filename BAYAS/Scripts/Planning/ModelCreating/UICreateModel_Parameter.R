@@ -36,36 +36,15 @@ planning_creatingStepsParameter <- function(ns, parameter, sub){
   if(!is.empty(distGen)) distNameGen <- distGen$getName()
   if(!is.empty(distPrior)) distNamePrior <- distPrior$getName()
   
-
-  d <- planningDistribtionsEnum("all")
-
-  distChoices <- list('Choose...'="",
-                      'Continuous unbound' = c('Normal'=d$Normal,
-                                               'Cauchy'=d$Cauchy,
-                                               'Logistic'=d$Logistic,
-                                               'Uniform'=d$Uniform,
-                                               'Student\'s t'=d$Student_t),
-                      'Continuous positive' = c('Log-Normal'=d$Log_Normal,
-                                                'Gamma'=d$Gamma,
-                                                'Exponential'=d$Exponential,
-                                                'Inverse-Gaussian'=d$Inverse_Gaussian,
-                                                'F'=d$F,
-                                                'Chi-squared'=d$Chi_squared_non_1,
-                                                'Weibull'=d$Weibull),
-                      'Percentage' = c('Beta'=d$Beta),
-                      'Integer' = c('Binomial'=d$Binomial,
-                                    'Beta-Binomial'=d$Beta_Binomial,
-                                    'Bernoulli'=d$Bernoulli,
-                                    'Poisson'=d$Poisson,
-                                    'Negative-Binomial'=d$Negative_Binomial,
-                                    'Geometric'=d$Geometric,
-                                    'Hypergeometric'=d$Hypergeometric))
-
-
-  distPriorChoices <- distChoices
-  distGenChoices <- distChoices
-  distGenChoices <- list.insert(distGenChoices, c('Single value'=d$FixedValue),
-                                2, 'Single value')
+  mcd <- parameter$getMcd()
+  mcdResp <- mcd$getMcdResponse()
+  respDist <- mcdResp$getDist()
+  respLink <- mcdResp$getLink()
+  
+  distPriorChoices <- getParametersPossiblePriorDistributions(parameter$getType(), 
+                                                              "inference", respDist, respLink)
+  distGenChoices <- getParametersPossiblePriorDistributions(parameter$getType(), 
+                                                            "generation", respDist, respLink)
   
   l <- tags$div(
     style="",

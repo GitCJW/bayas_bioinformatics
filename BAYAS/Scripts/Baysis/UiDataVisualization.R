@@ -70,7 +70,7 @@ data_visualization_page <- function(){
 
                                 bslib::tooltip(
                                   trigger = actionButton("removePreplot", "",icon("trash"), style= "float:right;"),
-                                  tooltip$closeCurrentMP,
+                                  HTML(tooltip$closeCurrentMP),
                                   options = list(trigger="hover")
                                 )
                                 

@@ -1,8 +1,8 @@
 #source("BAYSIS_Stan_models.R", chdir = TRUE)
 
-## Filtert die Stan Modelle nach characteristic, upper und lower limit der Predictor variable
-## und allen anderen.
-## Gibt zwei Vektoren zur?ck, die jeweils den Index des Stan Models aus "stan_models" beinhalten
+## Filters the Stan models by characteristic, upper and lower limit of the Predictor variable
+## and all others.
+## Returns two vectors, each containing the index of the stan model from ‘stan_models’
 ## First vector for appliable models, and second for not appliable
 ## Filter_values:
 # Matrix of:
@@ -42,7 +42,6 @@ filter_stan_models <- function(stan_models = NULL, dataModel){
       out <- cbind(out, tmp_model$id)
       next
     } 
-    # print("1")
     
     ## Check if the response var fits
     if((tmp_model$parameters$characteristics[1] != 'VAR' && tmp_model$parameters$characteristics[1] != response_var$characteristics) |
@@ -52,7 +51,6 @@ filter_stan_models <- function(stan_models = NULL, dataModel){
       out <- cbind(out, tmp_model$id)
       next
     } 
-    # print("2")
     
     
     ## Check that each model_co_var can applied by at least one user_var, when it isn't variable
@@ -63,7 +61,7 @@ filter_stan_models <- function(stan_models = NULL, dataModel){
         {
           out <- cbind(out, tmp_model$id)
           model_co_var_applied <- F
-          break 
+          break #TODO
         } 
       }
     }

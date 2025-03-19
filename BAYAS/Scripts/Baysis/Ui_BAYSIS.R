@@ -8,10 +8,10 @@ ui_baysis <- function(){
     # Navigation bar
     bslib::page_navbar(
        id = "navbar",
-       bg = BAYAS_COLORS$`--navbar-bg`,
+             navbar_options = navbar_options(position = "static-top", 
+                                      bg = BAYAS_COLORS$`--navbar-bg`),
        
        window_title="BAYAS",
-       position = "static-top",  #fixed-top , static-top
        
        title = tags$div(
          style="display:flex;",

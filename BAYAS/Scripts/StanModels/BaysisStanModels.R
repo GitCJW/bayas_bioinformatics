@@ -30,7 +30,7 @@ BAYSISAbstractModel <- R6Class(
   inherit = SerializationInterface,
   
   private = list(
-    stateVersion = "0.1"
+    stateVersion = "0.2"
   ),
   
   public = list(
@@ -48,8 +48,8 @@ BAYSISAbstractModel <- R6Class(
     is.gaussian = F,
 
     
-    #(R6) The DataModel
-    myDataModel = NULL,
+    #(R6) The PerIterationDataModel
+    myPerIterationDataModel = NULL,
     
     # If the model will be run, this varaible holds the description text of the result.
     # Contains several information about the model fit like n_eff, rhat, pareto estimation, values of variables and their impact.
@@ -296,7 +296,7 @@ BAYSISAbstractModel <- R6Class(
     
     #Returns the r formula
     r_formula = function(){
-      dMId <- self$myDataModel$getDataModelInputData()
+      dMId <- self$myPerIterationDataModel$getDataModelInputData()
       response <- dMId$getResponseVariable(onlyName=T)
       formula <- paste0(response," ~ -1+")
       for(pred in self$get_predictor_line()){
@@ -318,7 +318,7 @@ BAYSISAbstractModel <- R6Class(
     #Returns used user variables
     #extras are e.g. number of trials 'N' of the Binomial 
     get_used_vars = function(extras=F, response=F){
-      dMId <- self$myDataModel$getDataModelInputData()
+      dMId <- self$myPerIterationDataModel$getDataModelInputData()
       responseName <- dMId$getResponseVariable(onlyName=T)
       vars <- c()
       for(pred in self$get_predictor_line()){
@@ -430,23 +430,21 @@ BAYSISAbstractModel <- R6Class(
         user_var <- parameter$getParentPredictor()$userVariable
         
         x <- NULL
-        # if(!is.null(user_var)) x <- self$myDataModel$get.user_cleaned_input_data(user_var)
         if(!is.null(user_var)){
-          dMId <- self$myDataModel$getDataModelInputData()
+          dMId <- self$myPerIterationDataModel$getDataModelInputData()
           x <- dMId$getLongFormatVariable(user_var, completeCases=T)
         }
 
-        dist$setDataAndProperties(x=x, dataModel=self$myDataModel, para=parameter)
+        dist$setDataAndProperties(x=x, perIterationDataModel=self$myPerIterationDataModel, para=parameter)
         dist$adjustMyself(tmpValue=tmpValue)
       }
     },
     
     adjustDistributionParametersOfVector = function(parameter, tmpValue=F, tmpDist=F){
-      # predictor <- self$myParentPredictor(parameter)
       predictor <- parameter$getParentPredictor()
       varsElementList <- self$getTermCombinationsOfPredictorListOfList(predictor)
       
-      dMId <- self$myDataModel$getDataModelInputData()
+      dMId <- self$myPerIterationDataModel$getDataModelInputData()
       y <- dMId$getResponseVariable(onlyName=T)
       
       data <- dMId$getLongFormatVariable(c(y,self$get_used_vars()), completeCases=T)
@@ -485,7 +483,7 @@ BAYSISAbstractModel <- R6Class(
         }
         
         #and adjust
-        dist$setDataAndProperties(x=data.frame(x=x), dataModel=self$myDataModel, para=parameter)
+        dist$setDataAndProperties(x=data.frame(x=x), perIterationDataModel=self$myPerIterationDataModel, para=parameter)
         dist$adjustMyself(tmpValue=tmpValue)
         
         if(tmpDist){
@@ -515,7 +513,7 @@ BAYSISAbstractModel <- R6Class(
       predictor <- parameter$getParentPredictor()
       varsElementList <- self$getTermCombinationsOfPredictorListOfList(predictor)
 
-      dMId <- self$myDataModel$getDataModelInputData()
+      dMId <- self$myPerIterationDataModel$getDataModelInputData()
       y <- dMId$getResponseVariable(onlyName=T)
       
       data <- dMId$getLongFormatVariable(c(y,self$get_used_vars()), completeCases=T)
@@ -554,7 +552,7 @@ BAYSISAbstractModel <- R6Class(
         }
         
         #and adjust 
-        dist$setDataAndProperties(x=data.frame(x=x), dataModel=self$myDataModel, para=parameter) 
+        dist$setDataAndProperties(x=data.frame(x=x), perIterationDataModel=self$myPerIterationDataModel, para=parameter) 
         dist$adjustMyself(tmpValue=tmpValue)
         
         return(dist)
@@ -604,7 +602,7 @@ BAYSISAbstractModel <- R6Class(
       stop("not yet implemented")
     },
     
-    
+    #TODO: interaction of conti+cat -> varElements should be NA
     #returns a named list of elements that are again a list of 4 entries
     #string: Aa:Ba
     #vars: A,B
@@ -659,10 +657,8 @@ BAYSISAbstractModel <- R6Class(
     
     getTermCombinationsOfPredictor = function(pred){
       #data
-      # dat <- self$myDataModel$get.user_cleaned_input_data() 
-      dMId <- self$myDataModel$getDataModelInputData()
-      
-      dMId <- self$myDataModel$getDataModelInputData()
+      dMId <- self$myPerIterationDataModel$getDataModelInputData()
+
       y <- dMId$getResponseVariable(onlyName=T)
       dat <- dMId$getLongFormatVariable(c(y,self$get_used_vars()), completeCases=T)
     
@@ -695,6 +691,48 @@ BAYSISAbstractModel <- R6Class(
       stop("Not yet implemented for this concrete baysis stan model.")
     },
     
+    #cast prior list to single distribution with vectors of distribution parameters
+    getPriorAsSingleVector = function(prior_list, brms=F){
+  
+      if(brms){
+        #Special priors like horseshoe?
+        if(prior_list[[1]]$dist %in% c("hs")){
+          df <- data.frame(matrix(unlist(prior_list), ncol=length(prior_list), byrow=F))
+          row_identical <- apply(df, 1, function(x) length(unique(x)) == 1)
+          if(!all(row_identical) && localUse) browser()
+          return(prior_list[[1]])
+        }
+        return(prior_lists)
+      }else{
+        if(length(prior_list)==0){
+          return(NULL)
+        }else if(length(prior_list)==1){
+          return(prior_list[[1]])
+        }else {
+          
+          #Special priors like horseshoe?
+          if(prior_list[[1]]$dist %in% c("hs")){
+            df <- data.frame(matrix(unlist(prior_list), ncol=length(prior_list), byrow=F))
+            row_identical <- apply(df, 1, function(x) length(unique(x)) == 1)
+            if(!all(row_identical) && localUse) browser()
+            return(prior_list[[1]])
+          }
+          
+          ret <- prior_list[[1]]
+          namesAuxParas <- names(ret)
+          for(e_i in 2:length(prior_list)){
+            e <- prior_list[[e_i]]
+            for(nAuxPara in namesAuxParas){
+              ret[[nAuxPara]] <- c(ret[[nAuxPara]],e[[nAuxPara]])
+            }
+          }
+          ret$dist <- ret$dist[[1]]
+          return(ret)
+        }
+      }
+
+    },
+    
     regular_description = function(combination=F, intercept=T){
       pre <- "The distribution shows uncertainty of the effect of the predictor"
       if(combination) pre <- paste0(pre, " combination")
@@ -711,6 +749,11 @@ BAYSISAbstractModel <- R6Class(
     },
     
     effects_description = function(type=c("slope","group")){return("No description available for this model.")},
+    
+    #Should be overwritten by concretes
+    matchAuxiliaryNames = function(name){
+      return(name)
+    },
     
     #Overwritten by concrete class
     postprocessing = function(stan_result, content){
@@ -805,7 +848,7 @@ BAYSISAbstractModel <- R6Class(
       'Direction of effects' (lower right) shows in which direction the response variable changes if we change a predictor.</p>",
 
     
-    getInstance =  function(dataModel){
+    getInstance =  function(myPerIterationDataModel){
 
       concreteClass <- class(self)[1]
       newInstance <- get(concreteClass)$new()
@@ -824,7 +867,7 @@ BAYSISAbstractModel <- R6Class(
       
       
       #R6
-      newInstance$myDataModel <- dataModel
+      newInstance$myPerIterationDataModel <- myPerIterationDataModel
 
       
       #R6 ModelParameter
@@ -886,7 +929,7 @@ BAYSISAbstractModel <- R6Class(
       self$id_used <- instance$id_used
 
       #R6
-      self$myDataModel <- instance$myDataModel
+      self$myPerIterationDataModel <- instance$myPerIterationDataModel
 
       self$parameterLineElements <- instance$parameterLineElements
       self$modelProperties <- instance$modelProperties
@@ -906,10 +949,10 @@ BAYSISAbstractModel <- R6Class(
         nextUUID <- nextUUID + 1
         self$setUUID(uuid)
         
-        myDataModelState <- NULL
-        if(!is.null(private$myDataModel)){
-          myDataModelState <- private$myDataModel$getState(nextUUID)
-          nextUUID <- myDataModelState$nextUUID
+        myPerIterationDataModelState <- NULL
+        if(!is.null(self$myPerIterationDataModel)){
+          myPerIterationDataModelState <- self$myPerIterationDataModel$getState(nextUUID)
+          nextUUID <- myPerIterationDataModelState$nextUUID
         }
         
         parameterLineElementsState <- list()
@@ -980,7 +1023,7 @@ BAYSISAbstractModel <- R6Class(
           id_used = self$id_used,
           
           #R6
-          myDataModel = myDataModelState,
+          myPerIterationDataModel = myPerIterationDataModelState,
           
           parameterLineElements = parameterLineElementsState, 
           modelProperties = modelPropertiesState,
@@ -1023,7 +1066,7 @@ BAYSISAbstractModel <- R6Class(
       self$id_used = state$id_used
       
       #R6
-      self$myDataModel = state$myDataModel
+      self$myPerIterationDataModel = state$myPerIterationDataModel
       
       self$parameterLineElements = state$parameterLineElements
       self$modelProperties = state$modelProperties
@@ -1035,7 +1078,7 @@ BAYSISAbstractModel <- R6Class(
     },
     resetState = function(){
       if(!super$resetState()) return()
-      if(!is.null(private$myDataModel)) private$myDataModel$resetState()
+      if(!is.null(self$myPerIterationDataModel)) self$myPerIterationDataModel$resetState()
       
       for(aa in self$parameterLineElements){
         aa$resetState()

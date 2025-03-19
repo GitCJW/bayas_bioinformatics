@@ -217,7 +217,7 @@ report_default_page <- function(){
                               tags$div(
                                 style="display:flex;",
                                 
-                                actionButton(inputId="dummy", label="P1", 
+                                actionButton(inputId="dummy", label="E1", 
                                              style="border-radius:50%; width:38px;height:38px; padding:0px;"),
                                 
                                 tags$div(
@@ -230,7 +230,7 @@ report_default_page <- function(){
                               tags$div(
                                 style="display:flex;",
                                 
-                                actionButton(inputId="dummy", label="P1", class="btn-primary-alt",
+                                actionButton(inputId="dummy", label="E1", class="btn-outline-primary",
                                              style="border-radius:50%; width:38px;height:38px; padding:0px;"),
                                 
                                 tags$div(
@@ -243,7 +243,7 @@ report_default_page <- function(){
                               tags$div(
                                 style="display:flex;",
                                 
-                                actionButton(inputId="dummy", label="P1", class="btn-primary",
+                                actionButton(inputId="dummy", label="E1", class="btn-primary",
                                              style="border-radius:50%; width:38px;height:38px; padding:0px;"),
                                 
                                 tags$div(

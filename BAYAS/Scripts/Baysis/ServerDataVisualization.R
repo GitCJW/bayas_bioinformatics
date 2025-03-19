@@ -97,7 +97,7 @@ init_data_visualization_function <- function(input, output, session, dataModel,
     inputFacetWrap <- input$uploadFacetWrap
     inputType <- input$uploadPlotType
     
-    
+    #TODO colorize btn when the combination is applicable
     isPos <- isPlotCombinationPossible(inputX, inputY, inputColorize, inputFacetWrap, inputType)
     if(!isPos$check){
       showNotification(isPos$description, type="warning")
@@ -224,7 +224,7 @@ init_data_visualization_function <- function(input, output, session, dataModel,
         
     })
     
-    plot_id_tmp <- dataModel$getDataModelPlotModel()$getNextId()
+    plot_id_tmp <- dataModel$getDataModelPlotModel()$getNextId("raw")
     plot_name <- paste0("Plot ", plot_id_tmp)
 
     # Save plot to data model

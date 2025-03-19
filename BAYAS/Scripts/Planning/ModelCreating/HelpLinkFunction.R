@@ -40,6 +40,17 @@ planningLinkFunctionMapping <- function(dist=c(distEnum$Normal, distEnum$Exponen
   }
 }
 
+planningPositiveDistribution <- function(dist=c(distEnum$Normal, distEnum$Exponential,
+                                               distEnum$Log_Normal, distEnum$Gamma, distEnum$Inverse_Gaussian,
+                                               distEnum$Beta,
+                                               distEnum$Poisson, distEnum$Negative_Binomial, 
+                                               distEnum$Binomial, distEnum$Bernoulli, distEnum$Beta_Binomial)){
+  match.arg(dist)
+  if(is.null(dist)) return(NULL)
+  return(!dist %in% c(distEnum$Log_Normal, distEnum$Normal))
+}
+
+
 # for(l in linkEnum){
 #   if(!l %in% c("inv_square", "tmp"))
 #     make.link(l)

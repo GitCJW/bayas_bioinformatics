@@ -10,8 +10,8 @@ bayasSidePanel(
   mainPanel,
   sidePanelClass = NULL,
   mainPanelClass = NULL,
-  sidePanelStyle = "background-color: #fff;",
-  mainPanelStyle = "background-color: #fff;"
+  sidePanelStyle = NULL,
+  mainPanelStyle = NULL
 )
 }
 \arguments{

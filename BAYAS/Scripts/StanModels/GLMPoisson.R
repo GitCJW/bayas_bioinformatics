@@ -40,7 +40,7 @@ GLMPoissonStanModel <- R6Class(classname = "GLMPoissonStanModel",
                                                                    NULL, 
                                                                    FactoryDistribution(name="RegCoefDist",dist=dEnum$Normal, adjustable=T, is.vector=F),
                                                                    # NormalDistribution$new(dist=dEnum$Normal,name="RegCoefDist", adjustable=T),
-                                                                   c(dEnum$Normal,dEnum$StudentT,dEnum$Cauchy))
+                                                                   c(dEnum$Normal,dEnum$StudentT,dEnum$Cauchy,dEnum$Horseshoe))
                                     )
                                     self$avail_predictor = list(
                                       Intercept = ModelPredictor$new("Intercept", -1, NULL, "It is recommended to use one. But also legit without one.", T,
@@ -149,7 +149,7 @@ GLMPoissonStanModel <- R6Class(classname = "GLMPoissonStanModel",
                                         para <- p$modelParameter
                                         if(para$is.vector){
                                           for(d in para$distributions){
-                                            if(is.null(d$element_name)) stop("Still null...") 
+                                            if(localUse && is.null(d$element_name)) stop("Still null...") 
                                             if(d$element_name %in% element_name){
                                               index <- match(d$element_name, element_name)
                                               prior_list[[index]] <- d$getPrior()
@@ -157,7 +157,7 @@ GLMPoissonStanModel <- R6Class(classname = "GLMPoissonStanModel",
                                           }
                                         }else{
                                           d <- para$distribution
-                                          if(is.null(d$element_name)) stop("Still null...") 
+                                          if(localUse && is.null(d$element_name)) stop("Still null...") 
                                           # e_n <- c("A","B")
                                           # each_permut <- permutations(2,2,e_n)
                                           # s <- sapply(1:length(each_permut[,1]),function(i){paste0(each_permut[i,],collapse = ":")})
@@ -174,28 +174,7 @@ GLMPoissonStanModel <- R6Class(classname = "GLMPoissonStanModel",
                                         }
                                       }
                                       #cast list to single distribution with vector of distribution parameters
-                                      if(length(prior_list)==0){
-                                        return(NULL)
-                                      }else if(length(prior_list)==1){
-                                        return(prior_list[[1]])
-                                      }else {
-                                        first <- prior_list[[1]]
-                                        ret <- list(dist = first$dist, df = first$df, location = first$location, scale = first$scale, 
-                                                    autoscale = first$autoscale)
-                                        for(e_i in 2:length(prior_list)){
-                                          e <- prior_list[[e_i]]
-                                          if(!is.na(e$df)){
-                                            ret$df <- c(ret$df,e$df)
-                                          }
-                                          if(!is.na(e$location)){
-                                            ret$location <- c(ret$location,e$location)
-                                          }
-                                          if(!is.na(e$scale)){
-                                            ret$scale <- c(ret$scale,e$scale)
-                                          }
-                                        }
-                                        return(ret)
-                                      }
+                                      return(self$getPriorAsSingleVector(prior_list))
                                     }else{
                                       stop("Wrong type selected")
                                     }
@@ -223,7 +202,7 @@ GLMPoissonStanModel <- R6Class(classname = "GLMPoissonStanModel",
 
                                     #get priors
                                     usedVars <- self$get_used_vars(extras=T, response=T)
-                                    order_of_elements <- colnames(as.data.frame(model.matrix(formula, self$myDataModel$getDataModelInputData()$getLongFormatVariable(usedVars, completeCases=T))) %>% 
+                                    order_of_elements <- colnames(as.data.frame(model.matrix(formula, self$myPerIterationDataModel$getDataModelInputData()$getLongFormatVariable(usedVars, completeCases=T))) %>% 
                                                                     select_if(~ !is.numeric(.) || sum(.) != 0))
                                     if(order_of_elements[1] == "(Intercept)") order_of_elements <- order_of_elements[-1]
                                     

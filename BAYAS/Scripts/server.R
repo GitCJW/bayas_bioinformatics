@@ -30,6 +30,8 @@ server <- function(input, output, session) {
   # Create a data model that stores the whole information
   dataModel <- DataModel$new()
   perIterationDataModel <- PerIterationDataModel$new(cores=max(1,parallel::detectCores()-1))
+  perIterationDataModel$setDataModelInputData(dataModel$getDataModelInputData())
+  
   dataModel$set.cPerIterationDataModel(perIterationDataModel)
   #Increments the next id for PIDM with 1
   dataModel$inc.pIDM_next_id()
@@ -51,7 +53,7 @@ server <- function(input, output, session) {
   server_BAYSIS(input, output, session, dataModel, global_reportProgressModel)
   server_planning(input, output, session, dataModel, mCDList, global_reportProgressModel)
   server_report(input, output, session, dataModel, mCDList, global_reportProgressModel)
-  
+
   
   # print0("mem size: ",memory.size())
   
@@ -64,7 +66,8 @@ server <- function(input, output, session) {
   
   #Footer
   observeEvent(input$testtest, {
-
+    global_browser <<- !global_browser
+    print(global_browser)
   })
   dsgvo_folder <- paste0(dirname(getwd()),"/Datenschutz/")
   observeEvent(input$dsgvo_button, {
@@ -74,7 +77,3 @@ server <- function(input, output, session) {
     showModal(modalDialog(HTML(impressum()), size = "l", easyClose = T, title = "Impressum", footer = modalButton("Close")))
   })
 }
-
-# runApp(paste0(getwd(),"/Scripts"), host="0.0.0.0", port=3123)
-# Firewall -> "Erweiterte Einstellungen" -> "Eingehende Regeln" -> ShinyApps (de-)aktivieren
-# Und Fritz.box wenn über Public ip

@@ -410,25 +410,29 @@ ModelCreatingDataParameterSub <- R6Class(
       genData <- genDist$randomValue(1e4, F)
       priorData <- priorDist$randomValue(1e4, F)
 
+      cons <- private$parameter$getConstraints()
+      ll <- cons$lowerLimit
+      ul <- cons$upperLimit
+      if(is.null(ll)) ll <- -Inf
+      if(is.null(ul)) ul <- Inf
+      # breaks <- c(-Inf,ll, ul, Inf)
+      breaks <- c(ll, ul, Inf)
       
-      limits <- hdi(genData, ci=0.99)
+ 
+      limits <- bayestestR::hdi(genData, ci=0.99)
+      limits$CI_low <- max(limits$CI_low, round(ll,100))
+      limits$CI_high <- min(limits$CI_high, ul)
       genData <- genData[genData>=limits$CI_low & genData<=limits$CI_high]
-      limits <- hdi(priorData, ci=0.99)
+      limits <- bayestestR::hdi(priorData, ci=0.99)
+      limits$CI_low <- max(limits$CI_low, round(ll,100))
+      limits$CI_high <- min(limits$CI_high, ul)
       priorData <- priorData[priorData>=limits$CI_low & priorData<=limits$CI_high]
       
       genBins <- min(50, length(unique(genData)))
       priorBins <- min(50, length(unique(priorData)))
       
       bins <- max(genBins, priorBins)
-      
 
-      cons <- private$parameter$getConstraints()
-      ll <- cons$lowerLimit
-      ul <- cons$upperLimit
-      if(is.null(ll)) ll <- -Inf
-      if(is.null(ul)) ul <- Inf
-      breaks <- c(-Inf, ll, ul, Inf)
-      
 
       colGen <- genData>=ll&genData<=ul
       colGen[colGen==T] <- BAYAS_COLORS$`--formula-color-1`
@@ -437,7 +441,7 @@ ModelCreatingDataParameterSub <- R6Class(
       colPrior <- priorData>=ll&priorData<=ul
       colPrior[colPrior==T] <- BAYAS_COLORS$`--formula-color-3`
       colPrior[colPrior==F] <- BAYAS_COLORS$`--formula-color-2`
-      
+
       gg <- ggplot()
       gg <- gg + 
         geom_histogram(data=data.frame(x=genData, col=colGen),
@@ -458,10 +462,12 @@ ModelCreatingDataParameterSub <- R6Class(
                                    BAYAS_COLORS$`--modelCreatingPlot-color-values-3`,
                                    BAYAS_COLORS$`--modelCreatingPlot-color-values-4`,
                                    BAYAS_COLORS$`--modelCreatingPlot-color-values-5`))
- 
-      gg + xlab("") + ylab("") + 
+
+      gg <- gg + xlab("") + ylab("") + 
         scale_y_continuous(breaks=NULL) +
         theme(legend.position = "none")
+     
+      gg
     },
     
     
@@ -579,3 +585,89 @@ ModelCreatingDataParameterSub <- R6Class(
     
   )
 )
+
+
+getParametersPossiblePriorDistributions <- function(type=c("predictor","aux"), 
+                                                    class=c("generation","inference"),
+                                                    modelName, linkName){
+
+  d <- planningDistribtionsEnum("all")
+  dResp <- planningDistribtionsEnum("response")
+  dLink <- planningLinkEnum()
+  
+
+  if(class=="generation"){
+    if(type %in% c("predictor","intercept","fixed")){
+      ret <- list('Choose...'="",
+                  'Single value'=d$FixedValue,
+                  'Continuous unbound (recommended)' = c('Normal'=d$Normal,
+                                           'Cauchy'=d$Cauchy,
+                                           'Logistic'=d$Logistic,
+                                           'Uniform'=d$Uniform,
+                                           'Student\'s t'=d$Student_t),
+                  'Continuous positive (not recommended)' = c('Log-Normal'=d$Log_Normal,
+                                            'Gamma'=d$Gamma,
+                                            'Exponential'=d$Exponential,
+                                            'Inverse-Gaussian'=d$Inverse_Gaussian,
+                                            'F'=d$F,
+                                            'Chi-squared'=d$Chi_squared_non_1,
+                                            'Weibull'=d$Weibull))
+      
+      if(modelName %in% c(dResp$Negative_Binomial, dResp$Poisson) &&
+         linkName %in% c(dLink$identity)){
+        names(ret)[3] <- 'Continuous unbound (not recommended)'
+        names(ret)[4] <- 'Continuous unbound (recommended)'
+      }
+    }else if(type == "aux"){
+      ret <- list('Choose...'="",
+                  'Single value'=d$FixedValue,
+                  'Continuous unbound (truncated at 0)' = c('Normal'=d$Normal,
+                                           'Cauchy'=d$Cauchy,
+                                           'Logistic'=d$Logistic,
+                                           'Uniform'=d$Uniform,
+                                           'Student\'s t'=d$Student_t),
+                  'Continuous positive' = c('Log-Normal'=d$Log_Normal,
+                                            'Gamma'=d$Gamma,
+                                            'Exponential'=d$Exponential,
+                                            'Inverse-Gaussian'=d$Inverse_Gaussian,
+                                            'F'=d$F,
+                                            'Chi-squared'=d$Chi_squared_non_1,
+                                            'Weibull'=d$Weibull))
+    }
+  }else if(class=="inference"){
+    if(type == "predictor"){
+      ret <- list('Choose...'="",
+                  'Continuous unbound (recommended)' = c('Normal'=d$Normal,
+                                           'Cauchy'=d$Cauchy,
+                                           'Logistic'=d$Logistic,
+                                           'Uniform'=d$Uniform,
+                                           'Student\'s t'=d$Student_t),
+                  'Continuous positive (not recommended)' = c('Log-Normal'=d$Log_Normal,
+                                            'Gamma'=d$Gamma,
+                                            'Exponential'=d$Exponential,
+                                            'Chi-squared'=d$Chi_squared_non_1,
+                                            'Weibull'=d$Weibull))
+      if(modelName %in% c(dResp$Negative_Binomial, dResp$Poisson) &&
+         linkName %in% c(dLink$identity)){
+        names(ret)[2] <- 'Continuous unbound (not recommended)'
+        names(ret)[3] <- 'Continuous unbound (recommended)'
+      }
+    }else if(type == "aux"){
+      ret <- list('Choose...'="",
+                  'Continuous unbound (truncated at 0)' = c('Normal'=d$Normal,
+                                           'Cauchy'=d$Cauchy,
+                                           'Logistic'=d$Logistic,
+                                           'Uniform'=d$Uniform,
+                                           'Student\'s t'=d$Student_t),
+                  'Continuous positive' = c('Log-Normal'=d$Log_Normal,
+                                            'Gamma'=d$Gamma,
+                                            'Exponential'=d$Exponential,
+                                            'Chi-squared'=d$Chi_squared_non_1,
+                                            'Weibull'=d$Weibull))
+    }
+  }
+
+  
+  return(ret)
+}
+

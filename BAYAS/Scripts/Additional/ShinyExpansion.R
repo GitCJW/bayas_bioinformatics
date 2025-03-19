@@ -28,7 +28,7 @@ ownSidebarServer = function(session, input, inputButton, sidebar_name){
 }
 
 uiChecklist <- function(type=c("check","warning","error"), idCheck, description, 
-                        message, qMarkTitle, qMarkContent, first){
+                        message, qMarkTitle, qMarkContent, first, fadeInTime){
   iconName <- ""
   iconStyle <- ""
   iconColor <- ""
@@ -51,9 +51,17 @@ uiChecklist <- function(type=c("check","warning","error"), idCheck, description,
   }else{
     stop("Wrong type!")
   }
-  showIcon <- tags$div(id=idCheck, icon(iconName), style=iconStyle)
+  style <- ""
+  # if(first) style <- paste0("opacity:0; animation: fadeIn 1s ease-in-out ", fadeInTime, "s forwards;")
+  
+  showIcon <- tags$div(
+    id = idCheck, 
+    style = iconStyle, 
+    style = style,
+    icon(iconName))
+  
   if(first) showIcon <- hidden(showIcon)
-    
+  
 
   return(
     tagList(
@@ -109,13 +117,15 @@ imageButtonTitle <- function(btnId, imageFile, title, selected=F,
 }
 
 setPrimaryImageButtonTitle <- function(btnId, primary){
- if(primary){
-   addCssClass(btnId, "planningExampleBtnPrimary")
-   removeCssClass(btnId, "planningExampleBtn")
- }else{
-   removeCssClass(btnId, "planningExampleBtnPrimary")
-   addCssClass(btnId, "planningExampleBtn")
- }
+  for(id in btnId){
+    if(primary){
+      addCssClass(id, "planningExampleBtnPrimary")
+      removeCssClass(id, "planningExampleBtn")
+    }else{
+      removeCssClass(id, "planningExampleBtnPrimary")
+      addCssClass(id, "planningExampleBtn")
+    }
+  }
 }
 
 shinyInputActionButton <- function(FUN, len, id, ...) {
@@ -646,7 +656,7 @@ loadSessionModal <- function(id){
             style = "width: max-content; display: inline-block;",
             shinybusy::use_busy_spinner(
               spin = "folding-cube", spin_id="loadingSpinner", 
-              color="var(--bs-btn-bg)"), # #0275D8
+              color="var(--bs-btn-bg)"),
             hidden(tags$div(
               id = paste0(id,"TextOutputDiv"),
               class="fontColor-error",

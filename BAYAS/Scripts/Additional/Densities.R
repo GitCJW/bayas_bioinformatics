@@ -493,13 +493,7 @@ prediction_dens_bernoulli <- function(p){
 #ci value of interval (0.9)
 #method: string
 ciOfDens <- function(data, ci, method = c("hdi","eti", "hdi2")){
-  
-  # write.csv(data, "C:/Users/CJW/Desktop/pos.csv")
-  # data <- read.csv("C:/Users/CJW/Desktop/pos.csv")
-  # data <- data[,-1]
-  # plotSeveralAreas(data=list(a=data), countData=F, prop=0.9, x_axis="x", method="hdi", colors=c("red")) +
-  #   scale_x_continuous(trans="log10")
-  
+
   approx <- approxfun(x=data$x,y=data$density, yleft=0, yright=0)
   approx_cum <- approxfun(x=data$x,y=data$cum_dist, yleft=0, yright=1)
   approx_cum_rev <- approxfun(x=data$cum_dist,y=data$x, yleft=0, yright=1)
@@ -599,7 +593,3 @@ HDIFunction2 <- function(data, ci){
   index <- match(min(ret),ret)
   return(c(approx_cum_rev(seq[index]),approx_cum_rev(seq[index]+ci)))
 }
-
-# plot(density(c(rnorm(1e6),rnorm(1e6,10,1))))
-# hdi(c(rnorm(1e6),rnorm(1e6,10,1)))
-# hdi(c(rnorm(1e6),rnorm(1e6,10,1)), ci=0.5)

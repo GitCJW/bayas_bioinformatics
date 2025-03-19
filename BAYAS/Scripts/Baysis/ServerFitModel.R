@@ -172,8 +172,6 @@ init_run_model_function <- function(input, output, session, dataModel,
     
     
     baysisModel <- cPIDM$get.selected_BAYSIS_stan_model()
-    
-    
     usedVars <- unique(c(baysisModel$get_used_vars(extras=T, response=T)))
     data <- dMID$getLongFormatVariable(usedVars, completeCases=T)
     
@@ -183,6 +181,8 @@ init_run_model_function <- function(input, output, session, dataModel,
     content <- baysisModel$get_content_for_stan_code(response = response, 
                                                      data = data, 
                                                      stanParameter = stanParameters)
+
+    
     if(is.null(content)){
       label_of_fit_run <<- "Run Fit"
       shinyjs::enable(id = "btnRunModelRun")
@@ -199,15 +199,14 @@ init_run_model_function <- function(input, output, session, dataModel,
       #since the baysis object must be loaded in the future.
       #It is also not a solution to save the function call (from the baysis model 'get_code_to_run')
       #in a variable and pass into the future, because the function call variable also increase in the
-      #used memory during several fits (idk why...)
+      #used memory during several fits 
       tC <- tryCatch({
-        
         #TOOD
         #Somehow the output passed to the viewer is not redirected to the consoleFile when using more than 1 core,
         #so that the progressbar doesn't make sense.
         if(!is.null(content$class) && content$class=="brms"){
           sampled_model <- brms::brm(formula = content$formula, data=content$data, verbose = T,
-                                     iter = content$stanParameter$iterations,  cores = 1,
+                                     iter = content$stanParameter$iterations, cores = 1, #content$stanParameter$cores, 
                                      control=list(adapt_delta = content$stanParameter$adapt_delta, 
                                                   max_treedepth=content$stanParameter$max_treedepth),
                                      chains = content$stanParameter$chains, family = content$family,
@@ -242,6 +241,7 @@ init_run_model_function <- function(input, output, session, dataModel,
     progressBar$set(value=0.9, message = 'Allocate memory ...', detail= "This may take a while")
     ret <- value(f) 
     if(is.null(ret)){
+	    if(localUse) browser()
       showNotification("Couldn't fit the model for unknown reasons. The operator is notified.", type="error")
       malfunction_report(code=malfunctionCode()$compareStanModels, msg="unused interaction levels",
                          type="error", askForReport=T)
@@ -275,7 +275,7 @@ init_run_model_function <- function(input, output, session, dataModel,
     
     # Save model to datamodel and update selectinput
     cPIDM$setDataModelInputData(dataModel$getDataModelInputData())
-    newModel <- cPIDM$getInstance(dataModel$get.pIDM_next_id(), dataModel)
+    newModel <- cPIDM$getInstance(dataModel$get.pIDM_next_id())
     dataModel$inc.pIDM_next_id()
     newModel$set.name(name)
     
@@ -287,6 +287,7 @@ init_run_model_function <- function(input, output, session, dataModel,
     
     formulaLatex <- transposeFormulaToPDF(newModel)
     tEnum <- reportTypeEnum()
+    
     
     #Add formula element to recommended report progress
     addItem(moduleType = "evaluation",
@@ -457,11 +458,23 @@ init_run_model_function <- function(input, output, session, dataModel,
     })
   })
   
+  removeAlsoReportedItems <- F
   observeEvent(input$removeCPIDM, {
+    #TODO: show warning that also reported stuff of this item will be removed
+    if(removeAlsoReportedItems){
+      #todo
+    }
+    
     if(is.null(input$selectInputRunModelPreviousModels) || input$selectInputRunModelPreviousModels == "" || input$selectInputRunModelPreviousModels == "(Not_fitted)"){
       showNotification("Invalid fitted model to remove.", type="warning")
     }else{
+      pIDM <- dataModel$get.perIterationDataModel(name=input$selectInputRunModelPreviousModels)
       dataModel$remove.perIterationDataModel(input$selectInputRunModelPreviousModels)
+      
+      #remove also reported items
+      itemsId <- global_reportProgressModel$getItemsOfPerIterationDataModel(pIDM$get.id())
+      global_reportProgressModel$removeItem(ids=itemsId, recommended=F)
+      global_reportProgressModel$removeItem(ids=itemsId, recommended=T)
     }
   })
   
@@ -498,7 +511,6 @@ init_run_model_function <- function(input, output, session, dataModel,
     formulaLatex <- transposeFormulaToPDF(pDIM)
     tEnum <- reportTypeEnum()
 
-    
     #Add formula element to report progress
     addItem(moduleType = "evaluation",
             dataModel_id=pDIM$getDataModelInputData()$getCurrentDataPath(), pDIM_id=pDIM_id, 
@@ -517,6 +529,7 @@ init_run_model_function <- function(input, output, session, dataModel,
       
       tRIV <- tmpReportItemValidation
       if(is.null(tRIV)){
+	    if(localUse) browser()
         showNotification("Something went wrong. The operator is notified.", type="error")
         malfunction_report(code=malfunctionCode()$missingReportItem, msg="missing tmpReportItemValidation",
                            type="error", askForReport=T)
@@ -578,7 +591,11 @@ init_run_model_function <- function(input, output, session, dataModel,
         
         setProgress(value=0.4)
         
-        latexPlot <- plotToTex(paste0("ppc_preview_",inputName), plot, caption=NULL)
+
+        caption <- NULL
+        if(pIDM$get.ppc_plot_warnings()) caption <- readTxtFile(paste0(report_folder,"/GeneralTex/PPC_preview_caption.txt"))
+        
+        latexPlot <- plotToTex(paste0("ppc_preview_",inputName), plot, caption=caption)
         setProgress(value=0.8)
         
         reportDiv <- reportType(div=list(plot=plot))
@@ -729,7 +746,12 @@ observerModelValidationTab <- function(input, output, session, dataModel, global
         return()
       }
       
+      
+      pIDM <- dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)
+      
       res <- gsub("<i>||</i>","",res)
+      baysisModel <- pIDM$get.selected_BAYSIS_stan_model() 
+      res <- baysisModel$matchAuxiliaryNames(res)
       
       #Just select on var? 
       if(length(res) <= 1){
@@ -737,31 +759,24 @@ observerModelValidationTab <- function(input, output, session, dataModel, global
         return()
       }
       
-      stanfit <- extract_stanfit(dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)$get.calculated_stan_object())
+      stanfit <- extract_stanfit(pIDM$get.calculated_stan_object())
       
       post <- as.array(stanfit)
       
       gg <- mcmc_pairs(post, pars=res)
+
       
-      plot_id_tmp <- isolate(plot_id())
+      plot_id_tmp <- dataModel$getDataModelPlotModel()$getNextId("pairs")
       plot_name <- paste0("Plot ", plot_id_tmp)
       
-      appendTab("runModelModelValidationTabSQPairsPlot", select=T, 
-                tab = tabPanel(title = plot_name, 
-                               h5(dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)$get.name(), style="text-align:center;"),
-                               withSpinner(plotOutput(outputId = paste0("runModelModelValidationTabSQPairsPlot", plot_id_tmp)))
-                )
-      )
-      
-      output[[paste0("runModelModelValidationTabSQPairsPlot", plot_id_tmp)]] <- renderPlot(gg)
-      
       # Save plot to data model
-      dataModel$getDataModelPlotModel()$add.plot_history(history="pairs", plotname=plot_name, plot=gg)
-      
-      plot_id(plot_id_tmp+1) 
+      dataModel$getDataModelPlotModel()$add.plot_history("pairs", plotname=plot_name, id=plot_id_tmp, 
+                                                         plot=gg, pairsInfo=list(name=pIDM$get.name()))
+
     },
     error=function(e){
       print(e)
+	  if(localUse) browser()
       showNotification("Something went wrong. The operator is notified.", type="error")
       malfunction_report(code=malfunctionCode()$pairsplot, msg="creating pairs plot",
                          type="error", askForReport=T)
@@ -798,13 +813,13 @@ observerModelValidationTab <- function(input, output, session, dataModel, global
     #There are no different dataModels, so that the csv name is used instead
     # fileName <- dataModel$getDataModelPlotModel()$get.raw_plot_file_name(input$runModelModelValidationTabSQPairsPlot)
 
-    cPIDM <- dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)
+    pIDM <- dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)
 
     reportDiv <- reportType(div=list(plot=plot))
     
     addItem(moduleType = "evaluation",
-            dataModel_id=cPIDM$getDataModelInputData()$getCurrentDataPath(), pDIM_id=cPIDM$get.id(),  
-            pDIM_name = cPIDM$get.name(),
+            dataModel_id=pIDM$getDataModelInputData()$getCurrentDataPath(), pDIM_id=pIDM$get.id(),  
+            pDIM_name = pIDM$get.name(),
             imgFile=paste0("Report/Thumbnails/pairs_",inputName,".jpg"), 
             type=tEnum$pairs, object=list(div=reportDiv, latex=plotToTex(paste0("pairs_",inputName), plot, caption=NULL)), 
             singleton=F, show=T, global_reportProgressModel=global_reportProgressModel)
@@ -818,9 +833,6 @@ observerModelValidationTab <- function(input, output, session, dataModel, global
       showNotification("There is nothing to close.", type="warning")
       return()
     }
-    selected <- dataModel$getDataModelPlotModel()$get.next_plot("pairs",remove)
-    updateTabsetPanel(session, "runModelModelValidationTabSQPairsPlot", selected = selected)
-    removeTab("runModelModelValidationTabSQPairsPlot", remove)
     dataModel$getDataModelPlotModel()$remove.plot_history("pairs",remove)
   })
   
@@ -840,6 +852,65 @@ observerModelValidationTab <- function(input, output, session, dataModel, global
                      plotType="pairs",
                      plotName="runModelModelValidationTabSQPairsPlot")
   
+  
+  
+  shownPairsPlotsIds <- reactiveVal(c())
+  #Show plots
+  observe({
+    dMPM <- dataModel$getDataModelPlotModel()
+    dMPM$dependReactiveValue("plot_history_pairs")
+    
+    isolate({
+      
+      plots <- dMPM$get.plot_history("pairs")
+      
+      shownPairsPlotsIds_new <- c()
+      add_ids <- c()
+      
+      for(pp_id in seq_along(plots)){
+        pp <- plots[[pp_id]]
+        #add
+        if(!pp$id %in% shownPairsPlotsIds()){
+          
+          # Create new tab for new plot in tab panel
+          appendTab(
+            inputId = "runModelModelValidationTabSQPairsPlot", 
+            select = T,
+            tab = tabPanel(
+              title = paste0("Plot ", pp$id),
+              value = paste0("Plot ", pp$id),
+              h5(pp$pairsInfo$name, style="text-align:center;"),
+              plotOutput(outputId = paste0("runModelModelValidationTabSQPairsPlot", pp$id))
+            )
+          )
+          
+          add_ids <- c(add_ids, pp_id)
+        }
+        shownPairsPlotsIds_new <- c(shownPairsPlotsIds_new, pp$id)
+      }
+      
+      sapply(add_ids, function(i){
+        # Render selected type of Plot
+        output[[paste0("runModelModelValidationTabSQPairsPlot", plots[[i]]$id)]] <- renderPlot(plots[[i]]$plot)
+      })
+      
+      #remove
+      ids <- shownPairsPlotsIds()
+      for(id in ids){
+        if(!id %in% shownPairsPlotsIds_new){
+          selected <- dMPM$get.next_plot("pairs", id=id)
+          selected <- paste0("Plot ", selected)
+          updateTabsetPanel(session, "runModelModelValidationTabSQPairsPlot", selected = selected)
+          removeTab(inputId = "runModelModelValidationTabSQPairsPlot",paste0("Plot ", id))
+        }
+      }
+      
+      shownPairsPlotsIds(shownPairsPlotsIds_new)
+    })
+  })
+  
+  
+  
   #### Prior predictive check ####
   #Observe report button for prior predictive check
   observeEvent(input$reportPriorPC, {
@@ -848,11 +919,11 @@ observerModelValidationTab <- function(input, output, session, dataModel, global
     if(!is.null(input$selectInputRunModelPreviousModels) && 
        input$selectInputRunModelPreviousModels != ""){
       
-      cPIDM <- dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)
+      pIDM <- dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)
       
-      plot <- cPIDM$get.priorPredictiveCheckPlot()
+      plot <- pIDM$get.priorPredictiveCheckPlot()
       
-      inputName <- cPIDM$get.name()
+      inputName <- pIDM$get.name()
       
       ggsave(paste0(report_folder, "/Thumbnails/priorpc_",inputName,".jpg"), 
              plot, device="jpeg", width=100, height=100, units="px", dpi=25)
@@ -864,8 +935,8 @@ observerModelValidationTab <- function(input, output, session, dataModel, global
       reportDiv <- reportType(div=list(plot=plot))
       
       addItem(moduleType = "evaluation",
-              dataModel_id=cPIDM$getDataModelInputData()$getCurrentDataPath(), pDIM_id=cPIDM$get.id(), 
-              pDIM_name = cPIDM$get.name(),
+              dataModel_id=pIDM$getDataModelInputData()$getCurrentDataPath(), pDIM_id=pIDM$get.id(), 
+              pDIM_name = pIDM$get.name(),
               imgFile = paste0("Report/Thumbnails/priorpc_",inputName,".jpg"),
               type=tEnum$priorpc, object=list(div=reportDiv, latex=plotToTex(paste0("priorpc_",inputName), plot, caption=NULL)), 
               show=T, singleton=T, global_reportProgressModel=global_reportProgressModel)
@@ -877,12 +948,12 @@ observerModelValidationTab <- function(input, output, session, dataModel, global
   #### Prior vs Posterior ####
   ns_pvp <- NS("runModelModelValidationTabSQPVPPlot")
   
-  #Pairs plot button
+  #Prior vs posterior plot button
   plot_id_PVP <- reactiveVal(1)
   observeEvent(input$plotPVP, ignoreInit = T, {
     
     tryCatch({
-
+      
       res <- c()
       t <- input$treePVPVars
       n_i <- names(t)
@@ -912,39 +983,37 @@ observerModelValidationTab <- function(input, output, session, dataModel, global
       }
       
    
-      sampled_model <- dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)$get.calculated_stan_object()
-      
-      cPIDM <- dataModel$get.cPerIterationDataModel()
-      dMID <- cPIDM$getDataModelInputData()
+      pIDM <- dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)
+      sampled_model <- pIDM$get.calculated_stan_object()
+      dMID <- pIDM$getDataModelInputData()
       response <- dMID$getResponseVariable(onlyName=T)
-      used_opt_terms <- cPIDM$get.used_optional_terms()
-      
+      used_opt_terms <- pIDM$get.used_optional_terms()
+      baysisModel <- pIDM$get.selected_BAYSIS_stan_model() 
 
       # Read sampling parameters
       stanParameters <- list(
-        iterations = cPIDM$get.number_iterations(),
-        chains = cPIDM$get.number_chains(),
-        cores = cPIDM$get.number_cores(),
-        adapt_delta = cPIDM$get.adapt_delta(),
-        max_treedepth = cPIDM$get.max_treedepth(),
-        seed = cPIDM$get.seed()
+        iterations = pIDM$get.number_iterations(),
+        chains = pIDM$get.number_chains(),
+        cores = pIDM$get.number_cores(),
+        adapt_delta = pIDM$get.adapt_delta(),
+        max_treedepth = pIDM$get.max_treedepth(),
+        seed = pIDM$get.seed()
       )
-      baysisModel <- cPIDM$get.selected_BAYSIS_stan_model()
       
-      # usedVars <- unique(c(response, dMID$getResponseVariable(onlyName=T))) #FAAAAAALSCH
-      # data <- dMID$getLongFormatVariable(usedVars, completeCases=T)
+
+      #Replace naming for auxiliary parameters if necessary
+      res <- baysisModel$matchAuxiliaryNames(res)
+
       data <- dMID$getLongFormat()
       
       content <- baysisModel$get_content_for_stan_code(response = response, 
-                                                       data = data, #cPIDM$getDataModelInputData()$getLongFormat(), 
+                                                       data = data, 
                                                        stanParameter = stanParameters)
 
-      # saveRDS(sampled_model, "C:/Users/CJW/Desktop/sampled_model.rds")
-      # saveRDS(content, "C:/Users/CJW/Desktop/content.rds")
-      # saveRDS(res, "C:/Users/CJW/Desktop/res.rds")
-      # 
+
       # assign("sampled_model",sampled_model)
-      assign("content",content, envir = .GlobalEnv)
+      #Required for the update function. Otherwise the call object in sampled_model will use an older content.
+      assign("content", content, envir = .GlobalEnv)
       
       c <- call("posterior_vs_prior", object=sampled_model, pars=res, 
                 group_by_parameter = input$groupByParameterPVP)
@@ -952,25 +1021,17 @@ observerModelValidationTab <- function(input, output, session, dataModel, global
         theme(text = element_text(size = 14)) + 
         geom_pointrange(size=1)
       
-      plot_id_tmp <- isolate(plot_id_PVP())
+
+      plot_id_tmp <- dataModel$getDataModelPlotModel()$getNextId("pvp")
       plot_name <- paste0("Plot ", plot_id_tmp)
       
-      appendTab("runModelModelValidationTabSQPVPPlot", select=T, 
-                tab = tabPanel(title = plot_name, 
-                               h5(dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)$get.name(), style="text-align:center;"),
-                               withSpinner(plotOutput(outputId = paste0("runModelModelValidationTabSQPVPPlot", plot_id_tmp)))
-                )
-      )
-      
-      output[[paste0("runModelModelValidationTabSQPVPPlot", plot_id_tmp)]] <- renderPlot(gg)
-      
       # Save plot to data model
-      dataModel$getDataModelPlotModel()$add.plot_history(history="pvp", plotname=plot_name, plot=gg)
-      
-      plot_id_PVP(plot_id_tmp+1) 
+      dataModel$getDataModelPlotModel()$add.plot_history("pvp", plotname=plot_name, id=plot_id_tmp, 
+                                                         plot=gg, pvpInfo=list(name=pIDM$get.name()))
     },
     error=function(e){
       print(e)
+	  if(localUse) browser()
       showNotification("Something went wrong. The operator is notified.", type="error")
       malfunction_report(code=malfunctionCode()$pvpPlot, msg="creating pvp plot",
                          type="error", askForReport=T)
@@ -991,7 +1052,7 @@ observerModelValidationTab <- function(input, output, session, dataModel, global
   
   #Report PVP plot
   observeEvent(input$reportPVP, {
-    
+
     plot <- dataModel$getDataModelPlotModel()$get.plot_by_name("pvp", input$runModelModelValidationTabSQPVPPlot)
     
     inputName <- input$runModelModelValidationTabSQPVPPlot
@@ -1005,13 +1066,13 @@ observerModelValidationTab <- function(input, output, session, dataModel, global
     #pDIM_id=-1 -1 for reported items that are not related to a certain pDIM
     #There are no different dataModels, so that the csv name is used instead
 
-    cPIDM <- dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)
+    pIDM <- dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)
     
     reportDiv <- reportType(div=list(plot=plot))
     
     addItem(moduleType = "evaluation",
-            dataModel_id=cPIDM$getDataModelInputData()$getCurrentDataPath(), pDIM_id=cPIDM$get.id(),  
-            pDIM_name = cPIDM$get.name(),
+            dataModel_id=pIDM$getDataModelInputData()$getCurrentDataPath(), pDIM_id=pIDM$get.id(),  
+            pDIM_name = pIDM$get.name(),
             imgFile=paste0("Report/Thumbnails/pvp_",inputName,".jpg"), 
             type=tEnum$pvp, object=list(div=reportDiv, latex=plotToTex(paste0("pvp_",inputName), plot, caption=NULL)), 
             singleton=F, show=T, global_reportProgressModel=global_reportProgressModel)
@@ -1024,9 +1085,6 @@ observerModelValidationTab <- function(input, output, session, dataModel, global
       showNotification("There is nothing to close.", type="warning")
       return()
     }
-    selected <- dataModel$getDataModelPlotModel()$get.next_plot("pvp",remove)
-    updateTabsetPanel(session, "runModelModelValidationTabSQPVPPlot", selected = selected)
-    removeTab("runModelModelValidationTabSQPVPPlot", remove)
     dataModel$getDataModelPlotModel()$remove.plot_history("pvp",remove)
   })
   
@@ -1045,6 +1103,62 @@ observerModelValidationTab <- function(input, output, session, dataModel, global
                      dataModel=dataModel,
                      plotType="pvp",
                      plotName="runModelModelValidationTabSQPVPPlot")
+  
+  
+  shownPvpPlotsIds <- reactiveVal(c())
+  #Show plots
+  observe({
+    dMPM <- dataModel$getDataModelPlotModel()
+    dMPM$dependReactiveValue("plot_history_pvp")
+    
+    isolate({
+      
+      plots <- dMPM$get.plot_history("pvp")
+      
+      shownPvpPlotsIds_new <- c()
+      add_ids <- c()
+      
+      for(pp_id in seq_along(plots)){
+        pp <- plots[[pp_id]]
+        #add
+        if(!pp$id %in% shownPvpPlotsIds()){
+          
+          # Create new tab for new plot in tab panel
+          appendTab(
+            inputId = "runModelModelValidationTabSQPVPPlot", 
+            select = T,
+            tab = tabPanel(
+              title = paste0("Plot ", pp$id),
+              value = paste0("Plot ", pp$id),
+              h5(pp$pvpInfo$name, style="text-align:center;"),
+              plotOutput(outputId = paste0("runModelModelValidationTabSQPVPPlot", pp$id))
+            )
+          )
+          
+          add_ids <- c(add_ids, pp_id)
+        }
+        shownPvpPlotsIds_new <- c(shownPvpPlotsIds_new, pp$id)
+      }
+      
+      sapply(add_ids, function(i){
+        # Render selected type of Plot
+        output[[paste0("runModelModelValidationTabSQPVPPlot", plots[[i]]$id)]] <- renderPlot(plots[[i]]$plot)
+      })
+      
+      #remove
+      ids <- shownPvpPlotsIds()
+      for(id in ids){
+        if(!id %in% shownPvpPlotsIds_new){
+          selected <- dMPM$get.next_plot("pvp", id=id)
+          selected <- paste0("Plot ", selected)
+          updateTabsetPanel(session, "runModelModelValidationTabSQPVPPlot", selected = selected)
+          removeTab(inputId = "runModelModelValidationTabSQPVPPlot",paste0("Plot ", id))
+        }
+      }
+      
+      shownPvpPlotsIds(shownPvpPlotsIds_new)
+    })
+  })
   
 }
 
@@ -1138,20 +1252,23 @@ observerPPCTab <- function(input, output, session, dataModel, global_reportProgr
 
     pIDM <- dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)
     
-    #FitPageMPPanelPlot
+    #fitPageMPPanelPlot
     sampled_model <- pIDM$get.calculated_stan_object()
     dMID <- pIDM$getDataModelInputData()
 
     data <- dMID$getLongFormat()
 
+
+    group <- isolate(input$selectionPPCGroup)
+    usedVars <- unique(c(pIDM$get.selected_BAYSIS_stan_model()$get_used_vars(extras=T, response=T), group))
+    data <- dMID$getLongFormatVariable(usedVars, completeCases=T)
+    
     y <- data[[dMID$getResponseVariable(onlyName=T)]]
     
 
     yrep <- tryCatch({
-      # rstantools::posterior_predict(sampled_model, draws = input$numericPPCDraws)},
       pIDM$get.selected_BAYSIS_stan_model()$make_predictions(stanObject=sampled_model,
                                                              data=NULL, draws = input$numericPPCDraws)},
-      
       
       error=function(cond){
         print(cond)
@@ -1167,7 +1284,7 @@ observerPPCTab <- function(input, output, session, dataModel, global_reportProgr
     
     # "Density overlay", "Interval", "Histogram", "Frequency polygon", "Violin grouped", "Bars"    
     type <- isolate(input$selectionPPCType)
-    group <- isolate(input$selectionPPCGroup)
+    
 
     if(type == "Violin grouped"){
       if((is.null(group[1]) || group[1] == "" )){
@@ -1178,7 +1295,7 @@ observerPPCTab <- function(input, output, session, dataModel, global_reportProgr
       dd_g <- dd[group]
       group_interaction <- interaction(dd_g)
     }
-
+    
     gg <- switch(type,
                  'Density overlay'=bayesplot::ppc_dens_overlay(y, yrep),
                  'Interval'=bayesplot::ppc_intervals(y, yrep),
@@ -1217,22 +1334,13 @@ observerPPCTab <- function(input, output, session, dataModel, global_reportProgr
     } 
     
 
-    plot_id_tmp <- isolate(plot_id())
+    plot_id_tmp <- dataModel$getDataModelPlotModel()$getNextId("ppc")
     plot_name <- paste0("Plot ", plot_id_tmp)
-
-    appendTab("FitPagePPCPanelPlot", select=T,
-              tab = tabPanel(title = plot_name,
-                             h5(pIDM$get.name(), style="text-align:center;"),
-                             plotOutput(outputId = paste0("fitModelTabPPCPanelPlot", plot_id_tmp))
-              )
-    )
-
-    output[[paste0("fitModelTabPPCPanelPlot", plot_id_tmp)]] <- renderPlot(gg)
     
     # Save plot to data model
-    dataModel$getDataModelPlotModel()$add.plot_history(history="ppc", plotname=plot_name, plot=gg)
+    dataModel$getDataModelPlotModel()$add.plot_history("ppc", plotname=plot_name, id=plot_id_tmp, 
+                                                       plot=gg, ppcInfo=list(name=pIDM$get.name()))
 
-    plot_id(plot_id_tmp+1)
   })
 
   #Change button style depending on existing plots to report/download
@@ -1262,13 +1370,13 @@ observerPPCTab <- function(input, output, session, dataModel, global_reportProgr
     #pDIM_id=-1 -1 for reported items that are not related to a certain pDIM
     #There are no different dataModels, so that the csv name is used instead
     
-    cPIDM <- dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)
+    pIDM <- dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)
     
     reportDiv <- reportType(div=list(plot=plot))
     
     addItem(moduleType = "evaluation",
-            dataModel_id=cPIDM$getDataModelInputData()$getCurrentDataPath(), pDIM_id=cPIDM$get.id(),  
-            pDIM_name = cPIDM$get.name(),
+            dataModel_id=pIDM$getDataModelInputData()$getCurrentDataPath(), pDIM_id=pIDM$get.id(),  
+            pDIM_name = pIDM$get.name(),
             imgFile=paste0("Report/Thumbnails/ppc_",inputName,".jpg"), 
             type=tEnum$ppc, object=list(div=reportDiv, latex=plotToTex(paste0("ppc_",inputName), plot, caption=NULL)), 
             singleton=F, show=T, global_reportProgressModel=global_reportProgressModel)
@@ -1305,6 +1413,61 @@ observerPPCTab <- function(input, output, session, dataModel, global_reportProgr
                      plotType="ppc",
                      plotName="FitPagePPCPanelPlot")
 
+  shownPPCPlotsIds <- reactiveVal(c())
+  #Show plots
+  observe({
+    dMPM <- dataModel$getDataModelPlotModel()
+    dMPM$dependReactiveValue("plot_history_ppc")
+    
+    isolate({
+      
+      plots <- dMPM$get.plot_history("ppc")
+      
+      shownPPCPlotsIds_new <- c()
+      add_ids <- c()
+      
+      for(pp_id in seq_along(plots)){
+        pp <- plots[[pp_id]]
+        #add
+        if(!pp$id %in% shownPPCPlotsIds()){
+          
+          # Create new tab for new plot in tab panel
+          appendTab(
+            inputId = "FitPagePPCPanelPlot", 
+            select = T,
+            tab = tabPanel(
+              title = paste0("Plot ", pp$id),
+              value = paste0("Plot ", pp$id),
+              h5(pp$ppcInfo$name, style="text-align:center;"),
+              plotOutput(outputId = paste0("FitPagePPCPanelPlot", pp$id))
+            )
+          )
+          
+          add_ids <- c(add_ids, pp_id)
+        }
+        shownPPCPlotsIds_new <- c(shownPPCPlotsIds_new, pp$id)
+      }
+      
+      sapply(add_ids, function(i){
+        # Render selected type of Plot
+        output[[paste0("FitPagePPCPanelPlot", plots[[i]]$id)]] <- renderPlot(plots[[i]]$plot)
+      })
+      
+      #remove
+      ids <- shownPPCPlotsIds()
+      for(id in ids){
+        if(!id %in% shownPPCPlotsIds_new){
+          selected <- dMPM$get.next_plot("ppc", id=id)
+          selected <- paste0("Plot ", selected)
+          updateTabsetPanel(session, "FitPagePPCPanelPlot", selected = selected)
+          removeTab(inputId = "FitPagePPCPanelPlot",paste0("Plot ", id))
+        }
+      }
+      
+      shownPPCPlotsIds(shownPPCPlotsIds_new)
+    })
+  })
+  
 }
 
 
@@ -1342,11 +1505,9 @@ observerMPTab <- function(input, output, session, dataModel, global_reportProgre
     }
   })
   
-
- 
   
   #Plot button
-  ns_mp <- NS("FitPageMPPanelPlot")
+  ns_mp <- NS("fitPageMPPanelPlot")
   
   plot_id <- reactiveVal(1)
   observeEvent(input$plotMP, ignoreInit = T, {
@@ -1364,15 +1525,21 @@ observerMPTab <- function(input, output, session, dataModel, global_reportProgre
       }
     }
     
-    #FitPageMPPanelPlot
+    #fitPageMPPanelPlot
     if(is.null(input$selectInputRunModelPreviousModels) || input$selectInputRunModelPreviousModels == ""){
       showNotification("Please fit a model before.", type="warning")
       return()
     }
     
-    sampled_model <- dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)$get.calculated_stan_object()
+    pIDM <- dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)
+    
+    
+    sampled_model <- pIDM$get.calculated_stan_object()
     posterior <- as.array(sampled_model)
     res <- gsub("<i>||</i>","",res)
+    
+    baysisModel <- pIDM$get.selected_BAYSIS_stan_model() 
+    res <- baysisModel$matchAuxiliaryNames(res)
     
     # c("Intervals","Areas","Density","Density overlay","Histogram","Violin")
     # c("None","Pseudo log")
@@ -1381,7 +1548,7 @@ observerMPTab <- function(input, output, session, dataModel, global_reportProgre
     inner <- isolate(input$innerHDIValue)
     outer <- isolate(input$outerHDIValue)
     point <- tolower(isolate(input$selectionMPPointEst))
-    
+
     gg <- switch(type, 
                  Intervals=bayesplot::mcmc_intervals(posterior, pars=res, prob=inner, prob_outer=outer, point_est=point),
                  Areas=bayesplot::mcmc_areas(posterior, pars=res, prob=inner, prob_outer=outer, point_est=point), 
@@ -1391,28 +1558,18 @@ observerMPTab <- function(input, output, session, dataModel, global_reportProgre
                  Violin=bayesplot::mcmc_violin(posterior, pars=res))
     
     if(type != "Violin" && scale=="Pseudo log") gg <- gg + scale_x_continuous(trans=scales::pseudo_log_trans())
-    
-    plot_id_tmp <- isolate(plot_id())
+
+    plot_id_tmp <- dataModel$getDataModelPlotModel()$getNextId("mp")
     plot_name <- paste0("Plot ", plot_id_tmp)
     
-    appendTab("FitPageMPPanelPlot", select=T, 
-              tab = tabPanel(title = plot_name, 
-                             h5(dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)$get.name(), style="text-align:center;"),
-                             plotOutput(outputId = paste0("fitModelTabMPPanelPlot", plot_id_tmp)),
-                             if(type == "Violin") tags$div("Note: The violin plot shows distributions per Markov chain (4 by default, if not changed under the 'Sampling parameters').") else tags$div()
-              )
-    )
-    output[[paste0("fitModelTabMPPanelPlot", plot_id_tmp)]] <- renderPlot(gg)
-    
     # Save plot to data model
-    dataModel$getDataModelPlotModel()$add.plot_history(history="mp", plotname=plot_name, id=NULL, plot=gg)
-    
-    plot_id(plot_id_tmp+1) 
+    dataModel$getDataModelPlotModel()$add.plot_history("mp", plotname=plot_name, id=plot_id_tmp, 
+                                                       plot=gg, mpInfo=list(name=pIDM$get.name(), type=type))
   })
   
   #Change button style depending on existing plots to report/download
-  observeEvent(input$FitPageMPPanelPlot, ignoreNULL = F, {
-    if(!is.null(input$FitPageMPPanelPlot)){
+  observeEvent(input$fitPageMPPanelPlot, ignoreNULL = F, {
+    if(!is.null(input$fitPageMPPanelPlot)){
       shinyjs::addClass(id = "reportMP", "btn-primary")
       shinyjs::addClass(id = ns_mp("download"), "btn-primary") 
     }else{
@@ -1424,9 +1581,9 @@ observerMPTab <- function(input, output, session, dataModel, global_reportProgre
   #Report MP plot
   observeEvent(input$reportMP, {
     
-    plot <- dataModel$getDataModelPlotModel()$get.plot_by_name("mp", input$FitPageMPPanelPlot)
+    plot <- dataModel$getDataModelPlotModel()$get.plot_by_name("mp", input$fitPageMPPanelPlot)
     
-    inputName <- input$FitPageMPPanelPlot
+    inputName <- input$fitPageMPPanelPlot
     inputName <- str_replace_all(inputName, " ", "_")
     
     ggsave(paste0(report_folder, "/Thumbnails/mp_",inputName,".jpg"), 
@@ -1437,13 +1594,13 @@ observerMPTab <- function(input, output, session, dataModel, global_reportProgre
     #pDIM_id=-1 -1 for reported items that are not related to a certain pDIM
     #There are no different dataModels, so that the csv name is used instead
     
-    cPIDM <- dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)
+    pIDM <- dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)
     
     reportDiv <- reportType(div=list(plot=plot))
     
     addItem(moduleType = "evaluation",
-            dataModel_id=cPIDM$getDataModelInputData()$getCurrentDataPath(), pDIM_id=cPIDM$get.id(),  
-            pDIM_name = cPIDM$get.name(),
+            dataModel_id=pIDM$getDataModelInputData()$getCurrentDataPath(), pDIM_id=pIDM$get.id(),  
+            pDIM_name = pIDM$get.name(),
             imgFile=paste0("Report/Thumbnails/mp_",inputName,".jpg"), 
             type=tEnum$mp, object=list(div=reportDiv, latex=plotToTex(paste0("mp_",inputName), plot, caption=NULL)), 
             singleton=F, show=T, global_reportProgressModel=global_reportProgressModel)
@@ -1452,34 +1609,88 @@ observerMPTab <- function(input, output, session, dataModel, global_reportProgre
   
   #Remove current plot
   observeEvent(input$removeMP, {
-    remove <- input$FitPageMPPanelPlot
+    remove <- input$fitPageMPPanelPlot
     if(is.null(remove) || remove == ""){
       showNotification("There is nothing to close.", type="warning")
       return()
     }
-    selected <- dataModel$getDataModelPlotModel()$get.next_plot("mp",remove)
-    updateTabsetPanel(session, "FitPageMPPanelPlot", selected = selected)
-    removeTab("FitPageMPPanelPlot", remove)
     dataModel$getDataModelPlotModel()$remove.plot_history("mp",remove)
-    # updateTabsetPanel(session, "FitPageMPPanelPlot", selected = selected)
   })
-  
+
   #Download current MP plot
   observeEvent(input[[ns_mp("download")]], {
     
-    if(is.null(input$FitPageMPPanelPlot)){
+    if(is.null(input$fitPageMPPanelPlot)){
       showNotification("There is no plot to download.", type ="warning")
       return()
     }
     
-    showModal(downloadPlotModalUI("modelValidationMP", input$FitPageMPPanelPlot))
+    showModal(downloadPlotModalUI("modelValidationMP", input$fitPageMPPanelPlot))
   })
   downloadPlotServer(id="modelValidationMP", 
                      gInput=input,
                      dataModel=dataModel,
                      plotType="mp",
-                     plotName="FitPageMPPanelPlot")
+                     plotName="fitPageMPPanelPlot")
   
+  
+
+  shownMPPlotsIds <- reactiveVal(c())
+  #Show plots
+  observe({
+    dMPM <- dataModel$getDataModelPlotModel()
+    dMPM$dependReactiveValue("plot_history_mp")
+  
+    isolate({
+      
+      plots <- dMPM$get.plot_history("mp")
+      
+      shownMPPlotsIds_new <- c()
+      add_ids <- c()
+
+      for(pp_id in seq_along(plots)){
+        pp <- plots[[pp_id]]
+        #add
+        if(!pp$id %in% shownMPPlotsIds()){
+          
+          # Create new tab for new plot in tab panel
+          appendTab(
+            inputId = "fitPageMPPanelPlot", 
+            select = T,
+            tab = tabPanel(
+              title = paste0("Plot ", pp$id),
+              value = paste0("Plot ", pp$id),
+              h5(pp$mpInfo$name, style="text-align:center;"),
+              pp$tabTitle,
+              plotOutput(outputId = paste0("fitModelTabMPPanelPlot", pp$id)),
+              if(pp$mpInfo$type == "Violin") tags$div("Note: The violin plot shows distributions per Markov chain (4 by default, if not changed under the 'Sampling parameters').") else tags$div()
+            )
+          )
+          
+          add_ids <- c(add_ids, pp_id)
+        }
+        shownMPPlotsIds_new <- c(shownMPPlotsIds_new, pp$id)
+      }
+      
+      sapply(add_ids, function(i){
+        # Render selected type of Plot
+        output[[paste0("fitModelTabMPPanelPlot", plots[[i]]$id)]] <- renderPlot(plots[[i]]$plot)
+      })
+      
+      #remove
+      ids <- shownMPPlotsIds()
+      for(id in ids){
+        if(!id %in% shownMPPlotsIds_new){
+          selected <- dMPM$get.next_plot("mp", id=id)
+          selected <- paste0("Plot ", selected)
+          updateTabsetPanel(session, "fitPageMPPanelPlot", selected = selected)
+          removeTab(inputId = "fitPageMPPanelPlot", paste0("Plot ", id))
+        }
+      }
+      
+      shownMPPlotsIds(shownMPPlotsIds_new)
+    })
+  })
   
 }
 
@@ -1580,6 +1791,14 @@ createModelFitResults <- function(input, output, session, iterationDataModel,
       numberDraws <- min(400,min_draws)
       numberSteps <- 100
 
+      
+      y <- data[[responseName]]
+      
+      #adapt numberSteps when discrete data is used
+      # if(dMID$getResponseVariable()$type == "Discrete"){
+      #   steps <- (max(y) - min(y))+1
+      #   numberSteps <- min(steps, numberSteps)
+      # }
 
       y_rep <- NULL
       y_rep <- tryCatch({
@@ -1595,75 +1814,25 @@ createModelFitResults <- function(input, output, session, iterationDataModel,
         return()
       }
 
-      y <- data[[responseName]]
+      method <- "kde" 
+      isDiscrete <- dMID$getResponseVariable()$type == "Discrete"
+      res_dev <- calculatePPCDeviation(y=y, y_rep=y_rep, numberSteps=numberSteps, numberDraws=numberDraws,
+                                       discrete=isDiscrete, approx.method=method)
 
-      steps <- seq(min(y),max(y),length.out=numberSteps)
-      dens_y <- density(y)
-      fun_y <- approxfun(dens_y)
-      res <- matrix(NA,numberDraws,numberSteps)
-      fun_reps <- sapply(1:numberDraws,function(i) approxfun(density(x=c(y_rep[i,]))))
-      for(i in 1:numberSteps){
-        dens1 <- fun_y(steps[i])
-        dens2 <- sapply(1:numberDraws,function(j) fun_reps[[j]](steps[i]))
-        res[,i] <- dens1-dens2
-      }
-
-      res_dev <- rep(NA,numberSteps)
-      for(i in 1:numberSteps){
-        m <- abs(mean(res[,i], na.rm=T))
-        sd <- sd(res[,i], na.rm=T)
-
-        if(is.na(m) || is.na(sd)){
-          res_dev[i] <- 0
-        }else{
-          res_dev[i] <- m/sd
-        }
-      }
-      # res_dev
-
-      #Slight_prob contains areas where the diff (m/sd) greater than 0.5
-      slight_prob <- data.frame()
-      from <- -Inf
-      to <- Inf
-      for(i in 1:numberSteps){
-        if(res_dev[i] >= 0.5){
-          if(from == -Inf){
-            from <- steps[i]
-          }
-          to <- steps[i]
-        }else{
-          if(from != -Inf){
-            slight_prob <- rbind(slight_prob,c(from,to))
-          }
-          from <- -Inf
-        }
-      }
-      if(all(res_dev==1)) slight_prob <- rbind(slight_prob,c(from,to))
-      if(length(slight_prob)>0) colnames(slight_prob) <- c("from","to")
-      slight_prob
-
-      lower_cut <- 1.5
-      upper_cut <- 3
-      res_dev[res_dev < lower_cut] <- 0
-      res_dev[res_dev > upper_cut] <- 3
-      alpha <- ifelse(res_dev==0,0,0.2)
-      steps_width <- (steps[2]-steps[1])/2
-
-
-      #For count data also density, bars are not good for wide spreaded count data.
-      # if(iterationDataModel$get.users_variables(onlyResponse=T)$characteristic != cNum$Continuous){
-      #   gg <- bayesplot::ppc_bars(y, y_rep[1:min(100,min_draws),])
-      # }else{
-        gg <- bayesplot::ppc_dens_overlay(y, y_rep[1:min(100,min_draws),])
-      # }
-
-
+      gg <- bayesplot::ppc_dens_overlay(y, y_rep[1:min(100,min_draws),])
       gg <- gg + iterationDataModel$get.selected_BAYSIS_stan_model()$plot_scale(x=T)
+      
+      thresholdWarning <- plogis(1.5) #zscore of 1.5
+      thresholdError <- plogis(2) #zscore of 2
+      gg_new <- addPPCDeviationToPlot(gg=gg, res=res_dev, thresholdWarning=thresholdWarning)
+      gg <- gg_new
+      
+      
       output$runModelPlotPPC <- renderPlot(gg)
 
       # Save ppc plot to pIDM
       iterationDataModel$set.ppc_plot(gg)
-
+      iterationDataModel$set.ppc_plot_warnings(dim(res_dev)[1] > 0)
       
       # Increase progressbar
       setProgress(value = 0.7)
@@ -1752,8 +1921,10 @@ createModelFitResults <- function(input, output, session, iterationDataModel,
       
       
       # Model validation checklist
-      initModelValidationPreview(input, output, session, iterationDataModel, res_dev)
-      
+      thresholdWarning <- plogis(1.5) #zscore of 1.5
+      thresholdError <- plogis(2) #zscore of 2
+      initModelValidationPreview(input, output, session, iterationDataModel, res_dev$value,
+                                 thresholdWarning=thresholdWarning, thresholdError=thresholdError)
       
       # Report preview ppc
       plot <- iterationDataModel$get.ppc_plot()
@@ -1770,6 +1941,8 @@ createModelFitResults <- function(input, output, session, iterationDataModel,
       
       reportDiv <- reportType(div=list(plot=plot))
       
+      caption <- NULL
+      if(iterationDataModel$get.ppc_plot_warnings()) caption <- readTxtFile(paste0(report_folder,"/GeneralTex/PPC_preview_caption.txt"))
       
       #Add PPC element to report progress
       #pIDM_id=-1 -1 for reported items that are not related to a certain pIDM
@@ -1778,7 +1951,7 @@ createModelFitResults <- function(input, output, session, iterationDataModel,
               dataModel_id=dMID$getCurrentDataPath(), pDIM_id=iterationDataModel$get.id(),  
               pDIM_name = iterationDataModel$get.name(),
               imgFile=paste0("Report/Thumbnails/ppc_preview_",inputName,".jpg"), 
-              type=tEnum$previewppc, object=list(div=reportDiv, latex=plotToTex(paste0("ppc_preview_",inputName), plot, caption=NULL)), 
+              type=tEnum$previewppc, object=list(div=reportDiv, latex=plotToTex(paste0("ppc_preview_",inputName), plot, caption=caption)), 
               singleton=T, show=F, global_reportProgressModel=global_reportProgressModel,
               recommended = T)
      
@@ -1787,8 +1960,10 @@ createModelFitResults <- function(input, output, session, iterationDataModel,
       imageOutputFolder2 <- paste0("Report/Thumbnails/ppc_modelValidation_",inputName,".png")
       modelValItem <- modelValidationItem(iterationDataModel, res_dev, imageOutputFolder)
 
+      thresholdWarning <- plogis(1.5) #zscore of 1.5
+      thresholdError <- plogis(2) #zscore of 3
       div <- initModelValidationPreview(input, output, session, iterationDataModel, 
-                                        res_dev, returnDiv = T)
+                                        res_dev$value, returnDiv = T, thresholdWarning=thresholdWarning, thresholdError=thresholdError)
       
       tmpReportItemValidation <<- list(dataModel_id=dMID$getCurrentDataPath(),
                                        pDIM_id=iterationDataModel$get.id(),
@@ -1881,7 +2056,6 @@ createModelFitResults <- function(input, output, session, iterationDataModel,
     
     #Model prior predictive check
     cPIDM <- iterationDataModel
-    # used_terms <- cPIDM$get.used_terms()
     used_opt_terms <- cPIDM$get.used_optional_terms()
     
     # Read sampling parameters
@@ -1899,6 +2073,10 @@ createModelFitResults <- function(input, output, session, iterationDataModel,
                                                      data = data, 
                                                      stanParameter = stanParameters)
     
+    #Required for the update function. Otherwise the call object in sampled_model will use an older content.
+    assign("content", content, envir = .GlobalEnv)
+    
+    sampled_model <- cPIDM$get.calculated_stan_object()
     model_prior <- NULL
     if(!is.null(content$class) && content$class == "brms"){
       model_prior <- update(sampled_model, sample_prior="only")
@@ -1915,6 +2093,7 @@ createModelFitResults <- function(input, output, session, iterationDataModel,
     
     y <- data[[resp_name]]
 
+    
     plot <- bayesplot::ppc_dens_overlay(y, y_rep) +
       baysisModel$plot_scale(x=T)
 
@@ -1968,7 +2147,7 @@ createModelFitResults <- function(input, output, session, iterationDataModel,
 
 
 initModelValidationPreview <- function(input, output, session, iterationDataModel, ppc_res,
-                                       returnDiv=F){
+                                       returnDiv=F, thresholdWarning=0.25, thresholdError=0.5){
   
   sampled_model <- iterationDataModel$get.calculated_stan_object()
   # sampled_model <- samp
@@ -1982,11 +2161,23 @@ initModelValidationPreview <- function(input, output, session, iterationDataMode
   treedepth_max <- iterationDataModel$get.max_treedepth()
   treedepth <- sum(sapply(sampler_params, function(x) ifelse(x[, "treedepth__"] == treedepth_max,1,0)))
   
-  
-  # params_sampled_model[sampler_params[[1]][,5]==1,]
-  # bayesplot::mcmc_nuts_divergence(nuts_params(sampled_model), log_posterior(sampled_model))
-  
+
   ## Content for checklist
+  # General information
+  dMID <- iterationDataModel$getDataModelInputData()
+  baysisModel <- iterationDataModel$get.selected_BAYSIS_stan_model()
+  usedVars <- unique(c(baysisModel$get_used_vars(extras=T, response=T)))
+  data <- dMID$getLongFormatVariable(usedVars, completeCases=T)
+  data_full <- dMID$getLongFormatVariable(usedVars, completeCases=F)
+
+  contentMessage0 <- "No warnings about the data"
+  check0 <- "check"
+  if(dim(data)[1] != dim(data_full)[1]){
+    check0 <- "warning"
+    contentMessage0 <- "Missing values!"
+  }
+  
+  
   # ESS
   n_eff_min <- iterationDataModel$get.number_chains()*100
   n_eff_bulk <- monitor$Bulk_ESS[monitor$Bulk_ESS < n_eff_min]
@@ -2046,15 +2237,16 @@ initModelValidationPreview <- function(input, output, session, iterationDataMode
   #PPC
   contentMessage5 <- "The PPC seems to be OK!"
   check5 <- "check"
-  if(length(ppc_res[ppc_res>0]) > 20){
+  if(length(ppc_res[ppc_res>thresholdError]) > 0){
     contentMessage5 <- "It seems that there are discrepancies within the PPC!"
     check5 <- "error"
-  }else if(length(ppc_res[ppc_res>0]) > 10){
+  }else if(length(ppc_res[ppc_res>thresholdWarning]) > 0){
     contentMessage5 <- "It seems that there are slight discrepancies within the PPC!"
     check5 <- "warning"
   }
   
   ## Content for question marks
+  contentMark0 <- tooltip$checklistGeneralInformation
   contentMark1 <- tooltip$checklistESS
   contentMark2 <- tooltip$checklistRhat
   contentMark3 <- tooltip$checklistDivTrans
@@ -2063,46 +2255,54 @@ initModelValidationPreview <- function(input, output, session, iterationDataMode
   contentMark6 <- tooltip$checklistQuantities
   
   first <- isolate(firstAnimation())
+
+  if(returnDiv) first=F
   
+  t0 <- 350
+  tStep <- 350
+  
+  div <- tags$div(
+    style="margin-top:15px; margin-left:15px;",
+    uiChecklist(check0, "check0", "Data", contentMessage0, "Data", contentMark0, first, t0+(tStep*0)),
+    uiChecklist(check1, "check1", "Effective sample size", contentMessage1, "ESS", contentMark1, first, t0+(tStep*1)),
+    uiChecklist(check2, "check2", "Convergence (R-hat)", contentMessage2, "R-hat", contentMark2, first, t0+(tStep*2)),
+    uiChecklist(check3, "check3", "Divergent transitions", contentMessage3, "Divergent transitions", contentMark3, first, t0+(tStep*3)),
+    uiChecklist(check4, "check4", "Tree depth", contentMessage4, "Exceeding max treedepth", contentMark4, first, t0+(tStep*4)),
+    uiChecklist(check5, "check5", "Posterior predictive check", contentMessage5, "PPC", contentMark5, first, t0+(tStep*5)),
+    uiChecklist("check", "check6", "Model quantities", "Have a look at the 'Marginal posteriors' plot and also at the table 'Summary of marginal posteriors'!", "Quantities",
+                contentMark6, first, t0+(tStep*6))
+  )
   
   if(returnDiv){
-    return(    
-      tags$div(style="margin-top:15px; margin-left:15px;",
-                        uiChecklist(check1, "check1", "Effective sample size", contentMessage1, "ESS", contentMark1, first=F),
-                        uiChecklist(check2, "check2", "Convergence (R-hat)", contentMessage2, "R-hat", contentMark2, first=F),
-                        uiChecklist(check3, "check3", "Divergent transitions", contentMessage3, "Divergent transitions", contentMark3, first=F),
-                        uiChecklist(check4, "check4", "Tree depth", contentMessage4, "Exceeding max treedepth", contentMark4, first=F),
-                        uiChecklist(check5, "check5", "Posterior predictive check", contentMessage5, "PPC", contentMark5, first=F),
-                        uiChecklist("check", "check6", "Model quantities", "Have a look at the 'Marginal posteriors' plot and also at the table 'Direction of effects'!", "Quantities",contentMark6, first=F)
-    ))
+    return(div)
+  }else{
+    output$runModelVerbalResult <- renderUI({
+      
+      ret <- tags$div(
+        div,
+        tags$div(style="margin-top:20px;","For more information go to the ", 
+                 actionLink("goToModelValidationTab", "Model validation"), " tab.")
+      )
+      
+      #Better placement?
+
+      delay(t0+(tStep*0),shinyjs::show("check0", anim=T, animType="fade", time=0.5))
+      delay(t0+(tStep*1),shinyjs::show("check1", anim=T, animType="fade", time=0.5))
+      delay(t0+(tStep*2),shinyjs::show("check2", anim=T, animType="fade", time=0.5))
+      delay(t0+(tStep*3),shinyjs::show("check3", anim=T, animType="fade", time=0.5))
+      delay(t0+(tStep*4),shinyjs::show("check4", anim=T, animType="fade", time=0.5))
+      delay(t0+(tStep*5),shinyjs::show("check5", anim=T, animType="fade", time=0.5))
+      delay(t0+(tStep*6),shinyjs::show("check6", anim=T, animType="fade", time=0.5))
+      
+      return(ret)
+    })
+    
+    observeEvent(input$goToModelValidationTab, {
+      updateTabsetPanel(session, inputId = "runModeltabsetPanel", selected = "Model validation")
+    })
   }
   
-  output$runModelVerbalResult <- renderUI({
- 
-    ret <- tags$div(style="margin-top:15px; margin-left:15px;",
-                        uiChecklist(check1, "check1", "Effective sample size", contentMessage1, "ESS", contentMark1, first),
-                        uiChecklist(check2, "check2", "Convergence (R-hat)", contentMessage2, "R-hat", contentMark2, first),
-                        uiChecklist(check3, "check3", "Divergent transitions", contentMessage3, "Divergent transitions", contentMark3, first),
-                        uiChecklist(check4, "check4", "Tree depth", contentMessage4, "Exceeding max treedepth", contentMark4, first),
-                        uiChecklist(check5, "check5", "Posterior predictive check", contentMessage5, "PPC", contentMark5, first),
-                        uiChecklist("check", "check6", "Model quantities", "Have a look at the 'Marginal posteriors' plot and also at the table 'Direction of effects'!", "Quantities",contentMark6, first),
-                        tags$div(style="margin-top:20px;","For more information go to the ", actionLink("goToModelValidationTab", "Model validation"), " tab.")
-    )
-    
-    #Better placement?
-    delay(500,shinyjs::show("check1", anim=T, animType="fade", time=0.5))
-    delay(1000,shinyjs::show("check2", anim=T, animType="fade", time=0.5))
-    delay(1500,shinyjs::show("check3", anim=T, animType="fade", time=0.5))
-    delay(2000,shinyjs::show("check4", anim=T, animType="fade", time=0.5))
-    delay(2500,shinyjs::show("check5", anim=T, animType="fade", time=0.5))
-    delay(3000,shinyjs::show("check6", anim=T, animType="fade", time=0.5))
-    
-    return(ret)
-  })
-  
-  observeEvent(input$goToModelValidationTab, {
-    updateTabsetPanel(session, inputId = "runModeltabsetPanel", selected = "Model validation")
-  })
+
 }
 
 
@@ -2126,5 +2326,92 @@ getTreeElements <- function(combinationsOfAllModelElements){
   return(treeInput)
 }
 
+
+
+## Calculate ppc deviations
+calculatePPCDeviation <- function(y, y_rep, numberSteps, numberDraws, discrete, 
+                                  approx.method=c("ecdf", "kde")){
+  
+  if(discrete){
+    numberSteps <- min(numberSteps,(max(c(y,y_rep)-min(c(y,y_rep))+1)))
+  }
+  steps <- seq(min(c(y,y_rep)), max(c(y,y_rep)), length.out=numberSteps)
+  
+  cdf_y <- function() return(0)
+  if(approx.method=="ecdf"){
+    #Empirical Cumulative Distribution Function
+    cdf_y <- ecdf(y)
+  }else{
+    #Kernel Density Estimation
+    kde_y <- density(y)
+    ckde_y <- cumsum(kde_y$y) * diff(kde_y$x[1:2])
+    cdf_y <- approxfun(kde_y$x, ckde_y, yleft=0, yright=1)
+  }
+  
+  fun_reps <- sapply(1:numberDraws, function(i) {
+    if(approx.method=="ecdf"){
+      #Empirical Cumulative Distribution Function
+      cdf_y_rep <- ecdf(y_rep[i,])
+    }else{
+      #Kernel Density Estimation
+      kde_y_rep <- density(y_rep[i,])
+      ckde_y_rep <- cumsum(kde_y_rep$y) * diff(kde_y_rep$x[1:2])
+      cdf_y_rep <- approxfun(kde_y_rep$x, ckde_y_rep, yleft=0, yright=1)
+    }
+  })
+  
+  cdf_y_val <- cdf_y(steps)
+  cdf_y_rep_val <- sapply(seq_len(numberDraws), function(i) fun_reps[[i]](steps))
+  
+  binWidth <- steps[2]-steps[1]
+  z_res <- sapply(seq_len(numberSteps-1), function(i){
+    numerator <- (((cdf_y_val[i+1]-cdf_y_val[i])/binWidth)-mean((cdf_y_rep_val[i+1,]-cdf_y_rep_val[i,])/binWidth))
+    if(numerator == 0) return(0)
+    denominator <- sd((cdf_y_rep_val[i+1,]-cdf_y_rep_val[i,])/binWidth)
+    if(denominator == 0) return(Inf)
+    return(numerator/denominator)
+  })
+  res_dev <- plogis(abs(z_res))
+  res_dev_norm <- (res_dev - 0.5)/ 0.5
+
+  
+  # plot(res_dev ~ steps[2:numberSteps])
+  # plot(res_dev_norm ~ steps[2:numberSteps])
+  
+  ret <- data.frame(cuts = steps, value=c(res_dev_norm, 0))
+  return(ret)
+}
+
+#Decorate plot
+addPPCDeviationToPlot <- function(gg, res, thresholdWarning=0.9, adjust=T){
+
+  gg_new <- gg
+  
+  gg_build <- ggplot_build(gg_new)
+  y_max <- max(c(gg_build$data[[1]]$y),gg_build$data[[2]]$y)
+  step <- res$cuts[2] - res$cuts[1]
+  
+  colors <- colorRampPalette(c(BAYAS_COLORS$`--modelCreatingPlot-color-values-4`, 
+                               BAYAS_COLORS$`--modelCreatingPlot-color-values-3`))(20)
+  
+  res_sub <- res[res$value > thresholdWarning,]
+  if(adjust){
+    res_sub$value_norm <- (res_sub$value-thresholdWarning)/(1-thresholdWarning)
+  }
+  if(dim(res_sub)[1] > 0){
+    res_sub$ymin <- 0
+    res_sub$ymax <- y_max
+    res_sub$xmin <- res_sub$cuts
+    res_sub$xmax <- res_sub$cuts+step
+    res_sub$fill <- colors[ceil((res_sub$value_norm)*20)]
+    gg_new <- gg_new +
+      geom_rect(data = res_sub, mapping=aes(ymin=ymin, ymax=ymax, xmin=xmin, xmax=xmax, fill=I(fill)),
+                alpha = 0.2)
+    
+    gg_new <- removeUnnecessaryEnvInPlot(gg_new)
+  }
+
+  gg_new
+}
 
 

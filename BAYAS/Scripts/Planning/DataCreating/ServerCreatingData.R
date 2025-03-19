@@ -237,6 +237,7 @@ init_creatingData_function <- function(input, output, session, dataModel){
   })
    
   #Download current selected dataset
+  #TODO-1 download filteredData instead
   output$planningDownloadDataset <- downloadHandler(
     filename = function() {
       paste0(input$planningDatasetName,".csv")
@@ -309,6 +310,7 @@ init_creatingData_function <- function(input, output, session, dataModel){
       cnames <- intersect(colnames(tmp)[!colnames(tmp) %in% "hiddenIndex"],colnames(prop))
       if(!is.null(dim(prop))){
         for(i in cnames){
+          #TODO only for numerics... ignore categ?
           suppressWarnings(numerics <- !is.na(as.numeric(tmp[,i])))
           numTmp <- as.numeric(tmp[numerics,i])
           if(length(numTmp)==0)next;
@@ -353,6 +355,7 @@ init_creatingData_function <- function(input, output, session, dataModel){
     tmp <- usedDS()
     selectedRows <- input$planningSummarizePlot_rows_selected
     if(is.null(tmp)){
+      #TODO remove prop table entries?
       plotDS(NULL)
       usedDSHeaders(NULL)
       return()
@@ -1015,7 +1018,7 @@ init_creatingData_function <- function(input, output, session, dataModel){
   output$planningBruhsingPlot <- renderPlot({
     print("overall plot...")
     pDS <- plotDS()
-    if(is.null(pDS))return(ggplot())
+    if(is.null(pDS))return(ggplot()) #TODO verify
     firePlotDims()
     pD <- plotDims()$getNumDims()
     vars <- selectedTwoVars()
@@ -2355,7 +2358,7 @@ addUIOfDistributionTypeObserver <- function(session, input, output, selCol){
       isolate(index <- input$planningFillColumnRows)
       index_num <- convertIndexStringToNumeric(index)
       
-      
+      #TODO warnings if n is 0
       if(is.null(index_num) || length(index_num) == 0){
         generatedData <- "<p>Please select at least one row.</p>"
       }else{

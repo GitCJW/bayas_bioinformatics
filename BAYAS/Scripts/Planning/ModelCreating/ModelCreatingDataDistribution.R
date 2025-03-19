@@ -3,6 +3,42 @@
 ################################################################################
 greaterZero <- .Machine$double.xmin
 
+planningDistribtionsEnum <- function(type=c("response", "predictor", "all")){
+  l <- list(Beta="Beta", Cauchy="Cauchy", 
+            Chi_squared_non_1 ="Chi_squared_non_1", Chi_squared_1="Chi_squared_1", 
+            Exponential="Exponential", F="F", Gamma="Gamma", Inverse_Gaussian="Inverse_Gaussian",
+            Log_Normal="Log_Normal", Logistic="Logistic", Normal="Normal",
+            Student_t="Student_t", Horseshoe="Horseshoe", Uniform="Uniform", Weibull="Weibull",
+            Bernoulli="Bernoulli", Beta_Binomial="Beta_Binomial", Binomial="Binomial",
+            Geometric="Geometric", Hypergeometric="Hypergeometric", Negative_Binomial="Negative_Binomial",
+            Poisson="Poisson", FixedValue="FixedValue")
+  
+  l_sorted <- c(l$Log_Normal, l$Gamma, l$Inverse_Gaussian, l$F, l$Chi_squared_1,
+                l$Exponential, l$Chi_squared_non_1, l$Weibull,
+                l$Beta,
+                l$Normal, l$Cauchy, l$Logistic, l$Uniform, l$Student_t, l$Horseshoe,
+                l$Poisson, l$Negative_Binomial, l$Geometric, l$Hypergeometric,
+                l$Binomial, l$Beta_Binomial,
+                l$Bernoulli, 
+                l$FixedValue)
+  
+  names(l_sorted) <-   names(l)[match(l_sorted,unlist(l))] 
+  
+  if(type=="response"){
+    l_sorted <- l_sorted[c(1,2,3,
+                           6,
+                           9,
+                           10,12,
+                           16,17,
+                           20,21,
+                           22)]
+  }else if(type=="predictor"){
+    l_sorted <- l_sorted[c(1:14,16:22)]
+  }
+  return(as.list(l_sorted))
+}
+
+
 enum <- planningDistribtionsEnum("all")
 
 ModelCreatingDataOtherVariableDistributionFactory <- function(dist = planningDistribtionsEnum(),
@@ -49,18 +85,15 @@ ModelCreatingDataOtherVariableDistributionFactory <- function(dist = planningDis
     return(OVDBeta_Binomial$new(seed))
   }else if(dist == enum$Bernoulli){
     return(OVDBernoulli$new(seed))
+  }else if(dist == enum$Horseshoe){
+    return(OVDHorseshoe$new(seed))
   }else if(dist == enum$FixedValue){
     return(OVDFixedValue$new(seed))
   }
 }
 
 
-# n <- ModelCreatingDataOtherVariableDistributionFactory(enum$Beta_Binomial,123)
-# n$plotValues(values2=10)
-# values <- rbinom(1e4,25,0.5)
-# values2 <- c(13,15,5)
-
-#Proper priors for distribution parameters
+#Proper initial priors for distribution parameters
 getModelCreatingDataDistributionParameterPrior = function(dist=pDistEnum, glm=T, para){
   if(is.null(dist)) return(list())
   match.arg(dist)
@@ -748,8 +781,8 @@ getDistributionUsedForGLMUseAltParameters = function(distName){
                                              description = "The shape value", 
                                              value=1, default_val=1, min_val=greaterZero, 
                                              max_val=Inf, discrete=F)
-          Theta <- DistributionParameter$new(name="Theta", display_name="Scale", 
-                                             description = "The scale deviation",
+          Theta <- DistributionParameter$new(name="Theta", display_name="Rate", 
+                                             description = "The rate deviation",
                                              value=1, default_val=1, min_val=greaterZero, 
                                              max_val=Inf, discrete=F)
           private$parameter <- list(kappa=kappa, Theta=Theta)
@@ -766,7 +799,7 @@ getDistributionUsedForGLMUseAltParameters = function(distName){
         },
         randomValue = function(N, internalAssigned=T){
           withr::with_seed(private$seed, {
-            val <- rgamma(N, shape=private$parameter$kappa$value, scale=private$parameter$Theta$value)
+            val <- rgamma(N, shape=private$parameter$kappa$value, rate=private$parameter$Theta$value)
             val[val < greaterZero] <- greaterZero
           })
           if(private$negateValues) val <- val*-1
@@ -802,13 +835,13 @@ getDistributionUsedForGLMUseAltParameters = function(distName){
           if(toAlt){
             kappa <- private$parameter$kappa$value
             Theta <- private$parameter$Theta$value
-            private$alternativeParameter$mu$value <- kappa*Theta
+            private$alternativeParameter$mu$value <- kappa/Theta
             private$alternativeParameter$shape$value <- kappa
           }else{
             mu <- private$alternativeParameter$mu$value
             shape <- private$alternativeParameter$shape$value
             private$parameter$kappa$value <- shape
-            private$parameter$Theta$value <- mu/private$parameter$kappa$value
+            private$parameter$Theta$value <- private$parameter$kappa$value/mu
           }
         }
       )
@@ -1441,9 +1474,18 @@ getDistributionUsedForGLMUseAltParameters = function(distName){
           super$initialize(seed, emptyState=emptyState)
           df <- DistributionParameter$new(name="df", display_name="Degrees of freedom", 
                                           description = "Degrees of freedom", 
-                                          value=1, default_val=1, min_val=greaterZero, 
+                                          value=3, default_val=3, min_val=greaterZero, 
                                           max_val=Inf, discrete=F)
-          private$parameter <- list(df=df)
+          mu <- DistributionParameter$new(name="mu", display_name="Mean", 
+                                          description = "Mean", 
+                                          value=0, default_val=0, min_val=-Inf, 
+                                          max_val=Inf, discrete=F)
+          sigma <- DistributionParameter$new(name="sigma", display_name="Standard deviation", 
+                                          description = "The variance (squared scale).", 
+                                          value=2.5, default_val=2.5, min_val=greaterZero, 
+                                          max_val=Inf, discrete=F)
+          
+          private$parameter <- list(df=df, mu=mu, sigma=sigma)
         },
         randomValue = function(N, internalAssigned=T){
           withr::with_seed(private$seed, {
@@ -1454,23 +1496,37 @@ getDistributionUsedForGLMUseAltParameters = function(distName){
           return(val)
         },
         getAsStanSyntax = function(){
-          return(paste0("student_t(", private$parameter$df$value,"0,1)"))
+          return(paste0("student_t(", private$parameter$df$value,",", 
+          private$parameter$mu$value, ",", private$parameter$sigma$value, ")"))
         },
         
         getAsLatexSyntax = function(mcd=NULL){
-          
-          
+
           df <- private$parameter$df$value
+          mu <- private$parameter$mu$value
+          sigma <- private$parameter$sigma$value
           
           depDf <- private$parameter$df$getOtherVariableId()
+          depMu <- private$parameter$mu$getOtherVariableId()
+          depSigma <- private$parameter$sigma$getOtherVariableId()
           
           if(!is.null(depDf)){
             if(is.null(mcd) && localUse) browser()#Should not be null
             ov <- mcd$getOtherVariable(depDf)
             df <- ov$getName()
           }
-
-          return(paste0("\\text{Student_t}(", df, " , 0 , 1)"))
+          if(!is.null(depMu)){
+            if(is.null(mcd) && localUse) browser()#Should not be null
+            ov <- mcd$getOtherVariable(depMu)
+            df <- ov$getName()
+          }
+          if(!is.null(depSigma)){
+            if(is.null(mcd) && localUse) browser()#Should not be null
+            ov <- mcd$getOtherVariable(depSigma)
+            df <- ov$getName()
+          }
+          
+          return(paste0("\\text{Student_t}(", df, " , ", mu, " , ", sigma, ")"))
         }
       )
     )
@@ -1947,6 +2003,104 @@ getDistributionUsedForGLMUseAltParameters = function(distName){
       )
     )
   }
+  #Horseshoe
+  {
+    OVDHorseshoe <- R6Class(
+      classname = "OVDHorseshoe", 
+      inherit = ModelCreatingDataOtherVariableDistributionAbstract,
+      
+      private=list(name=enum$Horseshoe,
+                   min=-Inf, max=Inf),
+      public=list(
+        initialize = function(seed=NULL,
+                              emptyState = F){
+          super$initialize(seed, emptyState=emptyState)
+
+          df <- DistributionParameter$new(name="df", display_name="df", 
+                                          description = "Local shrinkage degrees of freedom", 
+                                          value=4, default_val=4, min_val=greaterZero, 
+                                          max_val=Inf, discrete=F)
+          global_df <- DistributionParameter$new(name="global_df", display_name="Global shrinkage degrees of freedom", 
+                                             description = "Global shrinkage degrees of freedom",
+                                             value=1, default_val=1, min_val=greaterZero, 
+                                             max_val=Inf, discrete=F)
+          global_scale <- DistributionParameter$new(name="global_scale", display_name="Global shrinkage scale", 
+                                          description = "Global shrinkage scale", 
+                                          value=1, default_val=1, min_val=greaterZero, 
+                                          max_val=Inf, discrete=F)
+          slab_df <- DistributionParameter$new(name="slab_df", display_name="Slab degrees of freedom", 
+                                             description = "Slab degrees of freedom",
+                                             value=1, default_val=1, min_val=greaterZero, 
+                                             max_val=Inf, discrete=F)
+          slab_scale <- DistributionParameter$new(name="slab_scale", display_name="Slab scale", 
+                                          description = "Slab scale", 
+                                          value=3, default_val=3, min_val=greaterZero, 
+                                          max_val=Inf, discrete=F)
+          private$parameter <- list(df=df, global_df=global_df, global_scale=global_scale,
+                                    slab_df=slab_df, slab_scale=slab_scale)
+        },
+        randomValue = function(N, internalAssigned=T){
+          withr::with_seed(private$seed, {
+            val <- rhs(N, private$parameter$df$value, private$parameter$global_df$value,
+                       private$parameter$global_scale$value, private$parameter$slab_df$value,
+                       private$parameter$slab_scale$value)
+          })
+          if(private$negateValues) val <- val*-1
+          if(internalAssigned) private$values <- val
+          return(val)
+        },
+        getAsStanSyntax = function(){
+          return(paste0("horseshoe(", private$parameter$df$value, ",", private$parameter$global_df$value, ",",
+                        private$parameter$global_scale$value, ",", private$parameter$slab_df$value, ",",
+                        private$parameter$slab_scale$value,")"))
+        },
+        
+        getAsLatexSyntax = function(mcd=NULL){
+          if(localUse) browser()
+          warning("Not used, not tested.")
+          
+          df <- private$parameter$df$value
+          global_df <- private$parameter$global_df$value
+          global_scale <- private$parameter$global_scale$value
+          slab_df <- private$parameter$slab_df$value
+          slab_scale <- private$parameter$slab_scale$value
+          
+          depDf <- private$parameter$df$getOtherVariableId()
+          depGlobal_df <- private$parameter$global_df$getOtherVariableId()
+          depGlobal_scale <- private$parameter$global_scale$getOtherVariableId()
+          depSlab_df <- private$parameter$slab_df$getOtherVariableId()
+          depSlab_scale <- private$parameter$slab_scale$getOtherVariableId()
+          
+          if(!is.null(depDf)){
+            if(is.null(mcd) && localUse) browser()#Should not be null
+            ov <- mcd$getOtherVariable(depDf)
+            df <- ov$getName()
+          }
+          if(!is.null(depGlobal_df)){
+            if(is.null(mcd) && localUse) browser()#Should not be null
+            ov <- mcd$getOtherVariable(depGlobal_df)
+            global_df <- ov$getName()
+          }
+          if(!is.null(depGlobal_scale)){
+            if(is.null(mcd) && localUse) browser()#Should not be null
+            ov <- mcd$getOtherVariable(depGlobal_scale)
+            global_scale <- ov$getName()
+          }
+          if(!is.null(depSlab_df)){
+            if(is.null(mcd) && localUse) browser()#Should not be null
+            ov <- mcd$getOtherVariable(depSlab_df)
+            slab_df <- ov$getName()
+          }
+          if(!is.null(depSlab_scale)){
+            if(is.null(mcd) && localUse) browser()#Should not be null
+            ov <- mcd$getOtherVariable(depSlab_scale)
+            slab_scale <- ov$getName()
+          }
+          return(paste0("\\text{Horseshoe}(", df, " , ", global_df, " , ", global_scale, " , ", slab_df, " , ", slab_scale, ")"))
+        }
+      )
+    )
+  }
   #Fixed single value
   {
     OVDFixedValue <- R6Class(
@@ -2175,13 +2329,13 @@ getDistributionUsedForGLMUseAltParameters = function(distName){
         if(private$type == "independent"){
           values <- as.numeric(private$values)
           if(any(is.na(values)) || any(is.empty(values))){
-            stop("Some values are no numerics!") 
+            stop("Some values are no numerics!") #TODO if never happened, replace with warning
           }
           return(values)
         }else if(private$type == "subgroup"){
           values <- as.numeric(unlist(private$values))
           if(any(is.na(values)) || any(is.empty(values))){
-            stop("Some values are no numerics!") 
+            stop("Some values are no numerics!") #TODO if never happened, replace with warning
           }
           return(values)
         }else if(private$type == "replacement"){
@@ -2195,7 +2349,7 @@ getDistributionUsedForGLMUseAltParameters = function(distName){
           }
           values <- as.numeric(rep)
           if(any(is.na(values)) || any(is.empty(values))){
-            stop("Some values are no numerics!") 
+            stop("Some values are no numerics!") #TODO if never happened, replace with warning
           }
           return(values)
         }
@@ -3113,27 +3267,7 @@ getDistributionUsedForGLMUseAltParameters = function(distName){
         if(private$randomParameter != cT$getRandomParameter()) return(F)
         if(private$seed != cT$getSeed()) return(F)
         
-        
 
-        # 
-        # if(!vectorEqual(private$values, cT$getValues())) return(F)
-        # 
-        # para <- private$parameter
-        # paraCT <- cT$getParameter()
-        # if(private$useAlternative){
-        #   para <- private$alternativeParameter
-        #   paraCT <- cT$getAlternativeParameter()
-        # }
-        # 
-        # if(xor(is.null(para), is.null(paraCT))) return(F)
-        # if(!is.null(para) && !is.null(paraCT)){
-        #   if(length(para) != length(paraCT)) return(F)
-        #   if(!vectorEqual(names(para), names(paraCT))) return(F)
-        #   for(i in seq_len(para)){
-        #     if(!para[[i]]$compareTo(paraCT[[i]], exact = exact)) return(F)
-        #   }
-        # }
-        
         return(T)
       },
       

@@ -26,6 +26,7 @@ planning_creatingStepsPredictor <- function(ns, step, cMCD, pred,
   l <- list()
   distEnum <- planningDistribtionsEnum("predictor")
   
+  #TODO
   primary <- pred$getType()
   
   
@@ -193,7 +194,10 @@ planning_creatingStepsPredictor_help <- function(ns, step){
         ),
         tags$div(
           style="",
-          HTML(paste0("<p>The predictor is the variable that you believe has a relationship to the variable being explained (e.g. the dependent variable).</p>"))
+          HTML(paste0("<p>The predictor is the variable that you believe has a relationship to the variable being explained (e.g. the dependent variable).</p>",
+                      "<p>Interaction terms can be included by choosing multiple variables. ",
+                      "Interaction terms in a model capture how the effect of one predictor depends on the level of another predictor. ",
+                      "Instead of assuming additive effects, interactions allow predictors to modify each other’s influence on the outcome. </p>"))
         )
       )
     )

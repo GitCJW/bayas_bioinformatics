@@ -12,6 +12,7 @@ planning_creatingModel_page <- function(){
           style="border:1px solid; padding:10px; border-radius:3px;",
           downloadButton(ns("saveExperiment"),"Save Experiment"),
           downloadButton(ns("saveExperimentAsState"),"Save Experiment as state"),
+          downloadButton(ns("saveSSD"), "Save ssd (goal and model)"),
           fileInput(ns("loadExperiment"),"Load Experiment")
         )
       )

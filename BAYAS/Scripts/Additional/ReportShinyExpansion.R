@@ -39,21 +39,21 @@ getChecklistProgress <- function(checklistId, numberElements, label){
 }
 
 #active: list of same length as elements in the checklist
-# 0: inactive; 1: some model fits (btn-primary-alt); 2:active
+# 0: inactive; 1: some model fits (btn-outline-primary); 2:active
 updateChecklistProgress <- function(session, checklistId, active, label){
   
   ns <- NS(checklistId)
   for(i in 1:length(active)){
     if(active[i]==0){
       removeClass(ns(i), class="btn-primary")
-      removeClass(ns(i), class="btn-primary-alt")
+      removeClass(ns(i), class="btn-outline-primary")
       updateActionButton(session, ns(i), label=label[[i]], icon=character(0))
     }else if(active[i]==1){
       removeClass(ns(i), class="btn-primary")
-      addClass(ns(i), class="btn-primary-alt")
+      addClass(ns(i), class="btn-outline-primary")
       updateActionButton(session, ns(i), label=label[[i]], icon=character(0))
     }else{
-      removeClass(ns(i), class="btn-primary-alt")
+      removeClass(ns(i), class="btn-outline-primary")
       addClass(ns(i), class="btn-primary")
       # updateActionButton(session, ns(i), label="", icon=icon("check"))
       updateActionButton(session, ns(i), label=label[[i]], icon=character(0))

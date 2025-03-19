@@ -3,6 +3,7 @@
 #type, range or dist
 planning_creatingStepsResponse <- function(ns, step, responseName,  primary, 
                                            links=c(unlist(planningLinkEnum()),NULL),
+                                           positiveDistribution,
                                            selectedLink){
   
   l <- list()
@@ -496,7 +497,8 @@ planning_creatingStepsResponse <- function(ns, step, responseName,  primary,
       
       HTML(paste0("<b>Link function</b>")),
       
-      planning_creationSteps_link(ns, links, selected=selectedLink)
+      planning_creationSteps_link(ns, links, positiveDistribution=positiveDistribution, 
+                                  selected=selectedLink)
       
     )
   }
@@ -525,20 +527,26 @@ planning_creatingStepsResponse <- function(ns, step, responseName,  primary,
 planning_creationSteps_link <- function(ns, links=c("cauchit","cloglog","identity",
                                                     "inv_square","inverse","log",
                                                     "logit","probit", "sqrt"),
-                                        selected=NULL,
+                                        selected=NULL, positiveDistribution,
                                         numberCol=5){
   match.arg(links, several.ok = T)
+  
+  # browser()
   
   l <- tagList()
   
   for(i in seq_len(length(links))){
+    imgName <- links[i]
+    if(positiveDistribution && links[i] %in% c("identity","inverse")){
+      imgName <- HTML(paste0(imgName, " <br> (not recommended)"))
+    }
     if(i%%numberCol==1) l_sub <- tagList()
     l_sub[[((i+(numberCol-1))%%numberCol)+1]] <- 
       tags$div(
         style="flex:1;",
         imageButtonTitle(btnId=ns(paste0("linkFunction_",links[i])), 
                          imageFile=paste0("Images/Planning/ModelPlanning/LinkFunction/", links[i], ".png"), 
-                         title=links[i], selected=F,
+                         title=imgName, selected=F,
                          btnStyle="width:auto; height:auto;", imgHeight=NULL, imgWidth="100%", 
                          imgClass = "borderColor-regular",
                          imgStyle=paste0("aspect-ratio: 1 / 1 !important; ",
@@ -565,7 +573,8 @@ planning_creationSteps_link <- function(ns, links=c("cauchit","cloglog","identit
 ###################################
 
 planning_creatingStepsResponse_help <- function(ns, step, 
-                                                links=c(unlist(planningLinkEnum()),NULL)){
+                                                links=c(unlist(planningLinkEnum()),NULL),
+                                                positiveDistribution){
   
   l <- tags$div()
   
@@ -1076,7 +1085,7 @@ planning_creatingStepsResponse_help <- function(ns, step,
   ###### Distribution #######
   ###########################
   else if(step==40){
-    l <- planning_creationSteps_link_help(ns, links)
+    l <- planning_creationSteps_link_help(ns, links, positiveDistribution)
   }
   return(l)
 }
@@ -1084,7 +1093,8 @@ planning_creatingStepsResponse_help <- function(ns, step,
 
 
 planning_creationSteps_link_help <- function(ns, 
-                                             links=c(unlist(planningLinkEnum()),NULL)){
+                                             links=c(unlist(planningLinkEnum()),NULL),
+                                             positiveDistribution){
   
   match.arg(links, several.ok = T)
   
@@ -1097,13 +1107,17 @@ planning_creationSteps_link_help <- function(ns,
     linkList[[match(linkFunction$cloglog, links)]] <- tags$p(tags$b("cloglog: "),"mapped to values between 0 and 1. Used for time to an event.")
   }
   if(linkFunction$identity %in% links){
-    linkList[[match(linkFunction$identity, links)]] <- tags$p(tags$b("identity: "),"mapped to values the response can take. Used if response and linear predictor are on the same scale. Used for body size, weight, or biomass.")
+    text <- "mapped to values the response can take. Used if response and linear predictor are on the same scale. Used for body size, weight, or biomass."
+    if(positiveDistribution) text <- paste0(text, " Because the distribution used is positive, as is its expectation value, using a link function that maps a potentially negative linear predictor to negative values can result in significant sampling issues. Only use this link function if you have strong justification for doing so.")
+    linkList[[match(linkFunction$identity, links)]] <- tags$p(tags$b("identity: "), text)
   }
   if(linkFunction$inv_square %in% links){
     linkList[[match(linkFunction$inv_square, links)]] <- tags$p(tags$b("inv_square: "),"Used for response times, waiting times, reaction times or enzyme activity, bacterial growth rate.")
   }
   if(linkFunction$inverse %in% links){
-    linkList[[match(linkFunction$inverse, links)]] <- tags$p(tags$b("inverse: "),"Used if response and linear predictor are on the same scale. Used for reaction times, survival times or count data.")
+    text <- "Used if response and linear predictor are on the same scale. Used for reaction times, survival times or count data."
+    if(positiveDistribution) text <- paste0(text, " Because the distribution used is positive, as is its expectation value, using a link function that maps a potentially negative linear predictor to negative values can result in significant sampling issues. Only use this link function if you have strong justification for doing so.")
+    linkList[[match(linkFunction$inverse, links)]] <- tags$p(tags$b("inverse: "), text)
   }
   if(linkFunction$log %in% links){
     linkList[[match(linkFunction$log, links)]] <- tags$p(tags$b("log: "),"Used if scales of response and linear predictor differ, especially when the effect of the linear predictor is proportional to the expected value. Used for durations, sizes, or biomass.")
@@ -1131,8 +1145,8 @@ planning_creationSteps_link_help <- function(ns,
       tags$div(
         style="",
         HTML(paste0("<p>The link function transforms the expectation value of the ",
-                    "response to the unlimited (-Inf, Inf) linear predictor. The recommended link function ",
-                    "is always shown on the far left. ",
+                    "response to the unlimited (-Inf, Inf) linear predictor. ",
+                    "The recommended link function is always shown on the far left. ",
                     "E.g. a positive defined response uses often a log link function, ",
                     "because the log transformation maps the positive expecation values ",
                     "to an umlimited range (linear predictor).</p>"))

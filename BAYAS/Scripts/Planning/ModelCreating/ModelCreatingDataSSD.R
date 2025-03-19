@@ -81,19 +81,19 @@ ModelCreatingDataSSD <- R6Class(
           
           parasA[parasA=="b_(Intercept)"] <- "b_Intercept"
           parasB[parasB=="b_(Intercept)"] <- "b_Intercept"
-          
-          newEntry <- list(
-            parametersA=parasA, parametersB=parasB,
-            type = g$getType(), hdi = g$getHDI(), precWidth = g$getPrecWidth(),
-            ropeExclude = g$getRopeExcludeInclude(), 
-            ropeLower = g$getRopeLower(), ropeUpper = g$getRopeUpper()
-          )
+
+          newEntry <- createGoal(
+            parametersA = parasA, parametersB = parasB,
+            goalType = g$getType(), ci = g$getHDI(), ropeType = g$getRopeExcludeInclude(),
+            ropeLower = g$getRopeLower(), ropeUpper = g$getRopeUpper(),
+            ropeExclusive = T, precisionWidth = g$getPrecWidth())
+
           newGoals <- list.append(newGoals, newEntry)
         }
         return(newGoals)
       }else{
         if(used){
-          gg <- return(private$goals)
+          gg <- private$goals
           gUsed <- list()
           for(g in gg){
             if(g$getInUse()) gUsed <- list.append(gUsed,g)
@@ -595,8 +595,7 @@ SSDGoal <- R6Class(
     # twoListFomat: from list(list(paraId,subName),...) to
     #list(paraId=c(), subName=c())
     getParameter = function(type=c("a","b"), twoListFormat, asFormulaNames){
-      
-      
+
       para <- NULL
       if(type=="a"){
         para <- private$parametersA
@@ -786,11 +785,11 @@ SSDGoal <- R6Class(
       densPrior <- density(priorData)
       densPost <- density(postData)
       
-      limits <- hdi(genData, ci=private$hdi)
+      limits <- bayestestR::hdi(genData, ci=private$hdi)
       genData <- genData[genData>=limits$CI_low & genData<=limits$CI_high]
-      limits <- hdi(priorData, ci=private$hdi)
+      limits <- bayestestR::hdi(priorData, ci=private$hdi)
       priorData <- priorData[priorData>=limits$CI_low & priorData<=limits$CI_high]
-      limits <- hdi(postData, ci=private$hdi)
+      limits <- bayestestR::hdi(postData, ci=private$hdi)
       postData <- postData[postData>=limits$CI_low & postData<=limits$CI_high]
       
       genBins <- min(50, length(unique(genData)))

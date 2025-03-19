@@ -92,11 +92,8 @@ verifyInputData <- function(x){
     # check warning 1
     for(col in col_names){
       subset <- x[[col]]
-      # subset_numeric <- suppressWarnings(sapply(subset,as.numeric))
       subset_numeric <- suppressWarnings(as.numeric(subset))
-      # subset_logical <- suppressWarnings(sapply(subset_numeric, function(i) ifelse(is.na(i),1,0)))
       subset_logical <- suppressWarnings(is.na(subset_numeric))
-      # sum <- sum(sapply(subset, function(i) ifelse(is.na(i),1,0)))
       sum <- sum(is.na(subset))
       val <- (sum(subset_logical) - sum) / length(subset)
       if(val > 0 && val < 1){
@@ -224,20 +221,6 @@ checkCategorical <- function(vector, convert = F){
 # E.g. y~ x1+x2+x1:x2 and vars=c("x1","x2) ; x1 and x2 categorial var with "A","B"
 # Return: x1A:x2A, x1B:x2B (and depending on data also: ) x1A:x2B, x1B:x2A
 formula_combination <- function(ft, dat, vars){
- 
-  # print1("ft",ft)
-  # print1("dat",dat)
-  # print1("vars",vars)
-  # 
-  # dat <- data.frame(Y=c(1:10),
-  #                   A=c(1,1,1,1,1,2,2,2,2,2),B=c(1:10),
-  #                   C=c("A","A","A","A","B","B","B","B","C","C"),
-  #                   D=c("A","A","B","B","A","A","B","B","C","C"))
-  # vars <- c("D")
-  # ft <- terms(formula("Y ~ -1 + C + D + D:C + A"), allowDotAsName=T)
-  # samp <- rstanarm::stan_glm(ft, data=dat,prior_PD=T, chains=1,iter=20,
-  #                            prior_intercept= NULL, prior_aux = exponential(1/10,autoscale=F),
-  #                            prior = normal(c(1,3,5,7,9,11,13,15),rep(0.1,8),autoscale=F))
   
   elements <- colnames(as.data.frame(model.matrix(ft, dat)) %>% select_if(~ !is.numeric(.) || sum(.) != 0))
   

@@ -19,6 +19,11 @@ reportTypeEnum <- function(inRecommendedOrder = T) {
   }
 }
 
+reportSubTypeEnum <- function() {
+  list(formula_horseshoe="formula_horseshoe", 
+       formula_horseshoe_normal_noise="formula_horseshoe_normal_noise")
+}
+
 #Either a div, plot or DT 
 transposeReportedElementToDiv <- function(object, objectType){
   tNum <- reportTypeEnum()
@@ -73,6 +78,16 @@ getItemDescription <- function(objectType){
   }
 }
 
+getSubItemDescription <- function(subType){
+  tSubNum <- reportSubTypeEnum()
+  if(!subType %in% tSubNum) return(NULL)
+  if(subType == tSubNum$formula_horseshoe){
+    return(readTxtFile(paste0(report_folder,"/GeneralTex/Formula_horseshoe_prior.txt")))
+  }else if(subType == tSubNum$formula_horseshoe_normal_noise){
+    return(readTxtFile(paste0(report_folder,"/GeneralTex/Formula_Horseshoe_prior_normal_noise.txt")))
+  }
+}
+
 elementSectionMapping <- function(objType){
   tNum <- reportTypeEnum()
   if(objType == tNum$formula) objType <- "Formula"
@@ -114,97 +129,145 @@ reportType <- function(div, space=NULL){
 #Called directly when report button is clicked
 transposeFormulaToPDF <- function(pIDM){
   
-  latex <- "\\begin{equation}\n\t\\begin{split}\n"
+  latex <- ""
+  try({
+
+    latex <- "\\begin{equation}\n\t\\begin{split}\n"
+    
+    stanModel <- pIDM$get.selected_BAYSIS_stan_model()
+    dMID <- pIDM$getDataModelInputData()
+    responseName <- dMID$getResponseVariable()$variable
+    responseName <- str_replace_all(responseName, "_","\\\\_")
+    formula_elements <- stanModel$new_formula(responseName)
+    modelParameters <- stanModel$used_parameter
+    
+    modelPred <- stanModel$used_predictor
+    
+    
+    #Iterate through "FormulaElements" objects
+    for(element in formula_elements){
+      
+      # & before =\~ for alignment
+      math <- paste0(element$latex$left, " &",element$latex$center)
+      if(element$predictorLine){
+        index <- 1
+        for(pred in stanModel$get_predictor_line()){
+          para <- pred$modelParameter
+          mathString <- ""
+          #e.g. intercept that is displayed by just the parameter (b0)
+          if(is.null(pred$display_name)){
+            if(index > 1){
+              mathString <- paste0(mathString, " + ")
+            }
+            mathString <- paste0(mathString, para$getFullDisplayNameLatex())
+            
+          }else{
+            a <- pred$display_name
+            a <- str_replace_all(a, "&sdot;", " \\\\cdot ")
+            
+            if(index > 1){
+              #right side of = ~ ... with more than one term
+              mathString <- paste0(" + ", para$getFullDisplayNameLatex(), " \\cdot ", a)
+            }else{
+              #right side of = ~ ... with just one term
+              mathString <- paste0(para$getFullDisplayNameLatex(), " \\cdot ", a)
+            }
+          }
+          math <- paste0(math, " ", mathString)
+          index <- index+1
+        }
+      }else{
+        math <- paste0(math, " " ,element$latex$right)
+      }
+      latex <- paste0(latex, "\t\t", math, "\\\\ \n")
+    }
+    
+    #Iterate through parameters to get possible vectors
+    latexVectors <- ""
+    for(para in modelParameters){
+      if(para$is.vector){
+        userVar <- para$userVariable
+        dists <- para$distributions
+        dataX <- dists[[1]]$dataX
+        paraName <- para$getFullDisplayNameLatex()
+        
+        #If the distributions are all horseshoes there is no need to write the parameterization for each parameter,
+        #as they must all be the same
+        distSingleParameterization <- sapply(dists, function(dist){dist$singleParameterization})
+        if(all(distSingleParameterization)) next
+        
+        auxLatexName <- dists[[1]]$getAuxParametersLatex(para$id)
+        values <- list()
+        for(dist in dists){
+          for(auxParaIndex in 1:length(dist$auxParameter)){
+            auxPara <- dist$auxParameter[[auxParaIndex]]
+            if(length(values) < auxParaIndex){
+              values[[auxParaIndex]] <- auxPara$getValueFormatted()
+            }else{
+              values[[auxParaIndex]] <- c(values[[auxParaIndex]],auxPara$getValueFormatted())
+            }
+          }
+        }
+        if(length(values) != length(auxLatexName)) stop("Have to be of equal length")
+        
+        pred <- para$getParentPredictor()
+        paraElements <- pIDM$get.selected_BAYSIS_stan_model()$getTermCombinationsOfPredictorList(pred)
+        paraElementsString <- paste0(paraElements, collapse=" ,\\allowbreak ")
+        latexVectors <- paste0(latexVectors, "$",paraName, " = ",
+                               "( ", paraElementsString, " ) \\\\ $ \n")
+        for(i in 1:length(auxLatexName)){
+          vals <- values[[i]]
+          #If a predictor had once more elements due to missing intercept, 
+          #thus elements are still stored in the parameter and have to be ignored --> 1:length(paraElements)
+          vals <- vals[1:length(paraElements)] 
+          latexAux <- paste0(vals, collapse=" ,\\allowbreak" )
+          latexVectors <- paste0(latexVectors, "$",auxLatexName[[i]], " = ",
+                                 "( ", latexAux, " ) \\\\ $ \n")
+        }
+      }
+    }
+    
+    latex <- paste0(latex, "\t\\end{split}\n\\end{equation}\n", latexVectors)
+  })
+  
+  
+  #Are there additional information e.g. definition of the horseshoe prior?
+  latexHorseshoe <- horseshoePriorUse(pIDM)
+  
+  
+  paste0(latex,latexHorseshoe)
+}
+
+
+horseshoePriorUse <- function(pIDM){
+
+  usesHorseshoe <- F
+  
+  dEnum <- distributionEnum()
   
   stanModel <- pIDM$get.selected_BAYSIS_stan_model()
-  dMID <- pIDM$getDataModelInputData()
-  responseName <- dMID$getResponseVariable()$variable
-  responseName <- str_replace_all(responseName, "_","\\\\_")
-  formula_elements <- stanModel$new_formula(responseName)
   modelParameters <- stanModel$used_parameter
-  
-  modelPred <- stanModel$used_predictor
 
-  
-  #Iterate through "FormulaElements" objects
-  for(element in formula_elements){
-    
-    # & before =\~ for alignment
-    math <- paste0(element$latex$left, " &",element$latex$center)
-    if(element$predictorLine){
-      index <- 1
-      for(pred in stanModel$get_predictor_line()){
-        para <- pred$modelParameter
-        mathString <- ""
-        #e.g. intercept that is displayed by just the parameter (b0)
-        if(is.null(pred$display_name)){
-          if(index > 1){
-            mathString <- paste0(mathString, " + ")
-          }
-          mathString <- paste0(mathString, para$getFullDisplayNameLatex())
-
-        }else{
-          a <- pred$display_name
-          a <- str_replace_all(a, "&sdot;", " \\\\cdot ")
-          
-          if(index > 1){
-            #right side of = ~ ... with more than one term
-            mathString <- paste0(" + ", para$getFullDisplayNameLatex(), " \\cdot ", a)
-          }else{
-            #right side of = ~ ... with just one term
-            mathString <- paste0(para$getFullDisplayNameLatex(), " \\cdot ", a)
-          }
-        }
-        math <- paste0(math, " ", mathString)
-        index <- index+1
-      }
-    }else{
-      math <- paste0(math, " " ,element$latex$right)
-    }
-    latex <- paste0(latex, "\t\t", math, "\\\\ \n")
-  }
-  
-  #Iterate through parameters to get possible vectors
-  latexVectors <- ""
   for(para in modelParameters){
-    if(para$is.vector){
-      userVar <- para$userVariable
-      dists <- para$distributions
-      dataX <- dists[[1]]$dataX
-      paraName <- para$getFullDisplayNameLatex()
-      
-      auxLatexName <- dists[[1]]$getAuxParametersLatex(para$id)
-      values <- list()
-      for(dist in dists){
-        for(auxParaIndex in 1:length(dist$auxParameter)){
-          auxPara <- dist$auxParameter[[auxParaIndex]]
-          if(length(values) < auxParaIndex){
-            values[[auxParaIndex]] <- auxPara$getValueFormatted()
-          }else{
-            values[[auxParaIndex]] <- c(values[[auxParaIndex]],auxPara$getValueFormatted())
-          }
-        }
-      }
-      if(length(values) != length(auxLatexName)) stop("Have to be of equal length")
-      
-      pred <- para$getParentPredictor()
-      paraElements <- pIDM$get.selected_BAYSIS_stan_model()$getTermCombinationsOfPredictorList(pred)
-      paraElementsString <- paste0(paraElements, collapse=" ,\\allowbreak ")
-      latexVectors <- paste0(latexVectors, "$",paraName, " = ",
-                             "( ", paraElementsString, " ) \\\\ $ \n")
-      for(i in 1:length(auxLatexName)){
-        vals <- values[[i]]
-        #If a predictor had once more elements due to missing intercept, 
-        #thus elements are still stored in the parameter and have to be ignored --> 1:length(paraElements)
-        vals <- vals[1:length(paraElements)] 
-        latexAux <- paste0(vals, collapse=" ,\\allowbreak" )
-        latexVectors <- paste0(latexVectors, "$",auxLatexName[[i]], " = ",
-                               "( ", latexAux, " ) \\\\ $ \n")
-      }
+    dists <- list(para$distribution)
+    if(para$is.vector) dists <- para$distributions
+    
+    distNames <- sapply(dists, function(dist){dist$name})
+    if(any(distNames==dEnum$Horseshoe)){
+      usesHorseshoe <- T
+      break
     }
   }
   
-  latex <- paste0(latex, "\t\\end{split}\n\\end{equation}\n", latexVectors)
+  if(usesHorseshoe){
+    tSubNum <- reportSubTypeEnum()
+    #Normal or log-normal model
+    if(stanModel$id %in% c(1,8)){
+      return(getSubItemDescription(tSubNum$formula_horseshoe_normal_noise))
+    }else{
+      return(getSubItemDescription(tSubNum$formula_horseshoe))
+    }
+  }
 }
 
 
@@ -242,10 +305,6 @@ plotToTex <- function(plotId, plot, caption=NULL, label=NULL, ignoreTex=F){
   
   return(tex)
 }
-
-# stop("oh no")
-# tt <- c("b_sex..m", "b_weight","sigma")
-# formulaParameterToLatex(tt)
 
 formulaParameterToLatex <- function(word){
   if(is.null(word) || is.empty(word)) return(word)
@@ -304,6 +363,8 @@ dfToLatexTable <- function(df, caption=NULL, label=NULL){
   latex <- paste0(latex, "  ", paste0(wordToLatexConform(names(df)), collapse=" & "), "\\\\ \n")
   latex <- paste0(latex, "  \\hline \\hline \n")
   
+  colFactors <- sapply(1:ncol(df), function(i) is.factor(df[[i]]))
+  df[,colFactors] <- sapply(df[,colFactors], as.character)
   # data
   data <- sapply(seq_len(dim(df)[1]), function(i){
     paste0("  ",paste0(wordToLatexConform(df[i,]), collapse=" & "), "\\\\ \n  \\hline \n")

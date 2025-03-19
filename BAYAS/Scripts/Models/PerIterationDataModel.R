@@ -11,8 +11,6 @@ PerIterationDataModel <- R6Class(
      id = 0,
 
      
-     # dataModel = NULL,
-     
      #DataModelInputData containing all information about the raw input and converted data
      dataModelInputData = NULL,
      
@@ -28,7 +26,8 @@ PerIterationDataModel <- R6Class(
      # As long as this model is not fitted (Button Run Fit activated), the name will be "(Not_fitted)".
      name = "(Not_fitted)",
      
-     # The data that are used for a fit. This is the same data as in the data Model with same changes to e.g. categorical variables
+     # The data that are used for a fit. This is the same data as in the data Model with same changes to e.g. categorical variables.
+     # In use.
      # Have to be, since the data in the modelData can change during the use. But e.g. the ppc needs the data of the fit,
      # not the data of the dataModel, which maybe changed in the meantime
      data = NULL,
@@ -70,6 +69,7 @@ PerIterationDataModel <- R6Class(
      
      # PPC plot for preview ppc, necessary for reporting the ppc
      ppc_plot = NULL,
+     ppc_plot_warnings = F, #Whether there have been any warnings due to discrepancies.
      
      # Used fixed terms, the type of term is fixed
      # Data frame of two columns
@@ -139,14 +139,7 @@ PerIterationDataModel <- R6Class(
        return(private$dataPath)
      },
      
-     # set.fileName = function(x){
-     #   private$fileName <- x
-     # },
-     # get.fileName = function(){
-     #   return(private$fileName)
-     # },
-     
-     
+
      set.name = function(x, silent=F){
        private$name <- x
        if(!silent) self$triggerReactiveValue("name")
@@ -155,20 +148,7 @@ PerIterationDataModel <- R6Class(
        return(private$name)
      },
      
-     
-     # set.data = function(x, silent=F){
-     #   print("set data in pidm...")
-     #   
-     #   private$data <- x
-     #   self$set.name("(Not_fitted)")
-     #   if(!silent) self$triggerReactiveValue("data")
-     # },
-     # get.data = function(){
-     #   print("get data in pidm...")
-     #   return(private$data)
-     # },
-     
-     
+
      set.time_of_run_fit = function(x, silent=F){
        private$time_of_run_fit <- x
        self$set.name("(Not_fitted)")
@@ -283,6 +263,11 @@ PerIterationDataModel <- R6Class(
      get.ppc_plot = function(){
        return(private$ppc_plot)
      },
+     
+     set.ppc_plot_warnings = function(flag){
+       private$ppc_plot_warnings <- flag
+     },
+     get.ppc_plot_warnings = function() return(private$ppc_plot_warnings),
      
      
      set.used_optional_terms = function(x, silent=F){
@@ -410,7 +395,7 @@ PerIterationDataModel <- R6Class(
      },
      
 
-     getInstance = function(id, dataModel){
+     getInstance = function(id){
        newInstance <- PerIterationDataModel$new()
        
        #Non R6 objects, that are safe to call by reference
@@ -439,10 +424,11 @@ PerIterationDataModel <- R6Class(
        newInstance$set.used_variables(private$used_variables, silent=T)
        
        #R6 Objects
-       if(!is.null(private$selected_BAYSIS_stan_model)) 
-         newInstance$set.selected_BAYSIS_stan_model(private$selected_BAYSIS_stan_model$getInstance(dataModel), silent=T)
        if(!is.null(private$dataModelInputData))
          newInstance$setDataModelInputData(private$dataModelInputData$getInstance(perIterationDataModel=newInstance), silent=T)
+       if(!is.null(private$selected_BAYSIS_stan_model)) 
+         newInstance$set.selected_BAYSIS_stan_model(private$selected_BAYSIS_stan_model$getInstance(newInstance), silent=T)
+
        
        newInstance$set.name(private$name, silent=T)
        return(newInstance)

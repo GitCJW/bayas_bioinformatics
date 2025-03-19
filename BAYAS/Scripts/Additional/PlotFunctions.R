@@ -81,44 +81,6 @@ plotSeveralAreas <- function(data, countData=F, prop=0.9, x_axis, method="eti", 
   return(plot)
 }
 
-# sigma <- rnorm(1e3,.2,0.01)
-# pp1 <- prediction_dens_norm(rnorm(1e3,1,0.1), sigma)
-# pp2 <- prediction_dens_norm(rnorm(1e3,5,0.1), sigma)
-# 
-# data <- list(a=pp1, b=pp2)
-# prop <- 0.9
-# x_axis <- c("a","b")
-# y_axis <- "y"
-# method <- "hdi"
-# colors <- c("blue","red")
-# plotSeveralAreas(data, prop, x_axis, method, colors)
-# plotSeveralViolins(data, prop, x_axis,y_axis, method, colors)
-
-
-# plot +
-#   stat_function(fun = approx, geom="area", fill=subColor[1],alpha=0.5, xlim =c(minX,interval$lower)) +
-#   stat_function(fun = approx, geom="area", fill=subColor[1],alpha=0.5, xlim =c(interval$upper,maxX)) +
-#   stat_function(fun = approx, geom="area", fill=subColor[2],alpha=0.5, xlim =c(interval$lower,interval$upper)) +
-#   geom_segment(data=gData, x=interval$center,y=0,xend=interval$center,yend=interval$centerPointDens, color=subColor[3], size=1) +
-#   geom_segment(data=gData, x=interval$lower,y=0,xend=interval$lower,yend=interval$lowerDens, color=subColor[3], size=1) +
-#   geom_segment(data=gData, x=interval$upper,y=0,xend=interval$upper,yend=interval$upperDens, color=subColor[3], size=1) +
-#   geom_line(data=gData, mapping=aes(x=x,y=y), color=subColor[4]) + 
-#   yaxis_text(FALSE) + yaxis_ticks(FALSE) + yaxis_title(FALSE)
-
-
-# plot + 
-#   geom_violin(data=gData, mapping=aes(x=x,y=y,violinwidth=width), 
-#               stat="identity", fill=subColor[1], alpha=0.5, col=subColor[4]) +
-#   geom_violin(data=gDataHDI, mapping=aes(x=x,y=y,violinwidth=width), 
-#               stat="identity", fill=subColor[1],alpha=0.5, col="transparent") +
-#   geom_violin(data=gDataCenter, mapping=aes(x=x,y=y,violinwidth=width),
-#               stat="identity", fill=subColor[3],alpha=0.5, col="transparent") +
-# 
-#   geom_violin(data=gDataHigh, mapping=aes(x=x,y=y,violinwidth=width),
-#               stat="identity", fill=subColor[3],alpha=0.5, col="transparent") +
-#   geom_violin(data=gDataLow, mapping=aes(x=x,y=y,violinwidth=width),
-#               stat="identity", fill=subColor[3],alpha=0.5, col="transparent") 
-#   
 
   
 plotSeveralViolins <- function(data, prop=0.9, x_axis, y_axis, method="eti", colors){
@@ -237,7 +199,7 @@ plotMP <- function(data, prop_a=0.9, prop_b=0.9, pi =T, x_axis, method="eti", co
   return(plot)
 }
 
-#INTERSTING!!
+##INTERSTING!
 # set.seed(3)
 # d <- c(rnorm(1e3),rnorm(1e3,3,1))
 # plot(density(d))
@@ -276,9 +238,7 @@ plotDiff <- function(data, prop=0.9, x_axis, method="hdi", centerPoint=0){
   highDens <- approx(interval$CI_high)
   
   gData <- data.frame(x=data)
-  
-  # min <- min(c(centerPoint,data))
-  # max <- max(c(centerPoint,data))
+
   min <- min(data)
   max <- max(data)
   fillColorLower <- subColor[4]

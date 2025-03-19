@@ -36,7 +36,7 @@ init_reportDefault_function <- function(input, output, session, dataModel,
     
     isolate({
       choicesDM <- list("Evaluation: Data name"="")
-      choicesFit <- list("Evaluation: Data name"="")
+      choicesFit <- list("Evaluation: Fit"="")
       
       items <- global_reportProgressModel$getItems()
       for(item in items){
@@ -833,10 +833,10 @@ init_reportDefault_function <- function(input, output, session, dataModel,
     sortEl <- sortableElements()
     
     if(length(sortEl)>0){
-      addCssClass(id=ns("createPDFPreviewAll"), class="btn-primary-alt")
+      addCssClass(id=ns("createPDFPreviewAll"), class="btn-outline-primary")
       addCssClass(id=ns("downloadAll"), class="btn-primary")
     }else{
-      removeCssClass(id=ns("createPDFPreviewAll"), class="btn-primary-alt")
+      removeCssClass(id=ns("createPDFPreviewAll"), class="btn-outline-primary")
       removeCssClass(id=ns("downloadAll"), class="btn-primary")
     }
 
@@ -976,7 +976,7 @@ init_reportDefault_function <- function(input, output, session, dataModel,
           })
          
 
-          addCssClass(id=ns("createPDFPreviewSingle"), class="btn-primary-alt")
+          addCssClass(id=ns("createPDFPreviewSingle"), class="btn-outline-primary")
           addCssClass(id=ns("downloadSingle"), class="btn-primary")
           enable(id=ns("createPDFPreviewSingle"))
           enable(id=ns("downloadSingle"))
@@ -988,7 +988,7 @@ init_reportDefault_function <- function(input, output, session, dataModel,
         }
       }else{
         removeUI(paste0("#",ns("singleElementDivWrapper")), immediate=T)
-        removeCssClass(id=ns("createPDFPreviewSingle"), class="btn-primary-alt")
+        removeCssClass(id=ns("createPDFPreviewSingle"), class="btn-outline-primary")
         removeCssClass(id=ns("downloadSingle"), class="btn-primary")
         disable(id=ns("createPDFPreviewSingle"))
         disable(id=ns("downloadSingle"))
@@ -1017,6 +1017,7 @@ init_reportDefault_function <- function(input, output, session, dataModel,
         
         if(is.null(pdfFileName)) {
           showNotification("Couldn't write the PDF file. The operator is notified.", type="error")
+		  if(localUse) browser()
           malfunction_report(code=malfunctionCode()$creatingPDF, msg="single elements preview writePDF",
                              type="error", askForReport=T)
           return()
@@ -1034,6 +1035,7 @@ init_reportDefault_function <- function(input, output, session, dataModel,
 
       }else{
         showNotification("Something went wrong. The operator is notified.", type="error")
+		if(localUse) browser()
         malfunction_report(code=malfunctionCode()$creatingPDF, msg="single elements preview",
                            type="error", askForReport=T)
         output[[ns("PDFPreview")]] <- renderText("Create a pdf preview first.")
@@ -1079,6 +1081,7 @@ init_reportDefault_function <- function(input, output, session, dataModel,
       if(is.null(newOrder)){
         showNotification("Can't reorder items. The operator is notified.", 
                          type="error")
+						 if(localUse) browser()
         malfunction_report(code=malfunctionCode()$reorderReportedItems, msg="reporder items to recommended order",
                            type="error", askForReport=T)
         ignoreRecommendedOrder(F)
@@ -1242,12 +1245,14 @@ init_reportDefault_function <- function(input, output, session, dataModel,
     
     pdfFileName <- writePDF(reportedItems=selItems,
                             fontSize=input[[ns("outputOptionsFontSize")]], 
-                            optionalTitle=input[[ns("outputOptionsOptionalTitle")]], optionalName=input[[ns("outputOptionsOptionalName")]],
+                            optionalTitle=input[[ns("outputOptionsOptionalTitle")]], 
+                            optionalName=input[[ns("outputOptionsOptionalName")]],
                             makeTitle=T,
                             convertTo = "pdf")
 
     if(is.null(pdfFileName)) {
       showNotification("Couldn't write the PDF file. The operator is notified.", type="error")
+	  if(localUse) browser()
       malfunction_report(code=malfunctionCode()$creatingPDF, msg="all elements preview writePDF",
                          type="error", askForReport=T)
       return()
@@ -1300,6 +1305,7 @@ init_reportDefault_function <- function(input, output, session, dataModel,
           if(is.null(outputFile)){
             outputDownloadFile("")
             showNotification("Couldn't write the PDF file. The operator is notified.", type="error")
+			      if(localUse) browser()
             malfunction_report(code=malfunctionCode()$creatingPDF, msg="single element download writePDF",
                                type="error", askForReport=T)
             return(NULL)
@@ -1318,6 +1324,7 @@ init_reportDefault_function <- function(input, output, session, dataModel,
           showNotification("Something went wrong. The operator is notified.", type="error")
           malfunction_report(code=malfunctionCode()$creatingPDF, msg="single elements download",
                              type="error", askForReport=T)
+		  if(localUse) browser()
           output[[ns("PDFPreview")]] <- renderText("Create a pdf preview first.")
           outputDownloadFile("")
         }
@@ -1392,6 +1399,7 @@ init_reportDefault_function <- function(input, output, session, dataModel,
         }else{
           if(localUse) browser()
           showNotification("Something went wrong. The operator is notified.", type="error")
+		  if(localUse) browser()
           malfunction_report(code=malfunctionCode()$creatingPDF, msg="all elements download",
                              type="error", askForReport=T)
           output[[ns("PDFPreview")]] <- renderText("Create a pdf preview first.")
@@ -1464,20 +1472,25 @@ init_reportDefault_function <- function(input, output, session, dataModel,
         pdfCount(pdfCount()+1)
         nextCount <- pdfCount()
         
+
         consoleFile <- paste0(report_folder,"/console.txt")
         f <- future({
           sink(consoleFile)
           out <- tryCatch({
             #Create tex.Rnw file
             texId <- createTexFile(reportedItems, fontSize, optionalTitle, optionalName, nextCount, makeTitle)
-            
+
             rawTexFile <- paste0(report_folder,"/Tex/rawTex_",texId ,".Rnw")
             pdfOutputFile <- paste0(report_folder,"/PDF/BAYAS_report_",texId, ".tex")
+            
+            #Copy literature
+            file.copy(paste0(report_folder,"/GeneralTex/literatur.bib"),
+                      paste0(report_folder,"/PDF/literatur.bib"))
             
             #knit2html()
             knit2pdf(rawTexFile, 
                      output = pdfOutputFile,
-                     clean = TRUE)
+                     clean = TRUE, bib_engine = "bibtex")
             
             print("@FINISHED")
             
@@ -1510,32 +1523,11 @@ init_reportDefault_function <- function(input, output, session, dataModel,
         outputFile <- paste0("BAYAS_report_",texId, ".",convertTo)
         pdfFileName <- paste0(report_folder, "/PDF/BAYAS_report_",texId, ".pdf")
       }
-      
 
-      # # Convert pdf to png, jpeg or tiff
-      # if(!is.null(convertTo) && convertTo != "pdf"){
-      #   progressBar$set(value=0.7, message = paste0('Converting PDF to ', convertTo, " ..."), detail= "This may take a while")
-      #   DPI <- input[[ns("outputOptionsDPI")]]
-      #   
-      #   if(DPI[1]=="TRUE"){
-      #     pngFileName <- paste0(report_folder, "/PIC/BAYAS_report_",texId, ".",convertTo)
-      #     
-      #     #To "png", "jpeg", "tiff" 
-      #     pdftools::pdf_convert(pdfFileName,
-      #                           filenames = pngFileName,
-      #                           format=convertTo,
-      #                           dpi=as.numeric(DPI[2]))
-      #     
-      #     progressBar$set(value=0.95, message = paste0('Cleaning up ...'), detail= "This may take a while")
-      # 
-      #   }else{
-      #     showNotification("Please provide a valid DPI input!", type="error")
-      #   }
-      # }
    
       progressBar$close()
       
-      
+
       if(is.null(texId)){
         #Are blanks are used?
         for(r_index in seq_along(reportedItems)){
@@ -1570,6 +1562,7 @@ init_reportDefault_function <- function(input, output, session, dataModel,
 }
 
 createTexFile <- function(reportedItems, fontSize, optionalTitle, optionalName, nextCount, makeTitle){
+
   if(!is.null(reportedItems) && length(reportedItems) > 0){
     
     tNum <- reportTypeEnum()
@@ -1598,7 +1591,12 @@ createTexFile <- function(reportedItems, fontSize, optionalTitle, optionalName, 
       itemsFits <- c()
       itemsTypes <- c()
       for(item in reportedItems){
-        if(item$getType() == "planningExperiment"){
+        if(item$getType() == tNum$blank){
+          # blankData <- item$getBlankData()
+          itemsData <- c(itemsData, -1)
+          itemsFits <- c(itemsFits, -1)
+          itemsModuleType <- c(itemsModuleType, "b")
+        }else if(item$getType() == "planningExperiment"){
           itemsData <- c(itemsData, -1)
           itemsFits <- c(itemsFits, -1)
           itemsModuleType <- c(itemsModuleType, "p")
@@ -1629,7 +1627,6 @@ createTexFile <- function(reportedItems, fontSize, optionalTitle, optionalName, 
         targetFits <- itemsFitsWoBlanks[i]
         targetType <- itemsTypeWoBlanks[i]
         
-
         matches <- which(itemsModuleTypeWoBlanks %in% targetModuleType)
         matches <- matches - (min(matches)-1)
         if(max(matches) != length(matches)) sortedByModuleType <- F
@@ -1693,6 +1690,7 @@ createTexFile <- function(reportedItems, fontSize, optionalTitle, optionalName, 
         objType <- reportedItems[[i]]$getType()
         objTypePrint <- elementSectionMapping(objType)
         
+        
         if(objType == reportTypeEnum()$planningExperiment){
           pName <- reportedItems[[i]]$getPlanningName()
           if(pName %in% names(planningHeaders)){
@@ -1706,7 +1704,13 @@ createTexFile <- function(reportedItems, fontSize, optionalTitle, optionalName, 
         
         headers[[i]] <- ""
         
-        if(objType == reportTypeEnum()$planningExperiment){
+        if(objType == reportTypeEnum()$blank){
+
+          headers[[i]] <- paste0(headers[[i]], "\\section{", objTypePrint, "}\n",
+                                 getItemDescription(objType), "\n\n")
+          
+        }
+        else if(objType == reportTypeEnum()$planningExperiment){
           headers[[i]] <- paste0("\\section{",objTypePrint,"}\n",
                                  getItemDescription(objType), "\n\n")
           sub <- ""
@@ -1717,7 +1721,8 @@ createTexFile <- function(reportedItems, fontSize, optionalTitle, optionalName, 
             prevHeader <- headers[[i]]
           }
           
-        }else if(sortedByType ){
+        }
+        else if(sortedByType){
           targetType <- itemsTypes[i]
           matches <- which(itemsTypes %in% targetType)
           if(min(matches)==i){
@@ -1759,16 +1764,14 @@ createTexFile <- function(reportedItems, fontSize, optionalTitle, optionalName, 
             sub2 <- "sub"
           }
           
-          # if(sortedByFits){
-            targetFits <- itemsFits[i]
-            matches <- which(itemsFits %in% targetFits)
-            t <- reportedItems[[i]]$getpDIM_name()
-            t <- wordToLatexConform(t)
-            if(min(matches)==i && !is.null(t)){
-              headers[[i]] <- paste0(headers[[i]], "\\", sub,"section{Report of fit '",t,"'}\n")
-            }
-            sub2 <- paste0(sub,"sub")
-          # }
+          targetFits <- itemsFits[i]
+          matches <- which(itemsFits %in% targetFits)
+          t <- reportedItems[[i]]$getpDIM_name()
+          t <- wordToLatexConform(t)
+          if(min(matches)==i && !is.null(t)){
+            headers[[i]] <- paste0(headers[[i]], "\\", sub,"section{Report of fit '",t,"'}\n")
+          }
+          sub2 <- paste0(sub,"sub")
 
           headers[[i]] <- paste0(headers[[i]], "\\", sub2,"section{",objTypePrint,"}\n",
                                  getItemDescription(objType), "\n\n")
@@ -1869,7 +1872,27 @@ createTexFile <- function(reportedItems, fontSize, optionalTitle, optionalName, 
         text <- blankData$text
         binding <- blankData$binding
         
+ 
         if(!is.null(header) && str_trim(header) != ""){
+          
+          headerBinding <- ""
+          
+          if(binding == "prev"){
+            if(selItemId != 1)
+              headerBinding <- headers[[selItemId-1]]
+          }else if(blankData$binding == "next"){
+            if(selItemId != length(itemsTypes))
+              headerBinding <- headers[[selItemId+1]]
+          }
+          
+          sub <- ""
+          if(grepl("\\subsubsection{", headerBinding,  fixed = TRUE)){
+            sub <- "subsub"
+          }else if(grepl("\\subsection{", headerBinding,  fixed = TRUE)){
+            sub <- "sub"
+          }
+          headers[[selItemId]] <- paste0("\\",sub,substr(headers[[selItemId]], 2, nchar(headers[[selItemId]])))
+          
           rawLatexTxt <- paste(rawLatexTxt,
                                str_replace(headers[[selItemId]],"blank", header),
                                text, sep="\n")

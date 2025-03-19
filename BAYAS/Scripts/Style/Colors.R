@@ -37,10 +37,10 @@ bayasColors <- function(theme=c("cerulean", "zephyr")){
     ret$`--samplingESS-colors-4` <- "darkgreen"
 
     ret$`--effectMatrix-colors-1` <- "#e65050"
-    ret$`--effectMatrix-colors-2` <- "#fff"
+    ret$`--effectMatrix-colors-2` <- "#ffffff"
     ret$`--effectMatrix-colors-3` <- "#377EB8"
 
-    ret$`--creatingData-colors-1` <- "#fff"
+    ret$`--creatingData-colors-1` <- "#ffffff"
     ret$`--creatingData-colors-2` <- "black"
     ret$`--creatingData-colors-3` <- "red"
     ret$`--creatingData-colors-4` <- "#FF6666"
@@ -100,10 +100,10 @@ bayasColors <- function(theme=c("cerulean", "zephyr")){
     ret$`--samplingESS-colors-4` <- "darkgreen"
     
     ret$`--effectMatrix-colors-1` <- "#e65050"
-    ret$`--effectMatrix-colors-2` <- "#fff"
+    ret$`--effectMatrix-colors-2` <- "#ffffff"
     ret$`--effectMatrix-colors-3` <- "#3459e6"
     
-    ret$`--creatingData-colors-1` <- "#fff"
+    ret$`--creatingData-colors-1` <- "#ffffff"
     ret$`--creatingData-colors-2` <- "black"
     ret$`--creatingData-colors-3` <- "red"
     ret$`--creatingData-colors-4` <- "#FF6666"

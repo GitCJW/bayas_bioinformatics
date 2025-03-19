@@ -44,7 +44,9 @@ init_model_selection_function <- function(input, output, session, dataModel){
         #Available or not?
         if(!models$id %in% stanModelLists$no_fit_models){
           tmp_in <- models
-          tmp_in$myDataModel <- dataModel
+          # tmp_in$myDataModel <- dataModel
+          tmp_in$myPerIterationDataModel <- dataModel$get.cPerIterationDataModel()
+          
           dataModel$get.cPerIterationDataModel()$set.selected_BAYSIS_stan_model(tmp_in)
           break
         }else{
@@ -123,7 +125,6 @@ init_model_selection_function <- function(input, output, session, dataModel){
       refreshParametersOverview(input, output, session, dataModel)
       refreshStanModelList(input, output, session, dataModel)
       
-
       #Remove the selected model only if the properties of the variables used in the formula change.
       # Deselect selected stan model, otherwise it could cause misbehaviour
       updateSelectInput(session = session, inputId = "selectStanModelAvailable",
@@ -208,7 +209,6 @@ refreshStanModelList <- function(input, output, session, dataModel){
     # fit_models
     # no_fit_models
     
-    # choices <- rep("",length(stanModelLists$fit_models))
     choices <- c()
 
     i <- 1
@@ -353,7 +353,7 @@ buildFormula <- function(input, output, session, dataModel){
                
                bslib::tooltip(
                  trigger = tags$span(id=paste0("formulaLeft",tagCount), element$leftSide, style="text-align:right;"),
-                 element$description,
+                 HTML(element$description),
                  options = list(trigger="hover", delay=list(show= 500, hide= 100))
                ),
                
@@ -568,7 +568,6 @@ addPredictor <- function(input, output, session, dataModel){
       if(length(list_of_pred) > 0){
         #if the added predictor is no vector
         pred$modelParameter$distribution <- list_of_pred[[1]]$modelParameter$distribution$getInstance()
-        
       } 
 
       #No intercept?
@@ -612,7 +611,7 @@ addPredictor <- function(input, output, session, dataModel){
 #Remove predictor by an user mouse event e.g. "click" or "dblclick"
 removePredictor <- function(input, output, session, dataModel, name, pred){
 
-  # BUG! 
+  # Interesting! 
   # The following line have to be there, otherwise removing the intercept a second (etc.) time leads to a strange behavior.
   # Instead of removing the intercept, another parameter will removed.
   pred$id
@@ -682,7 +681,6 @@ setPriorForParameter <- function(input, output, session, dataModel, para){
     global.selectPriorDistribution[[id3]]$destroy()
   }
   global.selectPriorDistribution[[id3]] <<- observeEvent(button_trigger[[paste0("click",id2)]], ignoreInit=T, {
-    # print0("paraid: ",para$id)
     removePriorModalView(dataModel, input, session)
     showModal(modalDialog(
       footer = tags$div(
@@ -696,7 +694,7 @@ setPriorForParameter <- function(input, output, session, dataModel, para){
         )
       ),
       
-      size = "l", easyClose=F,
+      size = "xl", easyClose=F,
       
       createPriorModalView(input,dataModel,para) #UiModelSelection
     ))
@@ -704,175 +702,6 @@ setPriorForParameter <- function(input, output, session, dataModel, para){
     #Add observer for change prior button
     changePriorObserver(input, output, session, dataModel, para)
   })
-  
-
-}
-
-
-#Create specific modal for parameter
-createPriorModalView <- function(input, dataModel, parameter){
-
-  # predictor <- dataModel$get.cPerIterationDataModel()$get.selected_BAYSIS_stan_model()$myParentPredictor(parameter)
-  predictor <- parameter$getParentPredictor()
-  
-  poss_dist <- parameter$getDistribution()
-  id <- parameter$id
-
-  #Set parameter tmp distribution to work on them
-  # print("Call distToTmpDist")
-  parameter$distToTmpDist()
-  
-  if(!is.null(predictor) && predictor$same_prio_dist){
-    title <- "Type of distribution for "
-    name_of_pred <- predictor$name
-    list_of_pred <- dataModel$get.cPerIterationDataModel()$get.selected_BAYSIS_stan_model()$get_predictor_of_type(name_of_pred)
-    index <- c()
-    for(i in list_of_pred){
-      index <- c(index,i$modelParameter$id)
-    }
-    min_index <- min(index)
-    max_index <- max(index)
-    min_index_str <- ""
-    max_index_str <- ""
-    for(i in list_of_pred){
-      if(i$modelParameter$id == min_index) min_index_str <- i$modelParameter$getFullDisplayName()
-      if(i$modelParameter$id == max_index) max_index_str <- i$modelParameter$getFullDisplayName()
-    }
-    if(min_index == max_index){
-      title <- paste0("Type of distribution for ",min_index_str)
-    }else if(length(index)==2){
-      title <- paste0("Type of distribution for ",min_index_str,",",max_index_str)
-    }else{
-      title <- paste0("Type of distribution for ",min_index_str,",...,",max_index_str)
-    }
-  }else{
-    title <- paste0("Type of distribution for ",parameter$getFullDisplayName())
-  }
-  
-  
-  #Get current values
-  #if vector:
-  #choicelist, selected val, recom.val, overall recom.val, prior, prior.aux
-  #if not vector:
-  #recom.val, prior, prior.aux
-  if(!is.null(predictor)){
-    selected_dist <- predictor$modelParameter$distribution
-  }else{
-    selected_dist <- parameter$distribution
-  }
-  selected_dist_name <- selected_dist$dist_name
-  
-  # recom <- ifelse(!is.null(input[[paste0("selectPriorAttributesDefault",id)]]),input[[paste0("selectPriorAttributesDefault",id)]],T)
-  recom <- F
-  
-  if(is.null(parameter$modalID)) parameter$modalID <- modalIdObj$getNext()
-
-  
-  # Checkbox of default/data specific parameters
-  defaultPriorAttr <- bslib::tooltip(
-      trigger = checkboxInput(
-        inputId="selectPriorAttributesDefault",
-        "Use data specific parameters.",
-        value=recom),
-      HTML(tooltip$recommendedValues),
-      options = list(trigger="hover", delay=list(show= 1000, hide= 100))
-    )
-
-  
-  # For parameters that are vectors
-  if(!is.null(predictor) && predictor$get.is.vector()){
-    
-
-    sameDistDiv <- tags$div()
-    if(predictor$same_prio_dist){
-      sameDistDiv <- tags$div(
-        style="padding-top:33px;",
-        
-        bslib::tooltip(
-          trigger = tags$span(id="infoSamePriorDistribution",icon("exclamation-circle")),
-          HTML(tooltip$samePriorDistribution),
-          options = list(trigger="hover")
-        )
-      )
-    }
-    
-    choiceList <- dataModel$get.cPerIterationDataModel()$get.selected_BAYSIS_stan_model()$getTermCombinationsOfPredictorList(predictor)
-    return(
-      fixedRow(
-        column(5,tags$div(
-          selectizeInput("selectParameterOfVector", "This parameter is a vector", choices=choiceList,  options = list(render = I(
-            '{
-                           item: function(item, escape) {
-                           return "<div>" + item.label + "</div>"
-                           },
-                           option: function(item, escape) {
-                           return "<div>" + item.label + "</div>"
-                           }}'
-          ))),
-          
-          fixedRow(
-            column(9,offset=1,tags$div(
-              selectInput("selectPriorDistribution", HTML(title), choices=poss_dist, 
-                          selected=selected_dist_name),
-              uiOutput(outputId = "selectPriorAttributesDiv"),
-              defaultPriorAttr
-            )),
-            column(2,style="padding-left:0px;padding-right:0px;",
-                   sameDistDiv
-                   )
-          ),
-          
-          checkboxInput(inputId="selectPriorAttributesDefaultForAll",
-                         "Use data specific parameters for all.",
-                         value=recom),
-          
-
-        )),
-        column(7,style="padding-left:1px;",tags$div(
-          imageOutput(outputId = "previewPriorDistribution")
-        ))
-      )
-    )
-    
-  # For parameters that uses the same kind of distribution (among other parameters)
-  }else if(!is.null(predictor) && predictor$same_prio_dist){
-    return(
-      fixedRow(
-        column(4,tags$div(
-          selectInput("selectPriorDistribution", HTML(title), choices=poss_dist, selected=selected_dist_name),
-          uiOutput(outputId = "selectPriorAttributesDiv"),
-          defaultPriorAttr
-        )),
-        column(1,style="padding-left:0px;padding-right:0px;", 
-               tags$div(
-                 style="padding-top:33px;",
-                 
-                  bslib::tooltip(
-                    trigger = tags$span(id="infoSamePriorDistribution",icon("exclamation-circle")),
-                    HTML(tooltip$samePriorDistribution),
-                    options = list(trigger="hover")
-                  )
-        )),
-        column(7,style="padding-left:1px;",tags$div(
-          imageOutput(outputId = "previewPriorDistribution")
-        ))
-      )
-    )
-  }else{
-    return(
-      fixedRow(
-        column(4,tags$div(
-          selectInput("selectPriorDistribution", HTML(title), choices=poss_dist, selected=selected_dist_name),
-          uiOutput(outputId = "selectPriorAttributesDiv"),
-          defaultPriorAttr
-        )),
-        column(1,style="padding-left:0px;padding-right:0px;"),
-        column(7,style="padding-left:1px;",tags$div(
-          imageOutput(outputId = "previewPriorDistribution")
-        ))
-      )
-    )
-  }
 }
 
 
@@ -889,11 +718,10 @@ removePriorModalView <- function(dataModel, input, session){
 }
 
 #Recommended button for prior aux parameter
-#obsever for finally change prior button
+#observer for finally change prior button
 aux_names <<- c()
 changePriorObserver <- function(input, output, session, dataModel, para){
 
-  if(god())return()
   if(is.null(para$modalID)) para$modalID <- modalIdObj$getNext()
   
   # Change UI elements depending on the selected distribution e.g. mu, sigma for normal
@@ -906,53 +734,59 @@ changePriorObserver <- function(input, output, session, dataModel, para){
     inp <- input$selectPriorDistribution
 
     #When "fixed values" is selected as a distribution
-    if(distDisplayName(input$selectPriorDistribution) == dEnum$FixedValues){
+    if(distDisplayName(inp) %in% c(dEnum$FixedValues, dEnum$Horseshoe)){
       shinyjs::disable("selectPriorAttributesDefault")
+      updateCheckboxInput(session, "selectPriorAttributesDefault", value=F)
     }else{
       shinyjs::enable("selectPriorAttributesDefault")
     }
     
     #When parameter is a vector
     if(para$is.vector){
-      if(para$distribution$dist_name != input$selectPriorDistribution){
-        para$distribution_tmp <- FactoryDistribution(input$selectPriorDistribution, input$selectPriorDistribution, adjustable=T, is.vector=T, paraProp=para$get.properties())
+      if(para$distribution$dist_name != inp){
+        para$distribution_tmp <- FactoryDistribution(inp, inp, adjustable=T, is.vector=T, paraProp=para$get.properties())
         para$distribution_tmp$element_name <- input$selectParameterOfVector
-        warning(input$selectParameterOfVector)
         #Adjust Distribution aux parameter
         dataModel$get.cPerIterationDataModel()$get.selected_BAYSIS_stan_model()$adjustDistributionParametersOfVector(parameter=para,tmpValue=T,tmpDist=T)
-        updateCheckboxInput(session, "selectPriorAttributesDefault", value=T)
+        if(!distDisplayName(inp) %in% c(dEnum$FixedValues, dEnum$Horseshoe)){
+          updateCheckboxInput(session, "selectPriorAttributesDefault", value=T)
+        }
         tmpDist <- para$distributions_tmp[[input$selectParameterOfVector]]
       }else{
         para$distToTmpDist()
         tmpDist <- para$distributions_tmp[[input$selectParameterOfVector]]
-        equal <- tmpDist$amIUsingAdjustedValues(T)
-        if(!equal) updateCheckboxInput(session, "selectPriorAttributesDefault", value=F)
-        if(equal && !input$selectPriorAttributesDefault) updateCheckboxInput(session, "selectPriorAttributesDefault", value=T)
+        if(!distDisplayName(inp) %in% c(dEnum$FixedValues, dEnum$Horseshoe)){
+          equal <- tmpDist$amIUsingAdjustedValues(T)
+          if(!equal) updateCheckboxInput(session, "selectPriorAttributesDefault", value=F)
+          if(equal && !input$selectPriorAttributesDefault) updateCheckboxInput(session, "selectPriorAttributesDefault", value=T)
+        }
       }
       auxParameter <- tmpDist$auxParameter
     }else{
-      if(para$distribution$dist_name != input$selectPriorDistribution){
-        l <- list(input$selectPriorDistribution, input$selectPriorDistribution, adjustable=T, is.vector=F, paraProp=para$get.properties())
-        para$distribution_tmp <- FactoryDistribution(input$selectPriorDistribution, input$selectPriorDistribution, adjustable=T, is.vector=F, paraProp=para$get.properties())
+      if(para$distribution$dist_name != inp){
+        l <- list(inp, inp, adjustable=T, is.vector=F, paraProp=para$get.properties())
+        para$distribution_tmp <- FactoryDistribution(inp, inp, adjustable=T, is.vector=F, paraProp=para$get.properties())
         #Adjust Distribution aux parameter
         pred_var <- para$getParentPredictor()$userVariable
         para$distribution_tmp$element_name <- pred_var
-        warning(input$pred_var)
         x <- NULL
         if(!is.null(pred_var)){
           dMID <- dataModel$getDataModelInputData()
           x <- dMID$getLongFormatVariable(pred_var, completeCases=T)
         } 
-        para$distribution_tmp$setDataAndProperties(x, dataModel, para)
+        para$distribution_tmp$setDataAndProperties(x, dataModel$get.cPerIterationDataModel(), para)
         para$distribution_tmp$adjustMyself(tmpValue=T)
         auxParameter <- para$distribution_tmp$auxParameter
-        updateCheckboxInput(session, "selectPriorAttributesDefault", value=T)
+        if(!distDisplayName(inp) %in% c(dEnum$FixedValues, dEnum$Horseshoe))
+          updateCheckboxInput(session, "selectPriorAttributesDefault", value=T)
       }else{
         para$distToTmpDist()
         auxParameter <- para$distribution_tmp$auxParameter
-        equal <- para$distribution_tmp$amIUsingAdjustedValues(T)
-        if(!equal) updateCheckboxInput(session, "selectPriorAttributesDefault", value=F)
-        if(equal && !input[["selectPriorAttributesDefault"]]) updateCheckboxInput(session, "selectPriorAttributesDefault", value=T)
+        if(!distDisplayName(inp) %in% c(dEnum$FixedValues, dEnum$Horseshoe)){
+          equal <- para$distribution_tmp$amIUsingAdjustedValues(T)
+          if(!equal) updateCheckboxInput(session, "selectPriorAttributesDefault", value=F)
+          if(equal && !input[["selectPriorAttributesDefault"]]) updateCheckboxInput(session, "selectPriorAttributesDefault", value=T)
+        }
       }
     }
 
@@ -961,14 +795,14 @@ changePriorObserver <- function(input, output, session, dataModel, para){
     output[["selectPriorAttributesDiv"]] <- renderUI({
       inputElements <- list()
       # If fixed values dist is selected the ui is slight different.
-      if(distDisplayName(input$selectPriorDistribution) == dEnum$FixedValues){
+      if(distDisplayName(inp) == dEnum$FixedValues){
 
         if(length(auxParameter) > 1) stop("The number of aux parameter could be greater than 1?")
         element <- auxParameter[[1]]
         
         dMID <- dataModel$getDataModelInputData()
         userVarsExceptResponse <- dMID$getOtherVariables()        
-        #Hier müssen die InputProps übergeben werden?
+        
         choices <- c("(Select a variable)"="", para$distribution_tmp$whichUserVarFitsToThisParameter(userVarsExceptResponse))
         
         val <- element$getTmpVal()
@@ -990,6 +824,7 @@ changePriorObserver <- function(input, output, session, dataModel, para){
           element <- auxParameter[[i]]
           inputElements[[i]] <- tags$div(
             fluidRow(
+              style="margin-bottom:5px;",
               column(1, tags$span(HTML(element$display_name)), offset=1, style="padding:6px;"),
               column(10, 
                  bayasNumericInput(inputId = paste0("aux_",element$name), label=NULL,
@@ -1005,7 +840,7 @@ changePriorObserver <- function(input, output, session, dataModel, para){
 
 
       #Special case: "fixed values"
-      if(distDisplayName(input$selectPriorDistribution) == dEnum$FixedValues){
+      if(distDisplayName(inp) == dEnum$FixedValues){
         
         element <- auxParameter[[1]]
         
@@ -1026,9 +861,7 @@ changePriorObserver <- function(input, output, session, dataModel, para){
         global.selectPriorDistribution[[paste0("aux_",element$name)]] <<- observeEvent(input[[paste0("aux_",element$name)]], ignoreInit=F,{
           
           x <- input[[paste0("aux_",element$name)]]
-          
-          print(x)
-          
+ 
           x_value <- x
           isValid <- !is.null(x)
           
@@ -1045,10 +878,8 @@ changePriorObserver <- function(input, output, session, dataModel, para){
             #If vector, set to tmp_value for storing it
             if(para$is.vector){
               para$setValue(input[["selectParameterOfVector"]], element$name, x_value, tmpValue=T, tmpDist=T)
-              # equal <- para$distributions_tmp[[input[["selectParameterOfVector"]]]]$amIUsingAdjustedValues(T)
             }else{
               para$setValue(NULL,element$name, x_value, tmpValue=T, tmpDist=T)
-              # equal <- para$distribution_tmp$amIUsingAdjustedValues(T)
             }
           }
         })
@@ -1066,20 +897,30 @@ changePriorObserver <- function(input, output, session, dataModel, para){
           global.selectPriorDistribution[[paste0("aux_",element$name)]] <<- observeEvent(input[[paste0("aux_",element$name)]], ignoreInit=F, ignoreNULL =F, {
             x <- input[[paste0("aux_",element$name)]]
 
-            if(!is.null(x)){
-              #If vector, set to tmp_value for storing it
+            if(!distDisplayName(inp) %in% c(dEnum$FixedValues, dEnum$Horseshoe)){
+              if(!is.null(x)){
+                #If vector, set to tmp_value for storing it
+                if(para$is.vector){
+                  para$setValue(input[["selectParameterOfVector"]], element$name, x, tmpValue=T, tmpDist=T)
+                  equal <- para$distributions_tmp[[input[["selectParameterOfVector"]]]]$amIUsingAdjustedValues(T)
+                }else{
+                  para$setValue(NULL,element$name, x, tmpValue=T, tmpDist=T)
+                  equal <- para$distribution_tmp$amIUsingAdjustedValues(T)
+                }
+                if(!equal) updateCheckboxInput(session, "selectPriorAttributesDefault", value=F)
+                if(equal && !input[["selectPriorAttributesDefault"]]) updateCheckboxInput(session, "selectPriorAttributesDefault", value=T)
+                
+              }else{
+                updateCheckboxInput(session, "selectPriorAttributesDefault", value=F)
+              }
+            }else{
               if(para$is.vector){
                 para$setValue(input[["selectParameterOfVector"]], element$name, x, tmpValue=T, tmpDist=T)
-                equal <- para$distributions_tmp[[input[["selectParameterOfVector"]]]]$amIUsingAdjustedValues(T)
               }else{
                 para$setValue(NULL,element$name, x, tmpValue=T, tmpDist=T)
-                equal <- para$distribution_tmp$amIUsingAdjustedValues(T)
               }
-              if(!equal) updateCheckboxInput(session, "selectPriorAttributesDefault", value=F)
-              if(equal && !input[["selectPriorAttributesDefault"]]) updateCheckboxInput(session, "selectPriorAttributesDefault", value=T)
-            }else{
-              updateCheckboxInput(session, "selectPriorAttributesDefault", value=F)
             }
+              
           })
         })
       }
@@ -1088,8 +929,20 @@ changePriorObserver <- function(input, output, session, dataModel, para){
       )
     })
   
+    # #Info box
+    # tmpDist <- FactoryDistribution(inp, "tmp", adjustable=F, is.vector=F)
+    # updateTextAreaInput(session, inputId = "previewPriorDistributionInfo", 
+    #                     value=HTML(tmpDist$description))
   })
   
+  #Info box
+  output$previewPriorDistributionInfo <- renderUI({
+    if(!is.null(input$selectPriorDistribution)){
+      tmpDist <- FactoryDistribution(input$selectPriorDistribution, "tmp", adjustable=F, is.vector=F)
+      HTML(tmpDist$description)
+    }
+  })
+
   
   #plot
   output[["previewPriorDistribution"]] <- renderPlot({
@@ -1140,12 +993,12 @@ changePriorObserver <- function(input, output, session, dataModel, para){
       if(para$is.vector){
         flag <- T
         for(dist in para$distributions_tmp){
-          if(!dist$amIUsingAdjustedValues(T)) flag <- F
+          if(!dist$singleParameterization && !dist$amIUsingAdjustedValues(T)) flag <- F
         }
-        updateCheckboxInput(session, "selectPriorAttributesDefaultForAll", value=flag)
+        # updateCheckboxInput(session, "selectPriorAttributesDefaultForAll", value=flag)
       }
     }else{
-      updateCheckboxInput(session, "selectPriorAttributesDefaultForAll", value=F)
+      # updateCheckboxInput(session, "selectPriorAttributesDefaultForAll", value=F)
     }
   })
   
@@ -1169,30 +1022,32 @@ changePriorObserver <- function(input, output, session, dataModel, para){
           if(is.na(x_new)) x_new <- dist$getValueOf(element$name,F)
           updateBayasNumericInput(session, paste0("aux_",element$name), value=x_new)
           #check if the current distribution uses the adjustes values
-          equal <- dist$amIUsingAdjustedValues(T)
-          # print0("equal: ", equal)
-          if(!equal) updateCheckboxInput(session, "selectPriorAttributesDefault", value=F)
-          if(equal && !input$selectPriorAttributesDefault) updateCheckboxInput(session, "selectPriorAttributesDefault", value=T)
+          if(!distDisplayName(input$selectPriorDistribution) %in% c(dEnum$FixedValues, dEnum$Horseshoe)){
+            equal <- dist$amIUsingAdjustedValues(T)
+            if(!equal) updateCheckboxInput(session, "selectPriorAttributesDefault", value=F)
+            if(equal && !input$selectPriorAttributesDefault) updateCheckboxInput(session, "selectPriorAttributesDefault", value=T)
+          }
+          
         })
       }
     })
     
     
-    #Checkbox for adjusted values of vector predictors
-    if(!is.null(global.selectPriorDistribution$selectPriorAttributesDefaultForAll)){
-      global.selectPriorDistribution$selectPriorAttributesDefaultForAll$destroy()
-    }
-    global.selectPriorDistribution[["selectPriorAttributesDefaultForAll"]] <<- observeEvent(input$selectPriorAttributesDefaultForAll, ignoreInit=T,{
-      
-      if(input$selectPriorAttributesDefaultForAll){
-        
-        #Adjust parameter, but save into tmp_val!
-        dataModel$get.cPerIterationDataModel()$get.selected_BAYSIS_stan_model()$adjustDistributionParametersOfVector(para, tmpValue=T, tmpDist=T)
-        
-        #Are all elements of a vector predictor adjusted? Set the global to true
-        updateCheckboxInput(session, "selectPriorAttributesDefault", value=T)
-      }
-    })
+    # #Checkbox for adjusted values of vector predictors
+    # if(!is.null(global.selectPriorDistribution$selectPriorAttributesDefaultForAll)){
+    #   global.selectPriorDistribution$selectPriorAttributesDefaultForAll$destroy()
+    # }
+    # global.selectPriorDistribution[["selectPriorAttributesDefaultForAll"]] <<- observeEvent(input$selectPriorAttributesDefaultForAll, ignoreInit=T,{
+    #   
+    #   if(input$selectPriorAttributesDefaultForAll){
+    #     
+    #     #Adjust parameter, but save into tmp_val!
+    #     dataModel$get.cPerIterationDataModel()$get.selected_BAYSIS_stan_model()$adjustDistributionParametersOfVector(para, tmpValue=T, tmpDist=T)
+    #     
+    #     #Are all elements of a vector predictor adjusted? Set the global to true
+    #     updateCheckboxInput(session, "selectPriorAttributesDefault", value=T)
+    #   }
+    # })
   }
 
   #Finally confirm priors
@@ -1200,6 +1055,7 @@ changePriorObserver <- function(input, output, session, dataModel, para){
     global.selectPriorDistribution$finallyChangePrior$destroy()
   }
   global.selectPriorDistribution[["finallyChangePrior"]] <<- observeEvent(input$finallyChangePrior, ignoreInit=T, {
+
     
     auxParameter <- para$distribution_tmp$auxParameter
     
@@ -1230,22 +1086,27 @@ changePriorObserver <- function(input, output, session, dataModel, para){
     #Set parameter distribution to tmp distribution 
     para$tmpDistToDist()
     
-
+    # Set also the prior Distributions of the other group predictors:
+    # In rstanarm each predictor has to have the same distribution (but with different parameters)
+    # predictor <- dataModel$get.cPerIterationDataModel()$get.selected_BAYSIS_stan_model()$myParentPredictor(para)
     predictor <- para$getParentPredictor()
+    
     
     if(!is.null(predictor) && predictor$same_prio_dist){
       list_of_pred <- dataModel$get.cPerIterationDataModel()$get.selected_BAYSIS_stan_model()$get_predictor_of_type(predictor$name)
-      for(i in list_of_pred){
+      for(oPred in list_of_pred){
         #Break, if the selected is equal to the current distribution.
-        if(i$modelParameter$distribution$name == para$distribution$name) next
-        is.vector <- i$modelParameter$distribution$is.vector
-        i$modelParameter$distribution <- para$distribution$getInstance()
-        i$modelParameter$distribution$is.vector <- is.vector
-        dataModel$get.cPerIterationDataModel()$get.selected_BAYSIS_stan_model()$adjustDistributionParametersOfPredictor(i)
+        #Except it is a distribution where singleParameterization is true (e.g. horseshoe prior for all coefficients).
+        if(oPred$modelParameter$distribution$name == para$distribution$name && !para$distribution$singleParameterization) next
+        is.vector <- oPred$modelParameter$distribution$is.vector
+        oPred$modelParameter$distribution <- para$distribution$getInstance()
+        oPred$modelParameter$distribution$is.vector <- is.vector
+        oPred$modelParameter$distribution$element_name <- oPred$display_name
+        dataModel$get.cPerIterationDataModel()$get.selected_BAYSIS_stan_model()$adjustDistributionParametersOfPredictor(oPred)
       }
     }
 
-    #Update formula?
+    #Update formula
     buildFormula(input, output, session, dataModel)
     
     

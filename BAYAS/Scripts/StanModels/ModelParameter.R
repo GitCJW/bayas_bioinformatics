@@ -261,11 +261,7 @@ ModelParameter <- R6Class(
       
       #R6
       newInstance$setParentPredictor(myParentPredictor)
-      
-
-      # browser()
-      # print("call")
-      
+            
       if(!is.null(self$distribution)) newInstance$distribution <- self$distribution$getInstance()
       if(!is.null(self$distribution_tmp)) newInstance$distribution_tmp <- self$distribution_tmp$getInstance()
       

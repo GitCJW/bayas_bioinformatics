@@ -458,6 +458,28 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
       saveObject(cMCD, file, encrypt=F)
     }
   )
+  #Save ssd model and goals
+  output[[ns("saveSSD")]] <- downloadHandler(
+    filename = function(){
+      "SSD_elements.rds"
+    },
+    content = function(file){
+      ssdMcd <- cMCD$getMcdSSD()
+      mcdFormula <- cMCD$getMcdFormula() 
+      model <- mcdFormula$buildRstanFormula(round(runif(1,-1e7,1e7)))
+      
+      obj <- list(
+        model = model,
+        binomModel = fit_binom,
+        goals = ssdMcd$getGoals(forSSD=T),
+        maxN = ssdMcd$getMaxN(),
+        power = ssdMcd$getPower(),
+        con = ssdMcd$getAccuarcy()
+      )
+  
+      saveRDS(obj, file)
+    }
+  )
   
   #Load experiment
   observeEvent(input[[ns("loadExperiment")]], {
@@ -1041,6 +1063,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           uiOutput(ns("planningModal"))
         )
       ))
+      
       output[[ns("planningModal")]] <- renderUI({
         stepDiv <- planning_creatingStepsResponse(ns, last(isolate(rvResponseStep())), isolate(rvResponseName()), 
                                                   c(isolate(rvResponseType()), 
@@ -1048,10 +1071,12 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
                                                     isolate(rvResponseDist()),
                                                     isolate(rvResponseUseOnlyNegVal())),
                                                   planningLinkFunctionMapping(isolate(rvResponseDist())),
+                                                  planningPositiveDistribution(isolate(rvResponseDist())),
                                                   selectedLink=isolate(rvResponseLink()))
         
         helpDiv <- planning_creatingStepsResponse_help(ns, last(rvResponseStep()),
-                                                       links=planningLinkFunctionMapping(rvResponseDist()))
+                                                       links=planningLinkFunctionMapping(rvResponseDist()),
+                                                       positiveDistribution=planningPositiveDistribution(isolate(rvResponseDist())))
         
         planning_responseModal(stepDiv, helpDiv)
       })
@@ -1092,10 +1117,12 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
                                                     isolate(rvResponseDist()),
                                                     isolate(rvResponseUseOnlyNegVal())),
                                                   planningLinkFunctionMapping(isolate(rvResponseDist())),
+                                                  planningPositiveDistribution(isolate(rvResponseDist())),
                                                   selectedLink=isolate(rvResponseLink()))
         
         helpDiv <- planning_creatingStepsResponse_help(ns, step,
-                                                       links=planningLinkFunctionMapping(rvResponseDist()))
+                                                       links=planningLinkFunctionMapping(rvResponseDist()),
+                                                       positiveDistribution=planningPositiveDistribution(isolate(rvResponseDist())))
         
         planning_responseModal(stepDiv, helpDiv)
       })
@@ -3751,27 +3778,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
                   }
                 }else{
                   firstSub <- subs[[1]]
-                  
-                  #REPLACED:
-                  #if the elements of a categorical variables are changed in the 
-                  #order, e.g. sex "m","f" -> "f","m" should also change the order
-                  #within the parameter list.
-                  
-                  # #remove paras
-                  # elements <- pred$getUniqueElements()
-                  # removeElements <- setdiff(names(subs), elements)
-                  # for(el in removeElements){
-                  #   para$removeSub(el)
-                  # }
-                  # 
-                  # addElements <- setdiff(elements, names(subs))
-                  # #add new paras
-                  # for(el in addElements){
-                  #   newsub <- para$createSub()
-                  #   newsub$setPrior(firstSub$getPrior()$getInstance())
-                  #   newsub$setValueDistribution(firstSub$getValueDistribution()$getInstance())
-                  #   para$addSub(newsub, el)
-                  # }
+
                   
                   elements <- pred$getUniqueElements()
                   saved_paras <- list()
@@ -3967,7 +3974,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
         parameter <- NULL
         if("ModelCreatingDataParameter" %in% class(sub)){
           parameter <- sub
-
+          
           sub <- sub$getSubs()[[1]]
         }else{
           parameter <- sub$getParameter()
@@ -4139,9 +4146,21 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
             }
           }
           
+          mcd <- parameter$getMcd()
+          mcdResp <- mcd$getMcdResponse()
+          respDist <- mcdResp$getDist()
+          respLink <- mcdResp$getLink()
+          
+          distPriorChoices <- getParametersPossiblePriorDistributions(parameter$getType(), 
+                                                                      "inference", respDist, respLink)
+          distGenChoices <- getParametersPossiblePriorDistributions(parameter$getType(), 
+                                                                    "generation", respDist, respLink)
+          
           updateSelectInput(inputId=ns("parameterModalPriorDist"), 
+                            choices=distPriorChoices,
                             selected=prior$getName())
           updateSelectInput(inputId=ns("parameterModalGenDist"), 
+                            choices=distGenChoices,
                             selected=gen$getName())
           
           #Update random seed
@@ -4178,8 +4197,6 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
       
       ##Update generation distribution parameter
       observeEvent(input[[ns("parameterModalGenDist")]], {
-
-        
         para <- paraDup()
         paraGlobal <- paraDistGlobal()
 
@@ -4214,7 +4231,6 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
         }else{
           output[[ns("parameterModalGenUi")]] <- renderUI(tags$div())
         }
-
       })
       
       
@@ -4374,9 +4390,8 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
         updateBayasNumericInput(inputId=ns("parameterModalPriorDistParaRandomSeed"), 
                                 value=drawRandomSeed())
       })
-      
       ##Distribution parameters
-      lapply(1:3, function(i){
+      lapply(1:5, function(i){
         observeEvent(input[[ns(paste0("parameterModalGenDistPara",i))]], {
           para <- paraDup()
           paraGlobal <- paraDistGlobal()
@@ -5203,7 +5218,6 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
     observeEvent(input[[ns("ssdGoalName")]], {
       
       #check if name is already in use
-      # selGoalId(input[[ns("ssdGoals")]])
       mcdSSD <- cMCD$getMcdSSD()
       goal <- mcdSSD$getGoal(selGoalId())
       
@@ -5486,6 +5500,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
       globalSSDProgressBar(shiny::Progress$new())
       
       #Confirm restart - discard of current ssd
+      #TODO
       
       hide(ns("ssdStart"))
       show(ns("ssdStop"))
@@ -5546,25 +5561,26 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
       
       ssd <- mcdSSD$getSsdObject()
 
-      cluster <- initSSD_NGoals(strategy="sequential")
-      ssd$intern$cluster <- cluster
+      # cluster <- initSSD_NGoals(strategy="sequential")
+      # ssd$intern$cluster <- cluster
       
       
-      prob <- desPower
-      alpha <- prob*(con-2)+1
-      beta <- (1-prob)*(con-2)+1
-      accept_HDI <- hdi(rbeta(1e7, alpha, beta), 0.9)
-      accept_HDIwidth <- accept_HDI$CI_high - accept_HDI$CI_low
-      
-      i_parallel <- numberOfIterationsPerStep
-      
-      furtherArgs <- list(
-        i_parallel=i_parallel, 
-        model_seed = sample(1e5,i_parallel),
-        accept_HDIwidth = accept_HDIwidth,
-        accept_HDIConcentration = con
-      )
-      ssd$intern$furtherArgs <- furtherArgs
+      # prob <- desPower
+      # alpha <- prob*(con-2)+1
+      # beta <- (1-prob)*(con-2)+1
+      # accept_HDI <- bayestestR::hdi(rbeta(1e7, alpha, beta), 0.9)
+      # accept_HDIwidth <- accept_HDI$CI_high - accept_HDI$CI_low
+      # 
+      # i_parallel <- numberOfIterationsPerStep
+      # 
+      # Incorrect
+      # furtherArgs <- list(
+      #   i_parallel=i_parallel, 
+      #   model_seed = sample(1e5,i_parallel),
+      #   accept_HDIwidth = accept_HDIwidth,
+      #   accept_HDIConcentration = con
+      # )
+      # ssd$intern$furtherArgs <- furtherArgs
       
       
       ssd_g(ssd)
@@ -5576,7 +5592,6 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
     
     #Compile model for ssd
     observe({
-
       init <- init_ssd_d()
       isolate({
         if(init){
@@ -5633,6 +5648,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           continue_ssd(F)
           start_ssd(F)
           close_ssd(T)
+          init_ssd(F)
         }
       })
     })
@@ -5680,28 +5696,10 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           goals <- mcdSSD$getGoals(forSSD=T)
           desPower <- mcdSSD$getPower()
           
-          fitBionomFile <- paste0(stanModels_folder,"/compiled_bernoulli.rds")
-          if(!file.exists(fitBionomFile)){
-            fit_binom <- rstan::stan_model(paste0(stanModels_folder,"/bernoulli.stan"))
-            saveRDS(fit_binom, fitBionomFile)
-          }
-          fit_binom <- readRDS(fitBionomFile)
-          
+
           con <- mcdSSD$getAccuarcy()
-          prob <- desPower
-          alpha <- prob*(con-2)+1
-          beta <- (1-prob)*(con-2)+1
-          accept_HDI <- hdi(rbeta(1e7, alpha, beta), 0.9)
-          accept_HDIwidth <- accept_HDI$CI_high - accept_HDI$CI_low
-          
+
           i_parallel <- numberOfIterationsPerStep
-          
-          furtherArgs <- list(
-            i_parallel=i_parallel, 
-            model_seed = sample(1e5,i_parallel),
-            accept_HDIwidth = accept_HDIwidth,
-            accept_HDIConcentration = con
-          )
           
           compiled_model_data <- compiledModel$data
           
@@ -5711,8 +5709,8 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           respType <- mcdResp$getType()
           N <- maxN
           initData <- list()
-          seed <- round(runif(furtherArgs$i_parallel,-1e7,1e7))
-          for(i in seq_len(furtherArgs$i_parallel)){
+          seed <- round(runif(i_parallel,-1e7,1e7))
+          for(i in seq_len(i_parallel)){
             tmpData <- cMCD$getRandomDataset(N, seed[i])
             initData[[i]] <- adjustDataForSSD(tmpData, compiled_model_data)
             #Verify dataset according to integers exceeding the maximum of (2**32-1)
@@ -5736,11 +5734,10 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
             session=session,
             id=ns("ssdProgressBar"),
             30, 
-            title = "Create cluster")
+            title = "Initialize sample size determination")
           globalSSDProgressBar()$set(value=0.3, message = "Sample Size Determination", 
-                                   detail = "Create cluster")
+                                   detail = "Initialize sample size determination")
           
-          cluster <- initSSD_NGoals(strategy="sequential")
           
           updateProgressBar(
             session=session,
@@ -5753,11 +5750,11 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           
           ssd <- NULL
           try({
-            ssd <- startSSD_NGoals(model = compiledModel, data = initData, 
-                                   power_desired = desPower, maxN = maxN, minN = minN, 
-                                   goals = goals, cluster = cluster, 
-                                   fit_binom = fit_binom,
-                                   furtherArgs = furtherArgs)
+            possN <- minN:maxN
+
+            ssd <- startSSDBayas(model = compiledModel, initData = initData, 
+                                 powerDesired = desPower, possN = possN, 
+                                 goals = goals, con = con, iParallel = i_parallel)
           })
 
           
@@ -5802,7 +5799,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
       ssd <- ssd_g()
       maxN <- input[[ns("ssdMaxN")]]
       isolate({
-        if(!is.null(ssd)){
+        if(!is.null(ssd) && "bayesianssd" %in% class(ssd)){
           res <- ssd$intern$resultsSSD
           gg <- plotResults(ssd, theme=list(
             main=BAYAS_COLORS$`--modelCreatingPlot-color-values-5`, 
@@ -5830,22 +5827,20 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           resultsSSDHigh <- resultsSSD[resultsSSD$tendency == 1,]
           if(dim(resultsSSDHigh)[1] > 0){
             bestCandidate <- min(resultsSSDHigh$N)
-            mp_p <- ssd$intern$resultsPowerBinomial$power[ssd$intern$resultsPowerBinomial$N==bestCandidate]
-            credibleInterval <- hdi(mp_p, 0.9)
+            mp <- ssd$intern$resultsPowerBinomial[ssd$intern$resultsPowerBinomial$N==bestCandidate,]
+            mp_p <- mp$powerMean
+            credibleInterval <- c(mp$powerLow, mp$powerHigh)
           } 
           
-          pB <- ssd$intern$resultsPowerBinomial
-          pB <- pB[pB$N == ssd$intern$N_high,]
-          certainty <- sum(pB$power>=ssd$intern$power_desired)/length(pB$power)
-          
+          #instead
+          # text <- printSSD(ssd)
           
           text <- ""
           if(!is.null(bestCandidate)){
             text <- HTML(
               paste0("Potential 'N': <b>", bestCandidate, "</b><br> 90%-credible interval: (",
-                     "<b>",formatC(credibleInterval$CI_low, digits=3), "</b> - <b>", formatC(credibleInterval$CI_high, digits=3) ,"</b>) <br>",
-                     "Interval width: ", formatC(credibleInterval$CI_high-credibleInterval$CI_low, digits=3), "<br>",
-                     "Probability of >= ", ssd$intern$power_desired, ": <b> ", certainty*100, "</b>% <br>",
+                     "<b>",formatC(credibleInterval[1], digits=3), "</b> - <b>", formatC(credibleInterval[2], digits=3) ,"</b>) <br>",
+                     "Interval width: ", formatC(credibleInterval[2]-credibleInterval[1], digits=3), "<br>",
                      "Number of simulations for this N: ", resultsSSD$i[resultsSSD$N==bestCandidate]))
           }else if(ssd$intern$NMaxTooLow){
             potN <- ssd$extern$N
@@ -5924,11 +5919,9 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           #check if next N is valid
           checkedN <- cMCD$checkSampleSize(N)
           if(!checkedN[[1]]){
-            N <- getValidNext_N(N_BAYAS_low = checkedN[[2]][1], 
-                                N_BAYAS_high = checkedN[[2]][2], 
-                                power_desired = ssd$intern$power_desired, 
-                                resultsSSD = ssd$intern$resultsSSD)
-            ssd$extern$N <- N
+            ssd <- getValidNextNBayas(nLow = checkedN[[2]][1], 
+                                      nHigh = checkedN[[2]][2], 
+                                      ssd)
           }
           
           compiled_model_data <- ssd$intern$model$data
@@ -5941,15 +5934,15 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
             try({
               #new data
               newData <- list()
-              seed <- round(runif(ssd$intern$furtherArgs$i_parallel,-1e7,1e7))
-              for(i in seq_len(ssd$intern$furtherArgs$i_parallel)){
+              seed <- round(runif(ssd$intern$furtherArgs$iParallel,-1e7,1e7))
+              for(i in seq_len(ssd$intern$furtherArgs$iParallel)){
                 tmpData <- cMCD$getRandomDataset(N, seed[i])
                 newData[[i]] <- adjustDataForSSD(tmpData, compiled_model_data)
               }
               
-              ssd$intern$furtherArgs$model_seed <- sample(1e5,ssd$intern$furtherArgs$i_parallel)
+              ssd$intern$furtherArgs$modelSeed <- sample(1e5,ssd$intern$furtherArgs$iParallel)
               
-              newSsd <- updateSSD_NGoals(ssd, newData, print=F)
+              newSsd <- updateSSDBayas(ssd, newData)
             })
             rep <- rep +1
             if(rep > 4 || !is.null(newSsd)) repeatSampling <- F
@@ -5959,7 +5952,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           if(is.null(ssd) || is.null(newSsd)){
             showNotification("An error occurred during sampling. The operator is notified.",
                              type="error", duration=NULL)
-            malfunction_report(code=malfunctionCode()$ssdSampling, msg="updateSSD_NGoals ...",
+            malfunction_report(code=malfunctionCode()$ssdSampling, msg="updateSSDBayas ...",
                                type="error", askForReport=T)
             if(localUse) browser()
             # saveRDS(list(ssd=ssd, newData=newData), paste0(dirname(getwd()), "/SSD/ssd.rds"))
@@ -5973,11 +5966,6 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
                                        detail = "Cancelled")
             close_ssd(T)
             return()
-          }
-          
-          if(newSsd$extern$warning != ""){
-            malfunction_report(code=malfunctionCode()$ssdSampling, msg="updateSSD_NGoals, stuck in loop",
-                               type="error", askForReport=T)
           }
           
           ssd <- newSsd
@@ -6023,7 +6011,6 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           
           ssd <- ssd_g()
           
-          closeCluster_NGoals(ssd$intern$cluster)
 
           updateProgressBar(
             session=session,
@@ -6039,6 +6026,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           cMCD$getMcdSSD()$setSsdObject(ssd)
           
           #Is ssd continuable?
+          #TODO
           cMCD$getMcdSSD()$setSsdContinue(T)
           enable(ns("ssdContinue"))
           
@@ -6108,8 +6096,6 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
       #Tree A
       observeEvent(input[[ns("ssdModalTreeA")]],{
         goal <- goalModal()
-        
-        # browser()
         
         treeA <- input[[ns("ssdModalTreeA")]]
         subsA <- cMCD$getParameterSubByTree(treeA)

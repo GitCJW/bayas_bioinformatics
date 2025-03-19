@@ -66,13 +66,11 @@ downloadPlotServer <- function(id, gInput, dataModel, plotType, plotName) {
         
         content = function(file) {
           print(file)
-          # fileName <- paste0(image_folder, "/tmp/",input$downloadPlotName,".", input$plotExtension)
           plot <- dataModel$getDataModelPlotModel()$get.plot_by_name(plotType, gInput[[plotName]])
           units <- ifelse(input$downloadPlotUnit == "inches", "in", input$downloadPlotUnit)
           ggsave(filename = file,  plot = plot, device = input$plotExtension, 
                  width = input$downloadPlotWidth, height = input$downloadPlotHeight, 
                  units = units, dpi = input$downloadPlotDPI)
-          # ret <- file.copy(fileName, file, overwrite=T)
         },
         contentType = input$plotExtension
       )

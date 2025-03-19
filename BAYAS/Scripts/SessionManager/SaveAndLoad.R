@@ -1,6 +1,8 @@
 
 saveSession <- function(dataModel, file, encrypt=T){
 
+  # if(global_browser) browser()
+  
   # Evaluation model
   stateEval <- dataModel$getState(1)
   
@@ -21,11 +23,44 @@ saveSession <- function(dataModel, file, encrypt=T){
   retPlan <- unnestR6(statePlan)
   retPlan <- retPlan$unnestList
   
-
   
+  
+  #testing
+  {
+    flag <- flag2 <- flag3 <- F
+
+    tmpFile <- paste0(dirname(dirname(getwd())), "/tmp/all/")
+    if(flag){
+      for(aa_id in seq_along(retEval)){
+        aa <- retEval[[aa_id]]
+        saveRDS(aa, file=paste0(tmpFile, "_", aa_id))
+      }
+    }
+
+    if(flag2){
+      index <- 143
+      so <- retEval[[index]]$value
+      for(aa_id in seq_along(so)){
+        aa <- so[[aa_id]]
+        saveRDS(aa, file=paste0(tmpFile, "_so_", aa_id))
+      }
+    }
+    
+    if(flag3){
+      index <- 143
+      index2 <- 8
+      index3 <- 23
+      so <- retEval[[index]]$value[[index2]][[index3]]
+      for(aa_id in seq_along(so)){
+        aa <- so[[names(so)[aa_id]]]
+        saveRDS(aa, file=paste0(tmpFile, "_so_layer", aa_id))
+        aa_id <- aa_id+1
+      }
+    }
+  }
+  
+
   state <- list(retEval = retEval, retPlan = retPlan)
-  
-
 
   # Write to local
   if(encrypt){
@@ -125,6 +160,8 @@ unnestR6 <- function(state, unnestList = list()){
 
 loadSession <- function(dataModel, file, decrypt=T){
 
+  # if(global_browser) browser()
+  
   state <- NULL
   if(decrypt){
     key <- readRDS(paste0(dirname(getwd()),"/PW/key.key"))
@@ -165,7 +202,6 @@ loadSession <- function(dataModel, file, decrypt=T){
 
 
   status <- tryCatch({
-    
 
     ## Planning
     statePlan <- state$retPlan
@@ -205,7 +241,7 @@ loadSession <- function(dataModel, file, decrypt=T){
       st <- stateEval[[st_id]]
       loadSingleObject(objList[[st_id]], st, objList, stateEval)
     }
- 
+   
     dataModel$setInstance(objList[[as.character(dataModelUUID)]])
     
     #write excelTable from cPIDM

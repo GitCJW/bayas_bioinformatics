@@ -18,7 +18,7 @@ init_home_page <- function(input, output, session, image_folder){
           ),
           tags$a(
             style="flex:1; margin-top:25px;",
-            "BAYAS Bayesian analysis simplified (Drawing of Baya weaver birds or Bayas)",
+            "BAYAS = Bayesian analysis simplified (Drawing of Baya weaver birds or Bayas)",
             href="https://en.wikipedia.org/wiki/Baya_weaver#Gallery",
             target="_blank"
           )
@@ -125,6 +125,10 @@ init_home_page <- function(input, output, session, image_folder){
     
   })
   
+  observeEvent(input$feedbackText , {
+    shinyFeedback::feedback(inputId="feedbackText", show=F)
+  })
+  
   #Submit feedback
   observeEvent(input$submitFeedback, {
     if(!is.null(input$checkFeedback) || (!is.null(input$feedbackText) && input$feedbackText != "")){
@@ -158,20 +162,10 @@ init_home_page <- function(input, output, session, image_folder){
         smtp=mailControl, authenticate =T
       )
       
-     # createAlert(session=session, anchorId="feedbackDivAlert",
-     #             content="Thank you!",
-     #             append = F)
-
+      shinyFeedback::feedback(inputId="feedbackText", show=T, text="Thank you!", 
+                              color=BAYAS_COLORS$`--bs-btn-bg`)
     }
   })
-  
-  # #Submit feedback from modal
-  # observeEvent(input$feedbackModalConfirm, {
-  #   if(!is.null(input$checkFeedback)){
-  #     
-  #   }
-  #   removeModal()
-  # })
   
   
   # Walkthrough video
@@ -181,7 +175,7 @@ init_home_page <- function(input, output, session, image_folder){
         walkthroughVideo_modal(),
         title = "Walkthrough videos",
         footer = modalButton("Cancel"),
-        size = "l",
+        size = "xl",
         easyClose = T
       )
     )

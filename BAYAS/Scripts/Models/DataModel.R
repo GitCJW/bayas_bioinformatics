@@ -7,9 +7,11 @@ DataModel <- R6Class(
   private = list(
     stateVersion = "0.1",
 
-    #DataModelInputData containing all information about the raw input and converted data
+    #DataModelInputData contains all information about the raw input and converted data
     dataModelInputData = NULL,
     
+    #DataModelImportData contains all the information about step-by-step long format conversion.
+    dataModelImportData = NULL,
     
     #DataModelPlotModel Plot history
     dataModelPlotModel = NULL,
@@ -68,6 +70,13 @@ DataModel <- R6Class(
     },
     getDataModelInputData = function(){
       return(private$dataModelInputData)
+    },
+    
+    setDataModelImportData = function(dataModelImportData){
+      private$dataModelImportData <- dataModelImportData
+    },
+    getDataModelImportData = function(){
+      return(private$dataModelImportData)
     },
     
     setDataModelPlotModel = function(dataModelPlotModel){
@@ -287,13 +296,13 @@ DataModel <- R6Class(
       #R6 
       private$dataModelInputData$setInstance(instance$getDataModelInputData()$getInstance(dataModel=self))
       private$dataModelPlotModel$setInstance(instance$getDataModelPlotModel()$getInstance(dataModel=self))
-      inst <- instance$get.cPerIterationDataModel()$getInstance(id=NULL, dataModel=self)
+      inst <- instance$get.cPerIterationDataModel()$getInstance(id=NULL)
       private$cPerIterationDataModel$setInstance(inst, dataModel=self, removeSelcetedBAYSISModel=T)
       private$reportProgressModel$setInstance(instance$get.reportProgressModel()$getInstance())
       
       private$perIterationDataModels <- list()
       for(aa in instance$get.perIterationDataModels()){
-        private$perIterationDataModels <- list.append(private$perIterationDataModels, aa$getInstance(id=NULL, dataModel=self))
+        private$perIterationDataModels <- list.append(private$perIterationDataModels, aa$getInstance(id=NULL))
       }
       
       self$triggerReactiveValues()

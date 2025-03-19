@@ -1,5 +1,6 @@
 # Extend the list of characterstic with 'VAR' for variable/changeable
 cEnum <- characteristicEnum()
+dEnum <- distributionEnum()
 cEnum$VAR <- 'VAR'
 
 # GLM with binomial distribution
@@ -10,7 +11,7 @@ GLMNegBinomialStanModel <- R6Class(classname = "GLMNegBinomialStanModel",
                                 public = list(
                                   id = 5,
                                   display_name = 'GLM - Negative Binomial distribution',
-                                  description = 'The negative binomial distriubtion could be used as a overdispersed poisson.
+                                  description = 'The negative binomial distriubtion could be used as an overdispersed poisson.
                                   \nYour response variable should be discrete and have a lower limit of 0 and an upper limit of INF. Please make sure that your (theoretical) limits makes sense.',
                                   is.discrete = T,
                                   
@@ -40,7 +41,7 @@ GLMNegBinomialStanModel <- R6Class(classname = "GLMNegBinomialStanModel",
                                                                    cNum$Continuous, "VAR", "VAR",
                                                                    NULL, 
                                                                    FactoryDistribution(name="RegCoefDist",dist=dEnum$Normal, adjustable=T, is.vector=F),
-                                                                   c(dEnum$Normal,dEnum$StudentT,dEnum$Cauchy))
+                                                                   c(dEnum$Normal,dEnum$StudentT,dEnum$Cauchy,dEnum$Horseshoe))
                                     )
                                     self$avail_predictor = list(
                                       Intercept = ModelPredictor$new("Intercept", -1, NULL, "It is recommended to use one. But also legit without one.", T,
@@ -160,7 +161,7 @@ GLMNegBinomialStanModel <- R6Class(classname = "GLMNegBinomialStanModel",
                                         para <- p$modelParameter
                                         if(para$is.vector){
                                           for(d in para$distributions){
-                                            if(is.null(d$element_name)) stop("Still null...") 
+                                            if(localUse && is.null(d$element_name)) stop("Still null...") 
                                             if(d$element_name %in% element_name){
                                               index <- match(d$element_name, element_name)
                                               prior_list[[index]] <- d$getPrior()
@@ -168,7 +169,7 @@ GLMNegBinomialStanModel <- R6Class(classname = "GLMNegBinomialStanModel",
                                           }
                                         }else{
                                           d <- para$distribution
-                                          if(is.null(d$element_name)) stop("Still null...") 
+                                          if(localUse && is.null(d$element_name)) stop("Still null...") 
                                           # e_n <- c("A","B")
                                           # each_permut <- permutations(2,2,e_n)
                                           # s <- sapply(1:length(each_permut[,1]),function(i){paste0(each_permut[i,],collapse = ":")})
@@ -185,28 +186,7 @@ GLMNegBinomialStanModel <- R6Class(classname = "GLMNegBinomialStanModel",
                                         }
                                       }
                                       #cast list to single distribution with vector of distribution parameters
-                                      if(length(prior_list)==0){
-                                        return(NULL)
-                                      }else if(length(prior_list)==1){
-                                        return(prior_list[[1]])
-                                      }else {
-                                        first <- prior_list[[1]]
-                                        ret <- list(dist = first$dist, df = first$df, location = first$location, scale = first$scale, 
-                                                    autoscale = first$autoscale)
-                                        for(e_i in 2:length(prior_list)){
-                                          e <- prior_list[[e_i]]
-                                          if(!is.na(e$df)){
-                                            ret$df <- c(ret$df,e$df)
-                                          }
-                                          if(!is.na(e$location)){
-                                            ret$location <- c(ret$location,e$location)
-                                          }
-                                          if(!is.na(e$scale)){
-                                            ret$scale <- c(ret$scale,e$scale)
-                                          }
-                                        }
-                                        return(ret)
-                                      }
+                                      return(self$getPriorAsSingleVector(prior_list))
                                     }else{
                                       stop("Wrong type selected")
                                     }
@@ -233,7 +213,7 @@ GLMNegBinomialStanModel <- R6Class(classname = "GLMNegBinomialStanModel",
                                     
                                     #get priors
                                     usedVars <- self$get_used_vars(extras=T, response=T)
-                                    order_of_elements <- colnames(as.data.frame(model.matrix(formula, self$myDataModel$getDataModelInputData()$getLongFormatVariable(usedVars, completeCases=T))) %>% 
+                                    order_of_elements <- colnames(as.data.frame(model.matrix(formula, self$myPerIterationDataModel$getDataModelInputData()$getLongFormatVariable(usedVars, completeCases=T))) %>% 
                                                                     select_if(~ !is.numeric(.) || sum(.) != 0))
                                     if(order_of_elements[1] == "(Intercept)") order_of_elements <- order_of_elements[-1]
                                     
@@ -243,7 +223,7 @@ GLMNegBinomialStanModel <- R6Class(classname = "GLMNegBinomialStanModel",
                                     prior_aux <- self$getPrior(type="aux")
                                     
                                     env <- new.env(parent = .GlobalEnv)
-                                    family <- neg_binomial_2("log")
+                                    family <- with(env, neg_binomial_2("log"))
                                     
                                     content <- list(formula=deparse1(formula), 
                                                     prior=prior,
@@ -254,6 +234,11 @@ GLMNegBinomialStanModel <- R6Class(classname = "GLMNegBinomialStanModel",
                                                     family = family,
                                                     stanParameter=stanParameter)
                                     return(content)
+                                  },
+                                  
+                                  matchAuxiliaryNames = function(name){
+                                    name[name == "Theta"] <- "reciprocal_dispersion"
+                                    return(name)
                                   },
                                   
                                   postprocessing = function(stan_result, content){
@@ -279,24 +264,24 @@ GLMNegBinomialStanModel <- R6Class(classname = "GLMNegBinomialStanModel",
                                     }else if(type=="slope"){
                                       return(paste0(
                                         "Understanding effects: For the negative binomial model with a log link function, ",
-                                        "a unit change of the predictor is identical to the change on the log(response).",
-                                        " In other words, the exponential of the effect is treated as a multiplier on the original scale.",
-                                        " A <b>slope effect</b> is either the size of the slope or the difference of two slopes."))
+                                        "a unit change of the predictor is identical to the change on the log(response). ",
+                                        "In other words, the exponential of the effect is treated as a multiplier on the original scale. ",
+                                        "A <b>slope effect</b> is either the size of the slope or the difference of two slopes."))
                                     }
                                   },
                                   effects_description_latex = function(type=c("slope","group")){
                                     if(type=="group"){
                                       return(paste0(
                                         "Understanding effects: For the negative binomial model with a log link function, ",
-                                        "a unit change of the predictor is identical to the change on the log(response).",
-                                        " In other words, the exponential of the effect is treated as a multiplier on the original scale.",
-                                        " A group effect is defined as the difference of two (inner) group predictors."))
+                                        "a unit change of the predictor is identical to the change on the log(response). ",
+                                        "In other words, the exponential of the effect is treated as a multiplier on the original scale. ",
+                                        "A group effect is defined as the difference of two (inner) group predictors."))
                                     }else if(type=="slope"){
                                       return(paste0(
                                         "Understanding effects: For the negative binomial model with a log link function, ",
-                                        "a unit change of the predictor is identical to the change on the log(response).",
-                                        " In other words, the exponential of the effect is treated as a multiplier on the original scale.",
-                                        " A slope effect is either the size of the slope or the difference of two slopes."))
+                                        "a unit change of the predictor is identical to the change on the log(response). ",
+                                        "In other words, the exponential of the effect is treated as a multiplier on the original scale. ",
+                                        "A slope effect is either the size of the slope or the difference of two slopes."))
                                     }
                                   },
                                   

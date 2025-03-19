@@ -429,19 +429,19 @@ runModel_page <- function(){
                                                  
                                                  getReportButton("reportMP", tooltip="Report the current plot."),
                                                  
-                                                 downloadPlotUI("FitPageMPPanelPlot", label=icon("download"), 
+                                                 downloadPlotUI("fitPageMPPanelPlot", label=icon("download"), 
                                                                 tooltip=tooltip$downloadMP),
                                                  
                                                  bslib::tooltip(
                                                    trigger = actionButton("removeMP", "",icon("trash")),
-                                                   tooltip$closeCurrentMP,
+                                                   HTML(tooltip$closeCurrentMP),
                                                    options = list(trigger="hover")
                                                  )
                                                )),
                                   
                                   
                                   mainPanel(width = 9,
-                                            tabsetPanel(id = "FitPageMPPanelPlot" ,type = "pills")
+                                            tabsetPanel(id = "fitPageMPPanelPlot" ,type = "pills")
                                             )
                                 )
                        )

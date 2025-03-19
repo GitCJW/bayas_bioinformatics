@@ -4,12 +4,12 @@ DataModelPlotModel <- R6Class(
   inherit = ReactiveSerializationInterface,
   
   private = list(
-    stateVersion = "0.2",
+    stateVersion = "0.3",
     
     dataModel = NULL,
     
     #next plot id
-    id = 1,
+    id = c(raw=1,pairs=1,pvp=1,mp=1,ppc=1),
     
     # Plot history of raw input plots
     # data.frame containing the name and plot
@@ -42,9 +42,10 @@ DataModelPlotModel <- R6Class(
       private$dataModel <- dataModel
     },
     
-    getNextId = function(){
-      private$id <- private$id+1
-      return(private$id-1)
+    getNextId = function(type=c("raw","pairs","pvp","mp","ppc")){
+      match.arg(type)
+      private$id[type] <- private$id[type]+1
+      return(private$id[type]-1)
     },
     
     getId = function(){
@@ -70,14 +71,16 @@ DataModelPlotModel <- R6Class(
       }
       if(!silent) self$triggerHistory(history)
     },
-    add.plot_history = function(history, plotname, id=NULL, tabTitle=NULL, plot, csvFile=NULL, silent=F){
+    add.plot_history = function(history, plotname, id=NULL, tabTitle=NULL, plot, csvFile=NULL, silent=F,
+                                mpInfo = NULL, pairsInfo = NULL, pvpInfo = NULL, ppcInfo = NULL){
       
 
       #Remove large objects for saving with rds
       plot <- removeUnnecessaryEnvInPlot(plot)
       
       newPlotObj <- list(plot_name = plotname, id = id, tabTitle = tabTitle, 
-                         plot = plot, csvFile = csvFile)
+                         plot = plot, csvFile = csvFile, mpInfo = mpInfo, pairsInfo = pairsInfo,
+                         pvpInfo = pvpInfo, ppcInfo = ppcInfo)
       
       if(history=="raw"){
         private$plot_history <- list.append(private$plot_history, newPlotObj)

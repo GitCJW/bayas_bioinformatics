@@ -39,6 +39,18 @@ ReportProgressModel <- R6Class(
       }
     },
     
+    getItemsOfPerIterationDataModel = function(id){
+      ids <- c()  
+    
+      for(i in private$recommendedItems){
+        if(equal(i$getpDIM_id(), id)) ids <- c(ids,i$getId())
+      }
+      for(i in private$items){
+        if(equal(i$getpDIM_id(), id)) ids <- c(ids,i$getId())
+      }
+      return(ids)
+    },
+    
     getItem = function(id){
       if(is.null(id)) return(NULL)
       for(i in private$recommendedItems){
@@ -74,7 +86,6 @@ ReportProgressModel <- R6Class(
         pos <- self$posOfItem(newItem, private$recommendedItems)
         if(!is.null(pos)){
           newItem$setClicked(private$recommendedItems[[pos]]$getClicked(), dontTrigger=T)
-          # self$removeMappingEntry(private$items[[pos]]$getId()) #replaced on spec by ->
           self$removeMappingEntry(private$recommendedItems[[pos]]$getId())
           
           private$recommendedItems[[pos]] <- newItem
@@ -282,6 +293,7 @@ ReportProgressModel <- R6Class(
     
     #Should called only within this class
     saveImagesOfSingleItem = function(dataModel, mCDList, item){
+
       tEnum <- reportTypeEnum()
       
       imgFileThumbnail <- item$getImgFile()

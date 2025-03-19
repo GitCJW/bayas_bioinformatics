@@ -58,7 +58,7 @@ get_ui_home <- function(){
               style = "justify-content:center; align-items:center;",
               
               tags$div(
-                style = "flex:10 0 0; min-height:0px; text-align: center;",
+                style = "flex:10 0 0; min-height:0px; display: flex; align-items: center; justify-content: center;",
                 tags$img(
                   style = "max-height:100%; cursor:pointer;user-select: none",
                   src = "Images/Home/Planning.png")
@@ -83,7 +83,7 @@ get_ui_home <- function(){
               style = "justify-content:center; align-items:center;",
               
               tags$div(
-                style = "flex:10 0 0; min-height:0px; text-align: center;",
+                style = "flex:10 0 0; min-height:0px; display: flex; align-items: center; justify-content: center;",
                 tags$img(
                   style = "max-height:100%;cursor:pointer;user-select: none",
                   src = "Images/Home/Evaluation.png")
@@ -108,7 +108,7 @@ get_ui_home <- function(){
               style = "justify-content:center; align-items:center;",
               
               tags$div(
-                style = "flex:10 0 0; min-height:0px; text-align: center;",
+                style = "flex:10 0 0; min-height:0px; display: flex; align-items: center; justify-content: center;",
                 tags$img(
                   style = "max-height:100%;cursor:pointer;user-select: none",
                   src = "Images/Home/Report.png")
@@ -206,6 +206,28 @@ get_ui_home <- function(){
         ),
         
         tags$div(
+          style="border-top: 1px solid #5555; ",
+          style="min-width:250px;",
+          style="margin: 0px 30px 0px 30px;",
+          style="flex:1;",
+          tags$h5(
+            style="margin-top:10px;",
+            "What is BAYAS?"),
+          tags$ul(
+            style="text-align:left; margin-bottom:20px;",
+            tags$li("BAYAS simplifies Bayesian analysis"),
+            tags$li("Watch walkthrough videos to learn how to use it")
+          ),
+          
+          imageButtonTitle(
+            btnId="walkthroughVideoBtn",
+            imageFile="Images/Home/Video.png",
+            title="Walkthrough videos", selected=F,
+            btnStyle="width:auto; height:auto;", imgHeight="100px")
+          
+        ),
+        
+        tags$div(
           class = "borderColor-dark",
           style="border-top: 1px solid; ",
           style="min-width:250px;",
@@ -216,11 +238,9 @@ get_ui_home <- function(){
             "What's new?"),
           tags$ul(
             style="text-align:left; margin-bottom:20px;",
-            tags$li("Planning of statisical analyses"),
+            tags$li("Planning of statistical analyses"),
             tags$li("Sample size determination"),
-            tags$li("New upload page for the 'Evaluation' tool"),
-            tags$li("Save and load sessions"),
-            tags$li("Design revision")
+            tags$li("Walkthrough videos for the 'Planning' and 'Evaluation' tools")
           ),
           actionButton(
             "subscribeToBayas", "Subscribe to newsletter", 
@@ -252,22 +272,7 @@ get_ui_home <- function(){
           tags$div(style="margin-top:15px;")
         ),
         
-        tags$div(
-          style="border-top: 1px solid #5555; ",
-          style="min-width:250px;",
-          style="margin: 0px 30px 0px 30px;",
-          style="flex:1;",
-          tags$h5(
-            style="margin-top:10px;",
-            "First time here?"),
 
-          imageButtonTitle(
-            btnId="walkthroughVideoBtn",
-            imageFile="Images/Home/Video.png",
-            title="Walkthrough videos", selected=F,
-            btnStyle="width:auto; height:auto;", imgHeight="100px")
-
-        ),
 
         
         tags$div(
@@ -281,28 +286,27 @@ get_ui_home <- function(){
   return(ui)
 }
 
-#Returns walktrough video modal
+#Returns walkthrough video modal
 walkthroughVideo_modal <- function(){
   ret <- tags$div(
     
     tags$div(
-      style = "display:flex;",
+      style = "display:flex; gap:50px;",
       tags$div(
         style ="flex:1; display:flex; justify-content: center; align-items: center; flex-direction: column;",
         tags$label("Planning"),
-        tags$video(src="Video/BAYAS_walkthrough_planning.mp4", width="75%", height="auto",
-                                controls="controls", type = "video/mp4")
+
+        getVideo(src="https://www.youtube.com/embed/rvO-A3N8E54?si=NbM3i26m1fAtPrUA",
+                 title="BAYAS walkthrough planning", width="100%", height="300px")
+        
       ),
       
       tags$div(
         style ="flex:1; display:flex; justify-content: center; align-items: center; flex-direction: column;",
         tags$label("Evaluation"),
-        tags$div(
-          style = "height:100%; display: flex; align-items: center; justify-content: center;",
-          "(coming soon)"
-        )
-        # tags$video(src="Video/BAYAS_walkthrough_planning.mp4", width="75%", height="auto",
-        #            controls="controls", type = "video/mp4")
+        getVideo(src="https://www.youtube.com/embed/aiY_5tiMl-Y?si=oI_S_poFzNqo-mDe",
+                 title="BAYAS walkthrough planning", width="100%", height="300px")
+        
       )
       
     ),
@@ -310,7 +314,8 @@ walkthroughVideo_modal <- function(){
     tags$div(
       style = "margin-top:20px;",
       tags$p("We recommend using the Picture-in-Picture ",
-             tags$i(style="font-size:2rem;",class="icon icon-PiP"), HTML(" mode to watch the walkthrough video and work in BAYAS at the same time. <br>"), 
+             tags$i(style="font-size:1.5rem; maring:0px 5px;",class="icon icon-PiP"), 
+             HTML(" mode to watch the walkthrough video and work in BAYAS at the same time. "), 
              "(You can activate it by right-clicking on the video and selecting 'Picture-in-Picture'.)")
     )
     
@@ -318,6 +323,23 @@ walkthroughVideo_modal <- function(){
   return(ret)
 }
 
+#Returns vimeo video
+getVideo <- function(src, title, width, height){
+
+  tags$div(
+    style=paste0("width:", width, "; height:", height,";"),
+    tags$iframe(
+      src=src,
+      style="width:100%; height:100%;",
+      frameborder="0",
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share",
+      referrerpolicy="strict-origin-when-cross-origin",
+      allowfullscreen=TRUE,
+      title=title
+    )
+  )
+
+}
 
 #Returns seasonal logo
 get_logo <- function(){
@@ -359,3 +381,4 @@ get_logo <- function(){
   
   return(file)
 }
+
