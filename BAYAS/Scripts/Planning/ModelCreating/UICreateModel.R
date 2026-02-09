@@ -43,15 +43,16 @@ planning_creatingModel_page <- function(){
           tags$div(
             style="margin-top:30px;",
             tags$title("Created experiments"),
+            tags$label("Experiments"),
             tags$div(
-              style="display:flex;",
+              style="display:flex;flex-wrap: wrap;",
               tags$div(
                 style="flex:10",
-                selectInput(ns("createdExperiments"), label="Experiments", 
-                            choices=c())
+                selectInput(ns("createdExperiments"), label=NULL, 
+                            choices=c(), selectize = F)
               ),
               tags$div(
-                style = "flex:1; padding:30px 5px 5px 10px;",
+                style = "flex:1; padding:5px 5px 5px 10px;",
                 title = "Copy the selected experiment",
                 tags$button(
                   id=ns("cloneExperiment"),
@@ -60,7 +61,7 @@ planning_creatingModel_page <- function(){
                   style="padding:0px; font-size:16px;")
               ),
               tags$div(
-                style="flex:1; padding:30px 5px 5px 10px;",
+                style="flex:1; padding:5px 5px 5px 10px;",
                 tags$button(
                   id=ns("removeExperiment"),
                   icon("trash"), 
@@ -349,7 +350,7 @@ planning_creatingModel_page <- function(){
                                                  ),
                                                  column(4,
                                                         bayasNumericInput(ns("globalRandomSeed"), label=NULL,
-                                                                          value=123, min=-.Machine$integer.max,
+                                                                          value=1234, min=-.Machine$integer.max,
                                                                           max=.Machine$integer.max, step=1, integer=T, 
                                                                           invalidMessage = T, invalidTooltip = T,
                                                                           class="randomizeFrequencyRandomSeedNumericInput")),

@@ -181,7 +181,6 @@ init_model_prediction_function <- function(input, output, session,
       result_tabs <- dataModel$get.model_prediction_result_tabs()
       mapping <- idWordMappingResultTabs()
       
-      
       newIds <- c()
       for(tab in result_tabs){
         
@@ -206,12 +205,23 @@ init_model_prediction_function <- function(input, output, session,
         
         pIDM <- dataModel$get.perIterationDataModel(id=tab$get.pIDMId()) #
         
-        
-        
         if(tab$get.type() == "prediction"){
+          
+          dd <- dataModel$getDataModelInputData()
+          response <- dd$getResponseVariable()
+          
+          respData <- dd$getLongFormatVariable(response$variable)
+          
+          resp_min <- min(respData)
+          resp_max <- max(respData)
+          response <- list(lower=response$lower,
+                           upper=response$upper,
+                           def_lower=resp_min,
+                           def_upper=resp_max)
           
           insertTab(ns("resultTabs"),
                     tab = model_prediction_predict_result_tab(tabId=tabId, title=title, 
+                                                              response=response,
                                                               catChoices=catChoices, catValues=catValues,  
                                                               numChoices=numChoices, numStartValues=numStartValues,
                                                               usedVarsAdd=usedVarsAdd),
@@ -268,6 +278,9 @@ init_model_prediction_function <- function(input, output, session,
   #Update result selectinput
   observe({
     mapping <- idWordMappingResultTabs()
+    
+    #If a loaded sessions contains Effects/Predictions tabs the selection wont work
+    # if(localUse) browser() 
     
     ret <- list()
     for(i in seq_len(dim(mapping)[1])){
@@ -329,6 +342,7 @@ init_model_prediction_function <- function(input, output, session,
 #all variable have to be reactive values
 modelPredictionEffectResultTabs <- function(id, numChoices, dataModel, pIDM, mPRM,
                                             global_reportProgressModel){
+  
   fit <- pIDM$get.calculated_stan_object()
   
   dMID <- pIDM$getDataModelInputData()
@@ -349,7 +363,6 @@ modelPredictionEffectResultTabs <- function(id, numChoices, dataModel, pIDM, mPR
       
       rVEffectMatrix <- reactiveVal(NULL)
       
-
       ##observe numeric inputs (if avail) for valid input and update selection type
       if(length(numChoices) > 0 ){
         lapply(1:length(numChoices), function(i){
@@ -414,15 +427,15 @@ modelPredictionEffectResultTabs <- function(id, numChoices, dataModel, pIDM, mPR
 
       
       ##observe group and slope selection
-      #remove selection if one of the opposites is choosen
+      #remove selection if one of the opposites is chosen
       observeEvent(input$selectCatVar, ignoreNULL=F, {
         
         if(is.null(input$selectCatVar)){
-          shinyjs::hide(id="dependsOnString")
+          shinyjs::hideElement(id="dependsOnString")
           
           if(length(numChoices)>0){
             sapply(1:length(numChoices), function(i){
-              shinyjs::hide(id=paste0("div-",numChoices[i]))
+              shinyjs::hideElement(id=paste0("div-",numChoices[i]))
             })
           }
           return()
@@ -435,17 +448,17 @@ modelPredictionEffectResultTabs <- function(id, numChoices, dataModel, pIDM, mPR
         numVal <- dependsOnNumeric(fit, input$selectCatVar, response=response) 
         usedNums <- numVal$used
         if(length(usedNums)>0){
-          shinyjs::show(id="dependsOnString")
+          shinyjs::showElement(id="dependsOnString")
           sapply(1:length(usedNums), function(i){
-            shinyjs::show(id=paste0("div-",usedNums[i]))
+            shinyjs::showElement(id=paste0("div-",usedNums[i]))
           })
         }else{
-          shinyjs::hide(id="dependsOnString")
+          shinyjs::hideElement(id="dependsOnString")
         }
         unusedNums <- numVal$unused
         if(length(unusedNums)>0){
           sapply(1:length(unusedNums), function(i){
-            shinyjs::hide(id=paste0("div-",unusedNums[i]))
+            shinyjs::hideElement(id=paste0("div-",unusedNums[i]))
           })
         }
       })
@@ -461,7 +474,7 @@ modelPredictionEffectResultTabs <- function(id, numChoices, dataModel, pIDM, mPR
       #given values for numeric inputs (if avail)
       #given type of matrix (pi, mean, median)
       observe({
-        
+  
         selGroup <- input$selectCatVar
         selSlope <- input$selectNumVar
         matrixType <- input$matrixValues
@@ -469,11 +482,11 @@ modelPredictionEffectResultTabs <- function(id, numChoices, dataModel, pIDM, mPR
         hdiType <- input$hdiType
         hdiRange <- input$hdiRange
 
-        if(length(numericVal) != length(numChoices) ||  any(is.na(numericVal)) ||
+        if((length(selGroup) != 0 && length(numericVal) != length(numChoices)) ||  any(is.na(numericVal)) ||
            any(is.na(as.numeric(numericVal)))){
           output$matrix <- renderDT(NULL)
           output$verbalSummary <- renderUI(tags$p("No effect selected"))
-          shinyjs::hide(id="globalEffectDiv")
+          shinyjs::hideElement(id="globalEffectDiv")
           removeCssClass("reportEffectMatrix", class="btn-primary")
           rVEffectMatrix(NULL)
           return()
@@ -481,7 +494,7 @@ modelPredictionEffectResultTabs <- function(id, numChoices, dataModel, pIDM, mPR
                  !is.null(selSlope) && (length(selSlope) > 1 || !selSlope == "")) ||
                  (is.null(selGroup) && is.null(selSlope))){
           output$verbalSummary <- renderUI(tags$p("No effect selected"))
-          shinyjs::hide(id="globalEffectDiv")
+          shinyjs::hideElement(id="globalEffectDiv")
           return()
         }
         isolate(sCell <- selectedCell())
@@ -506,7 +519,7 @@ modelPredictionEffectResultTabs <- function(id, numChoices, dataModel, pIDM, mPR
                                                               "</b>"))))
           
           output$matrix <- renderDT(NULL)
-          shinyjs::hide(id="globalEffectDiv")
+          shinyjs::hideElement(id="globalEffectDiv")
           removeCssClass("reportEffectMatrix", class="btn-primary")
           rVEffectMatrix(NULL)
           return()
@@ -525,7 +538,7 @@ modelPredictionEffectResultTabs <- function(id, numChoices, dataModel, pIDM, mPR
         output$matrix <- renderDT(dt)
         addCssClass("reportEffectMatrix", class="btn-primary")
         
-        shinyjs::show(id="globalEffectDiv")
+        shinyjs::showElement(id="globalEffectDiv")
         rVEffectMatrix(ret)
         
         #Analyse the selection to give some information
@@ -613,7 +626,7 @@ modelPredictionEffectResultTabs <- function(id, numChoices, dataModel, pIDM, mPR
             )
             output$distPlotPlaceholder <- renderUI(t)
             
-            data <-NULL
+            data <- NULL
             x_axis <- NULL
             if(sEffect$type == "Slope"){
               data <- c(sEffect$linpred$A)
@@ -802,6 +815,7 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
   
   dMID <- pIDM$getDataModelInputData()
   response <- dMID$getResponseVariable()$variable
+  responseType <- dMID$getResponseVariable()$type
   
   rstanModel <- pIDM$get.calculated_stan_object()
   
@@ -927,6 +941,17 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
           }
         }
         
+        #Is combination available in data?
+        t_new_data <- new_data[,catChoices,F]
+        sub_data <- data
+        for(i in seq_len(dim(t_new_data)[2])){
+          sub_data <- sub_data[sub_data[[names(t_new_data)[i]]] == t_new_data[[i]],,F]
+        }
+        if(dim(sub_data)[1] == 0){
+          showNotification("Can't predict data for this combination.", type="error", duration=10)
+          return()
+        }
+
         
         #If already exists
         if(mPRM$duplicate.plot_history(new_data) != 0) return()
@@ -1091,18 +1116,37 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
       cPredictionDiffTable <- reactiveVal(NULL)
       cSummary <- reactiveVal(NULL)
       cColor <- reactiveVal(NULL)
-      
 
+
+      precitions_input <- reactive({
+        list(
+          probMin = input$probOfIntervalMin,
+          probMax = input$probOfIntervalMax,
+          hdiRange=input$hdiRange
+        )
+      })
+      precitions_input_d <- precitions_input %>% debounce(500)
+
+      selectedIndexes_d <- selectedIndexes %>% debounce(500)
+      
       # Prediction Summary and distribution plot
       observe({
         
         plotType <- input$plotType
         postType <- input$postType
         hdiType <- input$hdiType
-        hdiRange <- input$hdiRange
         
-        sIndexes <- selectedIndexes()
+        pI <- precitions_input_d()
+        
+        #probability for user defined range
+        probMin <- pI$probMin
+        probMax <- pI$probMax
+        hdiRange <- pI$hdiRange
+        
+        sIndexes <- selectedIndexes_d()
+
         mean <- postType=="Mean"
+        
         
         isolate({
           if(is.null(sIndexes) || length(sIndexes)==0){
@@ -1123,19 +1167,23 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
             # cSummary(NULL)
             # cColor(NULL)
           }else{
-            
+          
             addCssClass("reportPrediction","btn-primary")
+            
+            # Is global variance selected and data is count data?
+            countData <- !mean && pIDM$get.selected_BAYSIS_stan_model()$is.discrete
+
             
             pH <- plotHistory()
             data <- list()
             colors <- c()
             indexes <- c()
             
-            summary <- data.frame(matrix(numeric(0), ncol=5))
+            summary <- data.frame(matrix(numeric(0), ncol=6))
             summary_header <- c("index", "CI_low", "median",
-                                "CI_high", "Color coding")
+                                "CI_high", "P_area", "Color coding")
             names(summary) <- summary_header
-            
+
             for(i in seq_len(length(pH))){
               plot <- pH[[i]]
               if(!plot$index %in% sIndexes) next
@@ -1145,30 +1193,29 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
               colors <- c(colors, plot$color)
               indexes <- c(indexes, plot$index)
               
-              interval <- ciOfDens(pp, hdiRange, tolower(hdiType))
-
+              interval <- ciOfDens(pp, hdiRange, tolower(hdiType), countData=countData)
+              areaProb <- probOfRange(pp, min=probMin, max=probMax, countData=countData)
+              
               tmp <- data.frame(plot$index, interval$lower,
                                 interval$center, interval$upper, 
+                                areaProb,
                                 paste0(tags$div(HTML("█"),
                                                 style=paste0("color:",plot$color,";"))))
-
+              
               
               names(tmp) <- summary_header
               summary <- rbind(summary, tmp)
             }
             
-            # Is global variance selected and data is count data?
-            countData <- !mean && pIDM$get.selected_BAYSIS_stan_model()$is.discrete
-            
-            
             plot <- NULL
             if(plotType=="Density"){
-              plot <- plotSeveralAreas(data,countData=countData, prop=hdiRange, x_axis = response, method=tolower(hdiType), colors) + 
+              plot <- plotSeveralAreas(data,countData=countData, prop=hdiRange, x_axis = response, method=tolower(hdiType), 
+                                       colors) + 
                 pIDM$get.selected_BAYSIS_stan_model()$plot_scale(x=T)
               
             }else{
               plot <- plotSeveralViolins(data, prop=hdiRange, x_axis=as.character(indexes), y_axis=response, 
-                                         method=tolower(hdiType), colors) + 
+                                         method=tolower(hdiType), colors,countData=countData) + 
                 pIDM$get.selected_BAYSIS_stan_model()$plot_scale(y=T)
             }
 
@@ -1181,6 +1228,7 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
             summary[,2] <- formatC(summary[,2], digits=4)
             summary[,3] <- formatC(summary[,3], digits=4)
             summary[,4] <- formatC(summary[,4], digits=4)
+            summary[,5] <- formatC(summary[,5], digits=4)
             
             #index, i_min, median, i_max
             dt_summary <- datatable(summary, rownames=F, escape=F, 
@@ -1278,6 +1326,10 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
                 output$differencePrediction <- renderDT(dt_prediction)
               }
               
+              
+              tt <- tooltip$modelPredictionOverlapGlobal
+              if(mean) tt <- tooltip$modelPredictionDifference
+              
               t <- tags$div(
                 style="font-weight:bold; margin: 5px 0px 5px 12px; word-wrap: break-word;",
                 
@@ -1289,7 +1341,7 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
                     trigger = icon(id="modelPredictionOverlapGlobal",name="question-circle", 
                                    style="margin:2px 0px 0px 3px;"),
                     title = "Overlapping plot",
-                    HTML(tooltip$modelPredictionOverlapGlobal),
+                    HTML(tt),
                     options = list(trigger="hover")
                   )),
                 
@@ -1417,7 +1469,7 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
 
         #value table
         cSu <- cSummary()
-        if(is.null(cSu)) browser()
+        if(is.null(cSu) && localUse) browser()
         cSu <- cSu[cSu$index %in% selectedIndexes(),1:(dim(cSu)[2]-2)]
         cnames <- colnames(cSu)
         valueTable <- datatable(cSu, rownames=F, escape=F, colnames=cnames,
@@ -1463,14 +1515,13 @@ modelPredictionPredictResultTabs <- function(id, numChoices, catChoices,
 calculateEffectMatrix <- function(selGroup, selSlope, numericVal, matrixType, 
                                   fit, response, sCell=NULL, hdiType, ci){
   
-  
   data <- data.frame()
   cnames <- list()
   
   eff <- list()
 
-  
-  if(!is.null(selGroup) && (length(selGroup) > 1 || selGroup != "")){
+  if(!is.null(selGroup) && (!is.null(selGroup) && (length(selGroup) > 1 || selGroup != ""))){
+    
     eff <- mp_effects(fit, catVar=selGroup, numVar=NULL, numVal=numericVal, 
                       response=response, "linpred") 
     eff <- group_mp_effects(eff, catVar=selGroup, numVar=selSlope)
@@ -1486,12 +1537,12 @@ calculateEffectMatrix <- function(selGroup, selSlope, numericVal, matrixType,
         } else if(j < i){
           m[j,i] <- ""
         } else{
-          m[j,i] <- str_trim(formatC(eff_diff(mps[[j]]$values,mps[[i]]$values,matrixType, hdiType=hdiType, ci=ci), digits=4))
+          m[j,i] <- str_trim(formatC(eff_diff(mps[[i]]$values,mps[[j]]$values,matrixType, hdiType=hdiType, ci=ci), digits=4))
         }
       }
     }
     data <- data.frame(m)
-  }else if(!is.null(selSlope) && selSlope != ""){
+  }else if(!is.null(selSlope) && (length(selSlope) > 1 || selSlope != "")){
     eff <- mp_effects(fit, catVar=NULL, numVar=selSlope, numVal=NULL, 
                       response=response,"linpred")
     eff <- group_mp_effects(eff, catVar=selGroup, numVar=selSlope)

@@ -84,7 +84,7 @@ model_prediction <- function(){
 
 
 model_prediction_effect_result_tab <- function(tabId, title, catChoices, numChoices, startValues){
-
+  
   ns <- NS(tabId)
 
   tabPanel(value=ns("effectTab"), title = title,
@@ -197,10 +197,25 @@ model_prediction_effect_result_tab <- function(tabId, title, catChoices, numChoi
 
 
 model_prediction_predict_result_tab <- function(tabId, title, 
+                                                response,
                                                 catChoices, catValues,  
                                                 numChoices, numStartValues,
                                                 usedVarsAdd){
   ns <- NS(tabId)
+  
+  lower <- response$lower
+  upper <- response$upper
+  if(response$lower == "-INF"){
+    lower <- .Machine$double.xmin
+  }else if(response$lower == ">0"){
+    lower <- 0
+  }
+  if(response$upper == "INF"){
+    upper <- .Machine$double.xmax
+  }else if(response$upper == "<1"){
+    upper <- 1
+  }
+
   
   tabPanel(
      value=ns("effectTab"), 
@@ -254,7 +269,24 @@ model_prediction_predict_result_tab <- function(tabId, title,
                   labelWithInfo("predictionInfoCIValue", "CI value",
                                 "CI value", tooltip$modelPredictionCIValue)),
          sliderInput(ns("hdiRange"), label=NULL, 
-                           value=0.9, min=0, max=1, step=0.01)
+                           value=0.9, min=0, max=1, step=0.01),
+         
+         tags$div(style="margin-top:15px;", 
+                  tags$label(HTML("Probability of area (P<sub>area</sub>)"))),
+         tags$div(
+           style= "display:flex; gap:5px;",
+           tags$div(
+             style = "flex:1;",
+             bayasNumericInput(ns("probOfIntervalMin"), label="from", 
+                               value = response$def_lower, min=lower, max=upper)
+           ),
+           tags$div(
+             style = "flex:1;",
+             bayasNumericInput(ns("probOfIntervalMax"), label="to", 
+                               value = response$def_upper, min=lower, max=upper)
+           )
+         )
+
   
        ),
        

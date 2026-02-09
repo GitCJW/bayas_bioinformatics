@@ -117,6 +117,9 @@ tooltip <- list(
                         "<p>The graph on the bottom left shows also the quantitites (marginal posteriors) of each parameter. The plot is also available in more detail on the separated tab \"Marginal posteriors\".</p>",
                         "</div>"), 
   
+  mpSummaryTablePIValue = paste0("<p>The threshold agains the pi-value is calculated. Default is 0.</p>"),
+  
+  labelHDI = paste0("<p>The probability mass to include in the highest density interval.</p>"),
   labelInnerHDI = paste0("<p>The probability mass to include in the inner interval.</p>"),
   labelOuterHDI = paste0("<p>The probability mass to include in the outer interval.</p>"),
   
@@ -143,6 +146,7 @@ tooltip <- list(
                                         "<p>The plot shows the distribution of overlapping values of each effect distribution pair. A value of 0 means a clear effects, while 1 means no effects.</p>",
                                         "<p>If a clear effect is desired, the distribution should be around 0.</p>"),
   
+  modelPredictionDifference = paste0("<p>The plot shows the distribution of the difference between the two effect distributions. A PI-value of 1 indicates a clear difference between the predictions, while a PI-value around 0 suggests no difference.</p>"),
   
   ### Planning
   planningExampleDataSet1 = paste0("<p>An empty dataset.</p>"),

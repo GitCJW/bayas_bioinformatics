@@ -1,7 +1,6 @@
 # plot 
 #data is a list
 plotSeveralAreas <- function(data, countData=F, prop=0.9, x_axis, method="eti", colors){
-  
   minX <- Inf
   maxX <- -Inf
   for(i in 1:length(data)){
@@ -18,7 +17,7 @@ plotSeveralAreas <- function(data, countData=F, prop=0.9, x_axis, method="eti", 
     approx_y <- approx(subData$x)
     
     #Could be NULL
-    interval <- ciOfDens(subData, prop, method)
+    interval <- ciOfDens(subData, prop, method, countData=countData)
     
     crp.rg <- colorRampPalette(c("grey",colors[i]))
     subColor <- crp.rg(7)[c(3,4,6,7)]
@@ -34,13 +33,11 @@ plotSeveralAreas <- function(data, countData=F, prop=0.9, x_axis, method="eti", 
       
       plot +
         geom_line(data=gData, mapping=aes(x=x,y=y), color=subColor[4]) +
-        # geom_area(data=gData, mapping=aes(x=x,y=y), alpha=0.5, fill=subColor[1]) +
-        # yaxis_text(FALSE) + yaxis_ticks(FALSE) + yaxis_title(FALSE) +
         scale_x_continuous(trans="log")
       
       if(!is.null(interval)){
         plot <- plot +
-          geom_segment(data=interval,aes(x=center,y=0,xend=center,yend=centerPointDens), color=subColor[3], lineWidth=1) +
+          geom_segment(data=interval,aes(x=center,y=0,xend=center,yend=centerPointDens), color=subColor[3], linewidth=1) +
           geom_segment(data=interval,aes(x=lower,y=0,xend=lower,yend=lowerDens), color=subColor[3], linewidth=1) +
           geom_segment(data=interval,aes(x=upper,y=0,xend=upper,yend=upperDens), color=subColor[3], linewidth=1) 
       }
@@ -83,7 +80,8 @@ plotSeveralAreas <- function(data, countData=F, prop=0.9, x_axis, method="eti", 
 
 
   
-plotSeveralViolins <- function(data, prop=0.9, x_axis, y_axis, method="eti", colors){
+plotSeveralViolins <- function(data, prop=0.9, x_axis, y_axis, method="eti", colors,
+                               countData){
   minX <- Inf
   maxX <- -Inf
   for(i in 1:length(data)){
@@ -95,7 +93,7 @@ plotSeveralViolins <- function(data, prop=0.9, x_axis, y_axis, method="eti", col
   for(i in 1:length(data)){
     subData <- data[[i]]
     
-    interval <- ciOfDens(subData, prop, method)
+    interval <- ciOfDens(subData, prop, method, countData=countData)
     
     crp.rg <- colorRampPalette(c("grey",colors[i]))
     subColor <- crp.rg(7)[c(3,4,6,7)]
@@ -112,10 +110,8 @@ plotSeveralViolins <- function(data, prop=0.9, x_axis, y_axis, method="eti", col
     
     if(!is.null(interval)){
       gDataHDI <- gData[gData$y >= interval$lower & gData$y <= interval$upper,]
-      gDataCenter <- gData
-      gDataCenter$sort <- abs(gDataCenter$dens - interval$centerPointDens)
-      gDataCenter <- gDataCenter[order(gDataCenter$sort),]
-      gDataCenter <- gDataCenter[1,]
+      gDataCenter <- gData[1,]
+      gDataCenter$y <- interval$center
       barData <- data.frame(x=rep(gDataHDI$x[1],2), 
                             y=range(gDataHDI$y))
       
@@ -180,16 +176,16 @@ plotMP <- function(data, prop_a=0.9, prop_b=0.9, pi =T, x_axis, method="eti", co
                                                fill=fillColorUpper,alpha=0.25, xlim =c(max(min(subData),centerPoint),max))
       plot <- plot + 
         stat_function(data=gData, fun=approx , geom ="line",color=subColor[4], xlim=c(min(subData),max(subData))) +
-        geom_segment(data=gData, x=interval_b$CI_low,y=0,xend=interval_b$CI_low,yend=lowDens, color=subColor[3], lineWidth=1) +
-        geom_segment(data=gData, x=median,y=0,xend=median,yend=medianDens, color=subColor[3], lineWidth=1) +
-        geom_segment(data=gData, x=interval_b$CI_high,y=0,xend=interval_b$CI_high,yend=highDens, color=subColor[3], lineWidth=1) +
+        geom_segment(data=gData, x=interval_b$CI_low,y=0,xend=interval_b$CI_low,yend=lowDens, color=subColor[3], linewidth=1) +
+        geom_segment(data=gData, x=median,y=0,xend=median,yend=medianDens, color=subColor[3], linewidth=1) +
+        geom_segment(data=gData, x=interval_b$CI_high,y=0,xend=interval_b$CI_high,yend=highDens, color=subColor[3], linewidth=1) +
         yaxis_text(FALSE) + yaxis_ticks(FALSE) + yaxis_title(FALSE)
       if(centerPoint > min(subData) && centerPoint < max(subData)) plot <- plot + geom_vline(xintercept=centerPoint, linetype="dashed")
     }else{
       plot <- plot + 
         stat_function(data=gData, fun = approx, geom="area", fill=subColor[1],alpha=0.5, xlim =c(interval_a$CI_low,interval_a$CI_high)) +
         stat_function(data=gData, fun = approx, geom="area", fill=subColor[2],alpha=0.5, xlim =c(interval_b$CI_low,interval_b$CI_high)) +
-        geom_segment(data=gData, x=median,y=0,xend=median,yend=medianDens, color=subColor[3], lineWidth=1) +
+        geom_segment(data=gData, x=median,y=0,xend=median,yend=medianDens, color=subColor[3], linewidth=1) +
         stat_function(data=gData, fun=approx , geom ="line",color=subColor[4], xlim=c(min(gData),max(gData))) + 
         yaxis_text(FALSE) + yaxis_ticks(FALSE) + yaxis_title(FALSE)
       if(centerPoint > min(subData) && centerPoint < max(subData)) plot <- plot + geom_vline(xintercept=centerPoint, linetype="dashed")

@@ -16,7 +16,6 @@ data_visualization_page <- function(){
           
           #Sidebar
           sidePanel = tags$div(
-            # style = "width:0px;",
             DTOutput("userInputDataTable", height="637px")
           ),
           

@@ -138,8 +138,6 @@ filter_stan_models_2 <- function(stan_models = NULL, dataModel){
   dMID <- dataModel$getDataModelInputData()
   response_var <- dMID$getResponseVariable()
   co_var <- dMID$getOtherVariables()
-  # response_var <- dataModel$get.cPerIterationDataModel()$get.users_variables(onlyResponse = T)
-  # co_var <- dataModel$get.cPerIterationDataModel()$get.users_variables(response = F)
   
   if(length(response_var[,1])==0){
     return(list(fit_models = NULL, not_recommended = NULL, 
@@ -179,8 +177,8 @@ filter_stan_models_2 <- function(stan_models = NULL, dataModel){
   #extra rules = non recommended distributions, 
   #but possible (e.g. normal for positive data): 
   #Gamma id:6   Expo id:10   normal id:1
-  if(6 %in% filtered_stan_models) not_recommended <- 10
-  if(any(c(6,10) %in% filtered_stan_models)) not_recommended <- c(10, 1)
+  # if(6 %in% filtered_stan_models) not_recommended <- 10
+  if(any(c(6,10) %in% filtered_stan_models)) not_recommended <- c(1)
   out <- setdiff(out, not_recommended)
   
   out_sort <- NULL

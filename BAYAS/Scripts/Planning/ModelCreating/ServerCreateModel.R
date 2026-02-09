@@ -358,30 +358,31 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
       selModel <- mCDList$getSelectedMcd()
       sel <- mCDList$getSelected()
       
+  
       if(is.null(sel) || sel==""){
-        hide(ns("tabResponse"))
-        hide(ns("tabVariables"))
-        hide(ns("tabPredictors"))
-        hide(ns("tabParameters"))
-        hide(ns("tabGenerateData"))
-        hide(ns("tabSSD"))
+        hideElement(ns("tabResponse"))
+        hideElement(ns("tabVariables"))
+        hideElement(ns("tabPredictors"))
+        hideElement(ns("tabParameters"))
+        hideElement(ns("tabGenerateData"))
+        hideElement(ns("tabSSD"))
         
         #remove/hide also formula, datatable, plot
-        hide(ns("divStatModel"))
-        hide(ns("divDataTable"))
-        hide(ns("divDataVisualization"))
+        hideElement(ns("divStatModel"))
+        hideElement(ns("divDataTable"))
+        hideElement(ns("divDataVisualization"))
         
       }else{
-        show(ns("tabResponse"))
-        show(ns("tabVariables"))
-        show(ns("tabPredictors"))
-        show(ns("tabParameters"))
-        show(ns("tabGenerateData"))
-        show(ns("tabSSD"))
+        showElement(ns("tabResponse"))
+        showElement(ns("tabVariables"))
+        showElement(ns("tabPredictors"))
+        showElement(ns("tabParameters"))
+        showElement(ns("tabGenerateData"))
+        showElement(ns("tabSSD"))
         
-        show(ns("divStatModel"))
-        show(ns("divDataTable"))
-        show(ns("divDataVisualization"))
+        showElement(ns("divStatModel"))
+        showElement(ns("divDataTable"))
+        showElement(ns("divDataVisualization"))
         
         #save current
         name <- cMCD$getModelName()
@@ -811,9 +812,9 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
         }
         if(dim(data)[1] > 10000){
           data <- data[1:10000,]
-          shinyjs::show(ns("datatableCuttedInfo"))
+          shinyjs::showElement(ns("datatableCuttedInfo"))
         }else{
-          shinyjs::hide(ns("datatableCuttedInfo"))
+          shinyjs::hideElement(ns("datatableCuttedInfo"))
         }
       }
       dt <- datatable(data,
@@ -863,9 +864,9 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
       
       if(dim(data)[1] > 10000){
         data <- data[1:10000,]
-        shinyjs::show(ns("datatableCuttedInfo"))
+        shinyjs::showElement(ns("datatableCuttedInfo"))
       }else{
-        shinyjs::hide(ns("datatableCuttedInfo"))
+        shinyjs::hideElement(ns("datatableCuttedInfo"))
       }
       
       DT::replaceData(proxy, data)
@@ -1106,9 +1107,9 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
       }
       
       if(step<2){
-        hide(ns("planningModalBack"))
+        hideElement(ns("planningModalBack"))
       }else{
-        show(ns("planningModalBack"))
+        showElement(ns("planningModalBack"))
       }
       output[[ns("planningModal")]] <- renderUI({
         stepDiv <- planning_creatingStepsResponse(ns, step, isolate(rvResponseName()), 
@@ -1349,14 +1350,14 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
   #   bName <- !is.null(name) && name != ""
   #   b <- c(bDist, bLink, bName)
   #   if(all(b)){
-  #     hide(ns("checklistResponseLabelAdd"))
-  #     show(ns("checklistResponseLabel"), anim=T, animType="fade")
+  #     hideElement(ns("checklistResponseLabelAdd"))
+  #     showElement(ns("checklistResponseLabel"), anim=T, animType="fade")
   #   }else if(any(b)){
-  #     hide(ns("checklistResponseLabel"))
-  #     show(ns("checklistResponseLabelAdd"), anim=T, animType="fade")
+  #     hideElement(ns("checklistResponseLabel"))
+  #     showElement(ns("checklistResponseLabelAdd"), anim=T, animType="fade")
   #   }else{
-  #     hide(ns("checklistResponseLabel"))
-  #     hide(ns("checklistResponseLabelAdd"), anim=T, animType="fade")
+  #     hideElement(ns("checklistResponseLabel"))
+  #     hideElement(ns("checklistResponseLabelAdd"), anim=T, animType="fade")
   #   }
   # })
   
@@ -1647,16 +1648,16 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
               dist$plotValues(values2=dist$getValues())
             )
             removeCssClass(ns("variableSetValues"), class="btn-primary")
-            shinyjs::show(ns("variableValuesPlot"))
+            shinyjs::showElement(ns("variableValuesPlot"))
           }else{
             addCssClass(ns("variableSetValues"), class="btn-primary")
             output[[ns("variableValuesPlot")]] <- renderPlot(NULL)
-            shinyjs::hide(ns("variableValuesPlot"))
+            shinyjs::hideElement(ns("variableValuesPlot"))
           }
           output[[ns("variableValuesTable")]] <- renderDT(NULL)
           output[[ns("variableValues")]] <- renderUI(NULL)
-          shinyjs::hide(ns("variableValuesTable"))
-          shinyjs::hide(ns("variableValues"))
+          shinyjs::hideElement(ns("variableValuesTable"))
+          shinyjs::hideElement(ns("variableValues"))
         }else if(oV$getType() == "categorical"){
           output[[ns("variableValuesPlot")]] <- renderPlot(NULL)
           output[[ns("variableValues")]] <- renderUI(NULL)
@@ -1671,9 +1672,9 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           }
           removeCssClass(ns("variableSetValues"), class="btn-primary")
           
-          shinyjs::hide(ns("variableValuesPlot"))
-          shinyjs::show(ns("variableValuesTable"))
-          shinyjs::hide(ns("variableValues"))
+          shinyjs::hideElement(ns("variableValuesPlot"))
+          shinyjs::showElement(ns("variableValuesTable"))
+          shinyjs::hideElement(ns("variableValues"))
         }
       }else{
         if(!is.null(oV)){
@@ -1685,9 +1686,9 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
         output[[ns("variableValues")]] <- renderUI(NULL)
         output[[ns("variableValuesTable")]] <- renderDT(NULL)
         
-        shinyjs::hide(ns("variableValuesPlot"))
-        shinyjs::hide(ns("variableValues"))
-        shinyjs::hide(ns("variableValuesTable"))
+        shinyjs::hideElement(ns("variableValuesPlot"))
+        shinyjs::hideElement(ns("variableValues"))
+        shinyjs::hideElement(ns("variableValuesTable"))
       }
       
     })
@@ -1807,9 +1808,9 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
       }
       
       if(step<2){
-        hide(ns("planningOtherVariableModalBack"))
+        hideElement(ns("planningOtherVariableModalBack"))
       }else{
-        show(ns("planningOtherVariableModalBack"))
+        showElement(ns("planningOtherVariableModalBack"))
       }
       output[[ns("planningModalOtherVariable")]] <- renderUI({
         
@@ -2048,12 +2049,12 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
   observeEvent(input[[ns("otherVariableDistributionParameterCheckbox")]], {
     dist <- rvOtherVariableDist()
     if(!input[[ns("otherVariableDistributionParameterCheckbox")]]){
-      show(ns("otherVariableDistributionParameter"))
-      hide(ns("otherVariableDistributionParameterAlt"))
+      showElement(ns("otherVariableDistributionParameter"))
+      hideElement(ns("otherVariableDistributionParameterAlt"))
       dist$setUseAlternative(F)
     }else{
-      show(ns("otherVariableDistributionParameterAlt"))
-      hide(ns("otherVariableDistributionParameter"))
+      showElement(ns("otherVariableDistributionParameterAlt"))
+      hideElement(ns("otherVariableDistributionParameter"))
       dist$setUseAlternative(T)
     }
     rvOtherVariableDist(dist)
@@ -2063,29 +2064,29 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
   ##Switch between value and variable
   sapply(1:3, function(i){
     observeEvent(input[[ns(paste0("otherVariableDistributionParameterSwitch",i,"-value"))]], {
-      show(ns(paste0("otherVariableDistributionParameterDiv",i)))
-      hide(ns(paste0("otherVariableDistributionParameterVarDiv",i)))
+      showElement(ns(paste0("otherVariableDistributionParameterDiv",i)))
+      hideElement(ns(paste0("otherVariableDistributionParameterVarDiv",i)))
       dist <- rvOtherVariableDist()
       dist$setParameterType(i, "value")
       rvOtherVariableDist(dist)
     })
     observeEvent(input[[ns(paste0("otherVariableDistributionParameterSwitch",i,"-variable"))]], {
-      hide(ns(paste0("otherVariableDistributionParameterDiv",i)))
-      show(ns(paste0("otherVariableDistributionParameterVarDiv",i)))
+      hideElement(ns(paste0("otherVariableDistributionParameterDiv",i)))
+      showElement(ns(paste0("otherVariableDistributionParameterVarDiv",i)))
       dist <- rvOtherVariableDist()
       dist$setParameterType(i, "variable")
       rvOtherVariableDist(dist)
     })
     observeEvent(input[[ns(paste0("otherVariableDistributionParameterAltSwitch",i,"-value"))]], {
-      show(ns(paste0("otherVariableDistributionParameterAltDiv",i)))
-      hide(ns(paste0("otherVariableDistributionParameterAltVarDiv",i)))
+      showElement(ns(paste0("otherVariableDistributionParameterAltDiv",i)))
+      hideElement(ns(paste0("otherVariableDistributionParameterAltVarDiv",i)))
       dist <- rvOtherVariableDist()
       dist$setParameterType(i, "value", T)
       rvOtherVariableDist(dist)
     })
     observeEvent(input[[ns(paste0("otherVariableDistributionParameterAltSwitch",i,"-variable"))]], {
-      hide(ns(paste0("otherVariableDistributionParameterAltDiv",i)))
-      show(ns(paste0("otherVariableDistributionParameterAltVarDiv",i)))
+      hideElement(ns(paste0("otherVariableDistributionParameterAltDiv",i)))
+      showElement(ns(paste0("otherVariableDistributionParameterAltVarDiv",i)))
       dist <- rvOtherVariableDist()
       dist$setParameterType(i, "variable", T)
       rvOtherVariableDist(dist)
@@ -2127,7 +2128,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           shinyjs::removeCssClass(ns(paste0("otherVariableDistributionParameterVarDiv",i)),
                                   "selectInputDangerInput")
 
-          hide(ns(paste0("otherVariableDistributionParameterVarDivPopoverDiv",i)))
+          hideElement(ns(paste0("otherVariableDistributionParameterVarDivPopoverDiv",i)))
           
         }else if(valid$valid=="warning"){
           #set dependency to other variable to distribution parameter
@@ -2143,7 +2144,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           shinyjs::addCssClass(ns(paste0("otherVariableDistributionParameterVarDiv",i)),
                                "selectInputDangerInput")
           
-          show(ns(paste0("otherVariableDistributionParameterVarDivPopoverDiv",i)))
+          showElement(ns(paste0("otherVariableDistributionParameterVarDivPopoverDiv",i)))
           bslib::update_popover(
             id=ns(paste0("otherVariableDistributionParameterVarDivPopover",i)),
             title="Invalid variable",
@@ -2161,7 +2162,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           shinyjs::removeCssClass(ns(paste0("otherVariableDistributionParameterVarDiv",i)),
                                   "selectInputDangerInput")
           
-          show(ns(paste0("otherVariableDistributionParameterVarDivPopoverDiv",i)))
+          showElement(ns(paste0("otherVariableDistributionParameterVarDivPopoverDiv",i)))
           bslib::update_popover(
             id=ns(paste0("otherVariableDistributionParameterVarDivPopover",i)),
             title="Invalid variable",
@@ -2205,7 +2206,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           shinyjs::removeCssClass(ns(paste0("otherVariableDistributionParameterAltVarDiv",i)),
                                   "selectInputDangerInput")
           
-          hide(ns(paste0("otherVariableDistributionParameterAltVarDivPopoverDiv",i)))
+          hideElement(ns(paste0("otherVariableDistributionParameterAltVarDivPopoverDiv",i)))
         }else if(valid$valid=="warning"){
           #set dependency to other variable to distribution parameter
           dist$setParameterValue(i, input[[ns(paste0("otherVariableDistributionParameterAltVar",i))]],
@@ -2222,7 +2223,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           shinyjs::addCssClass(ns(paste0("otherVariableDistributionParameterAltVarDiv",i)),
                                "selectInputDangerInput")
 
-          show(ns(paste0("otherVariableDistributionParameterAltVarDivPopoverDiv",i)))
+          showElement(ns(paste0("otherVariableDistributionParameterAltVarDivPopoverDiv",i)))
           bslib::update_popover(
             id=ns(paste0("otherVariableDistributionParameterAltVarDivPopover",i)),
             title="Invalid variable",
@@ -2241,7 +2242,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           shinyjs::removeCssClass(ns(paste0("otherVariableDistributionParameterAltVarDiv",i)),
                                   "selectInputDangerInput")
           
-          show(ns(paste0("otherVariableDistributionParameterAltVarDivPopoverDiv",i)))
+          showElement(ns(paste0("otherVariableDistributionParameterAltVarDivPopoverDiv",i)))
           bslib::update_popover(
             id=ns(paste0("otherVariableDistributionParameterAltVarDivPopover",i)),
             title="Invalid variable",
@@ -2375,18 +2376,18 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
     if(is.null(dist)) return()
     catModel <- rvOtherVariableCategorical()
     if(dist == "explicit"){
-      show(ns("otherVariableCatIndependentValuesDistributedDiv"))
+      showElement(ns("otherVariableCatIndependentValuesDistributedDiv"))
       valFreq <- input[[ns("otherVariableCatIndependentValuesDistributed")]]
       valFreq_s <- as.numeric(str_trim(str_split(valFreq,",")[[1]]))
       catModel$setValuesFrequency(valFreq_s)
       
-      hide(ns("otherVariableCatRandomSeedDiv"))
-      hide(ns("otherVariableCatRandomizeDiv"))
+      hideElement(ns("otherVariableCatRandomSeedDiv"))
+      hideElement(ns("otherVariableCatRandomizeDiv"))
     }else{
-      hide(ns("otherVariableCatIndependentValuesDistributedDiv"))
-      show(ns("otherVariableCatRandomizeDiv"))
+      hideElement(ns("otherVariableCatIndependentValuesDistributedDiv"))
+      showElement(ns("otherVariableCatRandomizeDiv"))
       if(input[[ns("otherVariableCatRandomize")]])
-        show(ns("otherVariableCatRandomSeedDiv"))
+        showElement(ns("otherVariableCatRandomSeedDiv"))
     }
     catModel$setValuesDistributed(dist)
     rvOtherVariableCategorical(catModel)
@@ -2426,22 +2427,22 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
       addCssClass(ns("otherVariableCatRandomizeSubDiv"), styleClass)
       if(input[[ns("otherVariableCatRandomize")]]){
         addCssClass(ns("otherVariableCatRandomizeHelp-par"), styleClassHint)
-        show(ns("otherVariableCatRandomizeWarning"))
+        showElement(ns("otherVariableCatRandomizeWarning"))
       }else{
         removeCssClass(ns("otherVariableCatRandomizeHelp-par"), styleClassHint)
-        hide(ns("otherVariableCatRandomizeWarning"))
+        hideElement(ns("otherVariableCatRandomizeWarning"))
       }
     }else{
       removeCssClass(ns("otherVariableCatRandomizeHelp-par"), styleClassHint)
       removeCssClass(ns("otherVariableCatRandomizeSubDiv"), styleClass)
-      hide(ns("otherVariableCatRandomizeWarning"))
+      hideElement(ns("otherVariableCatRandomizeWarning"))
     }
     
     
     if(input[[ns("otherVariableCatRandomize")]] && randAvail$valid){
-      show(ns("otherVariableCatRandomSeedDiv"))
+      showElement(ns("otherVariableCatRandomSeedDiv"))
     }else{
-      hide(ns("otherVariableCatRandomSeedDiv"))
+      hideElement(ns("otherVariableCatRandomSeedDiv"))
     }
     catModel <- rvOtherVariableCategorical()
     
@@ -2480,13 +2481,13 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
       valid <- catModel$isValid(constraints=oV$getConstraints())
       if(valid$valid){
         #remove red and warning
-        shinyjs::hide(ns("otherVariableCatIndependentValuesDistributedWarning"))
+        shinyjs::hideElement(ns("otherVariableCatIndependentValuesDistributedWarning"))
         shinyjs::removeCssClass(ns("otherVariableCatIndependentValuesDistributedDiv"),
                              "textAreaOtherVariableFreqInvalid")
         output[[ns("otherVariableCatIndependentValuesDistributedWarningText")]] <- renderText(NULL)
       }else{
         #add red and warning
-        shinyjs::show(ns("otherVariableCatIndependentValuesDistributedWarning"))
+        shinyjs::showElement(ns("otherVariableCatIndependentValuesDistributedWarning"))
         shinyjs::addCssClass(ns("otherVariableCatIndependentValuesDistributedDiv"),
                              "textAreaOtherVariableFreqInvalid")
         output[[ns("otherVariableCatIndependentValuesDistributedWarningText")]] <- renderText(
@@ -2583,15 +2584,15 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
         addCssClass(ns("otherVariableSubgroupCatRandomizeSubDiv"), styleClass)
         if(input[[ns("otherVariableSubgroupCatRandomize")]]){
           addCssClass(ns("otherVariableSubgroupCatRandomizeHelp-par"), styleClassHint)
-          show(ns("otherVariableSubgroupCatRandomizeWarning"))
+          showElement(ns("otherVariableSubgroupCatRandomizeWarning"))
         }else{
           removeCssClass(ns("otherVariableSubgroupCatRandomizeHelp-par"), styleClassHint)
-          hide(ns("otherVariableSubgroupCatRandomizeWarning"))
+          hideElement(ns("otherVariableSubgroupCatRandomizeWarning"))
         }
       }else{
         removeCssClass(ns("otherVariableSubgroupCatRandomizeHelp-par"), styleClassHint)
         removeCssClass(ns("otherVariableSubgroupCatRandomizeSubDiv"), styleClass)
-        hide(ns("otherVariableSubgroupCatRandomizeWarning"))
+        hideElement(ns("otherVariableSubgroupCatRandomizeWarning"))
       }
       
       
@@ -2625,10 +2626,10 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
     catModel$setValues(val_s)
     
     if(inp){
-      show(ns("otherVariableSubgroupElements"))
+      showElement(ns("otherVariableSubgroupElements"))
       addCssClass(ns("otherVariableSubgroupCreateDiv"), "otherVariableSubgroupExplicit")
     }else{
-      hide(ns("otherVariableSubgroupElements"))
+      hideElement(ns("otherVariableSubgroupElements"))
       removeCssClass(ns("otherVariableSubgroupCreateDiv"), "otherVariableSubgroupExplicit")
     }
     rvOtherVariableCategorical(catModel)
@@ -2777,7 +2778,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
     if(is.null(dist)) return()
     catModel <- rvOtherVariableCategorical()
     if(dist == "explicit"){
-      show(ns("otherVariableSubgroupCatIndependentValuesDistributedDiv"))
+      showElement(ns("otherVariableSubgroupCatIndependentValuesDistributedDiv"))
       valFreq <- input[[ns("otherVariableSubgroupCatIndependentValuesDistributed")]]
       valFreq_s <- as.numeric(str_trim(str_split(valFreq,",")[[1]]))
       if(catModel$getSubgroupExplicit()){
@@ -2787,19 +2788,19 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
         catModel$setValuesFrequency(valFreq_s)
       }
       
-      hide(ns("otherVariableSubgroupCatRandomSeedDiv"))
-      hide(ns("otherVariableSubgroupCatRandomizeDiv"))
+      hideElement(ns("otherVariableSubgroupCatRandomSeedDiv"))
+      hideElement(ns("otherVariableSubgroupCatRandomizeDiv"))
     }else{
       val <- input[[ns("otherVariableSubgroupCatIndependentValues")]]
       val_s <- str_trim(str_split(val, ",")[[1]])
       valFreq <- rep(1,length(val_s))
       updateTextAreaInput(session, ns("otherVariableSubgroupCatIndependentValuesDistributed"), 
                           value=paste0(valFreq, collapse=", "))
-      hide(ns("otherVariableSubgroupCatIndependentValuesDistributedDiv"))
+      hideElement(ns("otherVariableSubgroupCatIndependentValuesDistributedDiv"))
       
-      show(ns("otherVariableSubgroupCatRandomizeDiv"))
+      showElement(ns("otherVariableSubgroupCatRandomizeDiv"))
       if(input[[ns("otherVariableSubgroupCatRandomize")]])
-        show(ns("otherVariableSubgroupCatRandomSeedDiv"))
+        showElement(ns("otherVariableSubgroupCatRandomSeedDiv"))
     }
     if(catModel$getSubgroupExplicit()){
       el <- input[[ns("otherVariableSubgroupElements")]]
@@ -2863,21 +2864,21 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
       addCssClass(ns("otherVariableSubgroupCatRandomizeSubDiv"), styleClass)
       if(input[[ns("otherVariableSubgroupCatRandomize")]]){
         addCssClass(ns("otherVariableSubgroupCatRandomizeHelp-par"), styleClassHint)
-        show(ns("otherVariableSubgroupCatRandomizeWarning"))
+        showElement(ns("otherVariableSubgroupCatRandomizeWarning"))
       }else{
         removeCssClass(ns("otherVariableSubgroupCatRandomizeHelp-par"), styleClassHint)
-        hide(ns("otherVariableSubgroupCatRandomizeWarning"))
+        hideElement(ns("otherVariableSubgroupCatRandomizeWarning"))
       }
     }else{
       removeCssClass(ns("otherVariableSubgroupCatRandomizeHelp-par"), styleClassHint)
       removeCssClass(ns("otherVariableSubgroupCatRandomizeSubDiv"), styleClass)
-      hide(ns("otherVariableSubgroupCatRandomizeWarning"))
+      hideElement(ns("otherVariableSubgroupCatRandomizeWarning"))
     }
     
     if(input[[ns("otherVariableSubgroupCatRandomize")]] && randAvail$valid){
-      show(ns("otherVariableSubgroupCatRandomSeedDiv"))
+      showElement(ns("otherVariableSubgroupCatRandomSeedDiv"))
     }else{
-      hide(ns("otherVariableSubgroupCatRandomSeedDiv"))
+      hideElement(ns("otherVariableSubgroupCatRandomSeedDiv"))
     }
     
     if(catModel$getSubgroupExplicit()){
@@ -2941,13 +2942,13 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
       }
       if(valid$valid){
         #remove red and warning
-        shinyjs::hide(ns("otherVariableSubgroupCatIndependentValuesDistributedWarning"))
+        shinyjs::hideElement(ns("otherVariableSubgroupCatIndependentValuesDistributedWarning"))
         shinyjs::removeCssClass(ns("otherVariableSubgroupCatIndependentValuesDistributedDiv"),
                                 "textAreaOtherVariableSubgroupFreqInvalid")
         output[[ns("otherVariableSubgroupCatIndependentValuesDistributedWarningText")]] <- renderText(NULL)
       }else{
         #add red and warning
-        shinyjs::show(ns("otherVariableSubgroupCatIndependentValuesDistributedWarning"))
+        shinyjs::showElement(ns("otherVariableSubgroupCatIndependentValuesDistributedWarning"))
         shinyjs::addCssClass(ns("otherVariableSubgroupCatIndependentValuesDistributedDiv"),
                              "textAreaOtherVariableSubgroupFreqInvalid")
         output[[ns("otherVariableSubgroupCatIndependentValuesDistributedWarningText")]] <- renderText(
@@ -3846,7 +3847,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
             
             if(!para$getUseSameDistForAllSubs() && length(para$getSubs())>1){
               output[[ns("parameterValueOverviewPlot")]] <- renderPlot(ggplot())
-              hide(ns("parameterValueOverviewPlot"))
+              hideElement(ns("parameterValueOverviewPlot"))
               
               text <- paste0(text, " This parameter is a vector.",
                              " Currently, all sub parameters may use different generation and prior distributions.",
@@ -3857,7 +3858,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
             }
             
             output[[ns("parameterInfo")]] <- renderUI(wellPanel(style="padding: 6px 12px;"))
-            show(ns("parameterValueOverviewPlot"))
+            showElement(ns("parameterValueOverviewPlot"))
             output[[ns("parameterValueOverviewPlot")]] <- renderPlot(sub$getPlot())
           }else{
             
@@ -3928,7 +3929,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
               output[[ns("parameterInfo")]] <- renderUI(wellPanel(style="padding: 6px 12px;",HTML(text)))
             }
 
-            show(ns("parameterValueOverviewPlot"))
+            showElement(ns("parameterValueOverviewPlot"))
             output[[ns("parameterValueOverviewPlot")]] <- renderPlot(sub$getPlot())
           }
         }
@@ -4096,18 +4097,18 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           if("ModelCreatingDataParameter" %in% class(sub)){
             sub <- paraDistGlobal()
             if(length(parameter$getSubs()) > 1){
-              show(ns("parameterModalSameValuePrior"))
+              showElement(ns("parameterModalSameValuePrior"))
               if(input[[ns("parameterModalSameValuePrior")]]){
                 enable(ns("parameterModalGenPriorUI"))
               }else{
                 disable(ns("parameterModalGenPriorUI"))
               }
             }else{
-              hide(ns("parameterModalSameValuePrior"))
+              hideElement(ns("parameterModalSameValuePrior"))
               enable(ns("parameterModalGenPriorUI"))
             }
           }else{
-            hide(ns("parameterModalSameValuePrior"))
+            hideElement(ns("parameterModalSameValuePrior"))
             enable(ns("parameterModalGenPriorUI"))
           }
           
@@ -4290,8 +4291,8 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
         if(input[[ns("parameterModalGenDist")]] != subDist$getName()) return()
         
         if(!input[[ns("parameterModalGenDistParaCheckbox")]]){
-          show(ns("parameterModalGenDistPara"))
-          hide(ns("parameterModalGenDistParaAlt"))
+          showElement(ns("parameterModalGenDistPara"))
+          hideElement(ns("parameterModalGenDistParaAlt"))
           subDist$setUseAlternative(F)
           
           distPara <- subDist$getParameter()
@@ -4300,8 +4301,8 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
                                     value=distPara[[i]]$value)
           })
         }else{
-          show(ns("parameterModalGenDistParaAlt"))
-          hide(ns("parameterModalGenDistPara"))
+          showElement(ns("parameterModalGenDistParaAlt"))
+          hideElement(ns("parameterModalGenDistPara"))
           subDist$setUseAlternative(T)
 
           distPara <- subDist$getAlternativeParameter()
@@ -4331,12 +4332,12 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
         if(input[[ns("parameterModalPriorDist")]] != subDist$getName()) return()
         
         if(!input[[ns("parameterModalPriorDistParaCheckbox")]]){
-          show(ns("parameterModalPriorDistPara"))
-          hide(ns("parameterModalPriorDistParaAlt"))
+          showElement(ns("parameterModalPriorDistPara"))
+          hideElement(ns("parameterModalPriorDistParaAlt"))
           subDist$setUseAlternative(F)
         }else{
-          show(ns("parameterModalPriorDistParaAlt"))
-          hide(ns("parameterModalPriorDistPara"))
+          showElement(ns("parameterModalPriorDistParaAlt"))
+          hideElement(ns("parameterModalPriorDistPara"))
           subDist$setUseAlternative(T)
         }
         paraDistGlobal(paraGlobal)
@@ -4841,11 +4842,23 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
     })
     
     observeEvent(input[[ns("sampleSizeUnitVar")]], {
+      lockUpdate(F)
       cMCD$setGenerateData(input[[ns("sampleSizeUnitVar")]], "ssuVar")
     })
+    
+    # updateSSU <- reactive({
+    #   input[[ns("sampleSizeUnitNumber")]]
+    # })
+    # updateSSU_d <- updateSSU %>% debounce(debounceTime3) 
     observeEvent(input[[ns("sampleSizeUnitNumber")]], {
+      lockUpdate(F)
       cMCD$setGenerateData(input[[ns("sampleSizeUnitNumber")]], "ssu")
     })
+    # observe({
+    #   updateSSU_d()
+    #   lockUpdate(F)
+    #   cMCD$setGenerateData(input[[ns("sampleSizeUnitNumber")]], "ssu")
+    # })
     
     
     lockUpdate <- reactiveVal(F)
@@ -4986,10 +4999,10 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
     highlightUpdateDataButton <- function(flag){
       if(flag){
         addCssClass(ns("sampleSizeUpdateData"), "btn-primary")
-        shinyjs::show(ns("dataHint"))
+        shinyjs::showElement(ns("dataHint"))
       }else{
         removeCssClass(ns("sampleSizeUpdateData"), "btn-primary")
-        hide(ns("dataHint"))
+        hideElement(ns("dataHint"))
       }
     }
     
@@ -5031,13 +5044,13 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
         samples <- c()
         if(cMCD$getValidTotalDatapoints()>10000){
           disable(ns("createDataSetAutomatically"))
-          show(ns("createDataSetAutomaticallyHint"))
+          showElement(ns("createDataSetAutomaticallyHint"))
           
           withProgress(samples <- cMCD$getMcdFormula()$drawResponeData(cMCD$getValidTotalDatapoints()),
                        message ="Draw samples ...")
         }else{
           enable(ns("createDataSetAutomatically"))
-          hide(ns("createDataSetAutomaticallyHint"))
+          hideElement(ns("createDataSetAutomaticallyHint"))
           
           samples <- cMCD$getMcdFormula()$drawResponeData(cMCD$getValidTotalDatapoints())
         }
@@ -5097,7 +5110,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           valid <- p$isValid()
           if(valid$valid == "error"){
             addCssClass(ns("sampleSizeUpdateData"), "btn-primary")
-            show(ns("dataHint"))
+            showElement(ns("dataHint"))
             return()
           }
         }
@@ -5368,8 +5381,8 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           updateCheckboxInput(session, inputId=ns("ssdInUse"), value=goal$getInUse())
           
           if(goal$getIsValid()){
-            hide(ns("parameterForSSDInfo"))
-            show(ns("ssdPlot"))
+            hideElement(ns("parameterForSSDInfo"))
+            showElement(ns("ssdPlot"))
             
             output[[ns("ssdPlot")]] <- renderPlot({
               goal$getPlot()
@@ -5377,8 +5390,8 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
             
           }else{
             #update info box 
-            hide(ns("ssdPlot"))
-            show(ns("parameterForSSDInfo"))
+            hideElement(ns("ssdPlot"))
+            showElement(ns("parameterForSSDInfo"))
             output[[ns("parameterForSSDInfo")]] <- renderUI({
               tags$div(
                 class="infoBox-light",
@@ -5502,8 +5515,8 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
       #Confirm restart - discard of current ssd
       #TODO
       
-      hide(ns("ssdStart"))
-      show(ns("ssdStop"))
+      hideElement(ns("ssdStart"))
+      showElement(ns("ssdStop"))
       
       #Open Estimate 'N' tabsetpanel
       updateTabsetPanel(session = session, 
@@ -5560,28 +5573,6 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
       stop_ssd(stopValue)
       
       ssd <- mcdSSD$getSsdObject()
-
-      # cluster <- initSSD_NGoals(strategy="sequential")
-      # ssd$intern$cluster <- cluster
-      
-      
-      # prob <- desPower
-      # alpha <- prob*(con-2)+1
-      # beta <- (1-prob)*(con-2)+1
-      # accept_HDI <- bayestestR::hdi(rbeta(1e7, alpha, beta), 0.9)
-      # accept_HDIwidth <- accept_HDI$CI_high - accept_HDI$CI_low
-      # 
-      # i_parallel <- numberOfIterationsPerStep
-      # 
-      # Incorrect
-      # furtherArgs <- list(
-      #   i_parallel=i_parallel, 
-      #   model_seed = sample(1e5,i_parallel),
-      #   accept_HDIwidth = accept_HDIwidth,
-      #   accept_HDIConcentration = con
-      # )
-      # ssd$intern$furtherArgs <- furtherArgs
-      
       
       ssd_g(ssd)
       continue_ssd(T)
@@ -5752,9 +5743,11 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           try({
             possN <- minN:maxN
 
+            if(noParallel) plan(sequential)
             ssd <- startSSDBayas(model = compiledModel, initData = initData, 
                                  powerDesired = desPower, possN = possN, 
                                  goals = goals, con = con, iParallel = i_parallel)
+            if(noParallel) ifelse(localUse,plan(sequential),plan(multisession, workers=numWorkers))
           })
 
           
@@ -5942,7 +5935,9 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
               
               ssd$intern$furtherArgs$modelSeed <- sample(1e5,ssd$intern$furtherArgs$iParallel)
               
+              if(noParallel) plan(sequential)
               newSsd <- updateSSDBayas(ssd, newData)
+              if(noParallel) ifelse(localUse,plan(sequential),plan(multisession, workers=numWorkers))
             })
             rep <- rep +1
             if(rep > 4 || !is.null(newSsd)) repeatSampling <- F
@@ -5955,8 +5950,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
             malfunction_report(code=malfunctionCode()$ssdSampling, msg="updateSSDBayas ...",
                                type="error", askForReport=T)
             if(localUse) browser()
-            # saveRDS(list(ssd=ssd, newData=newData), paste0(dirname(getwd()), "/SSD/ssd.rds"))
-            
+
             updateProgressBar(
               session=session,
               id=ns("ssdProgressBar"),
@@ -5973,7 +5967,6 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           ssd_g(ssd)
           if(!ssd$extern$continue){
             continue_ssd(F)
-            # showNotification(ssd$extern$N, duration=NULL)
             close_ssd(T)
           } 
         }else if(!is.null(ssd)){
@@ -5991,8 +5984,8 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
           
           if(globalSSDProgressBar()$getValue()==1) {
             enable(ns("ssdStop"))
-            hide(ns("ssdStop"))
-            show(ns("ssdStart"))
+            hideElement(ns("ssdStop"))
+            showElement(ns("ssdStart"))
             return()
           }
           
@@ -6006,8 +5999,8 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
                                    detail = "Close cluster")
           
           enable(ns("ssdStop"))
-          hide(ns("ssdStop"))
-          show(ns("ssdStart"))
+          hideElement(ns("ssdStop"))
+          showElement(ns("ssdStart"))
           
           ssd <- ssd_g()
           
@@ -6206,11 +6199,11 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
       observeEvent(input[[ns("ssdSwitchRopePrecision")]], {
         type <- input[[ns("ssdSwitchRopePrecision")]]
         if(type=="rope"){
-          show(ns("ropeDiv"))
-          hide(ns("precisionDiv"))
+          showElement(ns("ropeDiv"))
+          hideElement(ns("precisionDiv"))
         }else{
-          hide(ns("ropeDiv"))
-          show(ns("precisionDiv"))
+          hideElement(ns("ropeDiv"))
+          showElement(ns("precisionDiv"))
         }
         goal <- goalModal()
         goal$setType(type, trigger=F)
@@ -6435,6 +6428,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
     #Update plot
     observe({
       cMCD$getReactive("visualizeData")
+      
       isolate({
         #Update ui
         oVs <- cMCD$getOtherVariables()
@@ -6574,7 +6568,7 @@ init_creatingModel_function <- function(input, output, session, dataModel, mCDLi
       }
 
       if(!is.empty(groupBy)){
-        gg <- gg + facet_wrap(~interaction(.data[[groupBy]]))
+        gg <- gg + facet_wrap(vars(interaction(!!!rlang::syms(groupBy))))
       }
       
       tryCatch({

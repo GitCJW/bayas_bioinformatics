@@ -421,7 +421,7 @@ init_reportDefault_function <- function(input, output, session, dataModel,
       }
       
       #As latex or simple text?
-      if(!is.null(latex) && latex=="text") text <- paste0("\\begin{verbatim}\n", text, "\n\\end{verbatim}")
+      if(!is.null(latex) && latex=="text") text <- paste0("\\begin{spverbatim}\n", text, "\n\\end{spverbatim}")
       
       item$setObject(list(div=reportDiv, latex=reportLatex, model_latex=""))
       item$setBlankData(list(header=header, text=text, binding=binding))
@@ -762,12 +762,12 @@ init_reportDefault_function <- function(input, output, session, dataModel,
       updateTabsetPanel(session, ns("reportSelectedItemViewTabset"), "guidelines")
       if(i <= 6){
         if(i==1){
-          updateCollapse(session, "reportChecklistOverview", open=paste0("reportChecklistOverviewItemP",i))
+          bslib::accordion_panel_set(session=session, id="reportChecklistOverview", values=paste0("reportChecklistOverviewItemP",i))
         }else{
-          updateCollapse(session, "reportChecklistOverview", open=paste0("reportChecklistOverviewItemE",i-1))
+          bslib::accordion_panel_set(session=session, id="reportChecklistOverview", values=paste0("reportChecklistOverviewItemE",i-1))
         }
       }else{
-        updateCollapse(session, "reportChecklistOverview2", open=paste0("reportChecklistOverviewItemE",i-1))
+        bslib::accordion_panel_set(session=session, id="reportChecklistOverview2", values=paste0("reportChecklistOverviewItemE",i-1))
       }
     })
   })

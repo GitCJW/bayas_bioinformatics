@@ -102,7 +102,6 @@ ModelCreatingDataList <- R6Class(
     
     setInstance = function(model){
       self$setSelected(model$getSelected())
-      
       self$setMCDList(list())
       for(mcd_name in names(model$getMCDList())){
         mcd <- model$getMCDList()[[mcd_name]]

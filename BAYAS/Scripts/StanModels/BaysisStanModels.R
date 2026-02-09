@@ -18,7 +18,10 @@ get_all_stan_models <- function(){
   h <- GLMLogNormalStanModel$new()
   i <- GLMBetaStanModel$new()
   j <- GLMExponentialStanModel$new()
-  vector_stan_models <- c(a,b,c,d,e,f,g,h,i,j)
+  k <- BRMSBetaBinomialStanModel$new()
+  
+  #Do not change order
+  vector_stan_models <- c(a,b,c,d,e,f,g,h,i,j,k)
   
   return(vector_stan_models)
 }
@@ -774,6 +777,7 @@ BAYSISAbstractModel <- R6Class(
     #But extended in lognormal
     #EDIT: Overwritten in beta, due to errors (https://github.com/stan-dev/rstanarm/issues/407)
     make_predictions = function(stanObject, data, mean=F, draws=NULL){
+      
       stanfit <- extract_stanfit(stanObject)
       
       nDraws <- dim(as.matrix(stanfit))[1]

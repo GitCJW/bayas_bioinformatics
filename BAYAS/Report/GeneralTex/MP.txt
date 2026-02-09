@@ -1,3 +1,1 @@
-The posterior, the main outcome of Bayesian inference, is the overall probability distribution of all combinations of parameter values. 
-We can break this distribution down into so-called ``marginal posteriors'', i.e. one separate probability distribution for each parameter, 
-telling us for each value of the respective parameter the probability of that value.
+The posterior, the main outcome of Bayesian inference, is the overall probability distribution of all combinations of parameter values. We can break this distribution down into so-called ``marginal posteriors'', i.e. one separate probability distribution for each parameter, telling us for each value of the respective parameter the probability of that value.

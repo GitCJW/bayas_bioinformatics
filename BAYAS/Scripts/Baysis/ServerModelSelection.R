@@ -244,7 +244,6 @@ refreshStanModelList <- function(input, output, session, dataModel){
       i <- i+1
       flog.debug(stan_models[[index]]$display_name)
     }
-    # updateSelectInput(session = session, inputId = "selectStanModelNotAvailable", choices = choices)
 
     finalChoices <- list.append(finalChoices, choices, 'Not available')
     updateSelectInput(session = session, inputId = "selectStanModelAvailable", 
@@ -266,6 +265,7 @@ buildFormula <- function(input, output, session, dataModel){
   
   rows <- list()
   tagCount <- 1
+
   #Iterate through "FormulaElements" objects
   for(element in formula_elements){
     # Add Predictor, Prior Button?
@@ -334,14 +334,13 @@ buildFormula <- function(input, output, session, dataModel){
       }
       math <- tags$div(element$rightSide, math_divs, add2)
     }else{
-      if(is.null(element$myRemovableParameter$modalID)) element$myRemovableParameter$modalID <- modalIdObj$getNext()
-      math <- tags$div(id = paste0("setPrior2",element$myRemovableParameter$modalID),element$rightSide, style="display:inline; cursor:pointer;")
-      #add obseverEvent for "Set prior" by clicking on the formula element. Same as clicking on the "Set prior" button.
+      #add observeEvent for "Set prior" by clicking on the formula element. Same as clicking on the "Set prior" button.
       if(element$addPriorButton){
         math <- tags$div(id = paste0("setPrior2",element$myRemovableParameter$modalID),element$rightSide, style="display:inline; cursor:pointer;")
         setPriorForParameter(input, output, session, dataModel, element$myRemovableParameter)
       }else{
-        math <- tags$div(id = paste0("setPrior2",element$myRemovableParameter$modalID),element$rightSide, style="display:inline;")
+        tmpId <- modalIdObj$getNext()
+        math <- tags$div(id = paste0("setPrior2",tmpId),element$rightSide, style="display:inline;")
       } 
       
     }
@@ -1056,8 +1055,9 @@ changePriorObserver <- function(input, output, session, dataModel, para){
   }
   global.selectPriorDistribution[["finallyChangePrior"]] <<- observeEvent(input$finallyChangePrior, ignoreInit=T, {
 
-    
     auxParameter <- para$distribution_tmp$auxParameter
+
+    if(is.null(input$selectPriorDistribution)) return()
     
     #If there are warnings due to invalid inputs it is not possible to confirm
     if(distDisplayName(input$selectPriorDistribution) == dEnum$FixedValues){
@@ -1067,7 +1067,6 @@ changePriorObserver <- function(input, output, session, dataModel, para){
         showNotification("You have some invalid inputs.", type="error")
         return() 
       }
-      
     }else{
       for(auxPara in auxParameter){
         x <- input[[paste0("aux_",auxPara$name)]]
@@ -1097,7 +1096,7 @@ changePriorObserver <- function(input, output, session, dataModel, para){
       for(oPred in list_of_pred){
         #Break, if the selected is equal to the current distribution.
         #Except it is a distribution where singleParameterization is true (e.g. horseshoe prior for all coefficients).
-        if(oPred$modelParameter$distribution$name == para$distribution$name && !para$distribution$singleParameterization) next
+        if(oPred$modelParameter$distribution$dist_name == para$distribution$dist_name && !para$distribution$singleParameterization) next
         is.vector <- oPred$modelParameter$distribution$is.vector
         oPred$modelParameter$distribution <- para$distribution$getInstance()
         oPred$modelParameter$distribution$is.vector <- is.vector

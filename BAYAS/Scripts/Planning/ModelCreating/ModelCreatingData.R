@@ -31,7 +31,7 @@ ModelCreatingData <- R6Class(
      generateData = list(ssuVar=character(0), 
                          ssu=1, tdp=1),
      
-     generateSeed = 123,
+     generateSeed = 1234,
      
      generateDataAutomatically = TRUE,
      
@@ -278,7 +278,6 @@ ModelCreatingData <- R6Class(
          
          yData <- self$getMcdFormula()$drawResponeData(dim(data)[1], data)
          if(!yData[[1]]){
-           # if(localUse) browser()
          }else{
            data[[1]] <- yData[[2]]
          }
@@ -666,7 +665,7 @@ ModelCreatingData <- R6Class(
        
        id <- match(var$getId(), private$otherVariableIds) +1
        if(!ignoreAdd) self$addDataColumn(id, var$getName())
-       if(self$doRefresh()) self$refreshData()
+       if(!ignoreAdd && self$doRefresh()) self$refreshData()
      },
      
      removeOtherVariable = function(id=NULL, var=NULL){
@@ -1232,8 +1231,8 @@ ModelCreatingData <- R6Class(
      #returns all sub/occ. combinations
      getDPCombinationsForOV = function(comb, dp){
        ret <- list()
-       
        for(val in names(comb)){
+         
          if(is.empty(ret)){
            for(num in comb[[val]]){
              ret <- list.append(ret, list(val=val, num=num) )
@@ -2110,7 +2109,7 @@ ModelCreatingData <- R6Class(
          }
        }else{
          match.arg(type)
-         if(!equal0(private$visualizeData[[type]], visualizeData)){
+         if((length(private$visualizeData[[type]]) != length(visualizeData)) || !equal0(private$visualizeData[[type]], visualizeData)){
            private$visualizeData[[type]] <- visualizeData
            change <- T
          }

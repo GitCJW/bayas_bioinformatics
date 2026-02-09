@@ -1,7 +1,6 @@
 server <- function(input, output, session) {
 
   observeEvent(input$btn, {
-    
     for(i in 1:1){
       appendTab(
         inputId="uploadTabPanelPlot",
@@ -15,7 +14,6 @@ server <- function(input, output, session) {
         )
       )
     }
-    
   })
   
   output$out <- renderText(input$uploadTabPanelPlot)

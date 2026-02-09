@@ -409,7 +409,7 @@ upload_page_userData <- function(ns, disable=F, selDecSep = "point", selCellSep 
       class = "no_border_child",
       style = "width: 100%;",
       excelOutput(ns("rawInputExcel"), height="400px"),
-      hidden(uiOutput(ns("rawInputExcelErrors"), style = "width: 100%; "))
+      hidden(uiOutput(ns("rawInputExcelErrors"), style = "width: 100%; min-height:100px;"))
     )
     
   )

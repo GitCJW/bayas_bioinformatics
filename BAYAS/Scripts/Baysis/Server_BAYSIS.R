@@ -5,16 +5,16 @@ server_BAYSIS <- function(input, output, session, dataModel, global_reportProgre
   
   #Shortcut to planning and report
   observeEvent(input$sc_to_planning_from_evaluation,{
-    shinyjs::hide(id = "home_main_div")
-    shinyjs::hide(id = "baysis_main_div")
-    shinyjs::hide(id = "report_main_div")
-    shinyjs::show(id = "planning_main_div")
+    shinyjs::hideElement(id = "home_main_div")
+    shinyjs::hideElement(id = "baysis_main_div")
+    shinyjs::hideElement(id = "report_main_div")
+    shinyjs::showElement(id = "planning_main_div")
   })
   observeEvent(input$sc_to_report_from_evaluation,{
-    shinyjs::hide(id = "home_main_div")
-    shinyjs::hide(id = "planning_main_div")
-    shinyjs::hide(id = "baysis_main_div")
-    shinyjs::show(id = "report_main_div")
+    shinyjs::hideElement(id = "home_main_div")
+    shinyjs::hideElement(id = "planning_main_div")
+    shinyjs::hideElement(id = "baysis_main_div")
+    shinyjs::showElement(id = "report_main_div")
   })
   
 
@@ -77,7 +77,7 @@ server_BAYSIS <- function(input, output, session, dataModel, global_reportProgre
       if(status[[1]]){
         removeModal()
       }else{
-        show("loadBTNEvaluationFileInputTextOutputDiv")
+        showElement("loadBTNEvaluationFileInputTextOutputDiv")
         output[["loadBTNEvaluationFileInputTextOutput"]] <- renderText(status[[2]])
       }
     })
@@ -88,8 +88,8 @@ server_BAYSIS <- function(input, output, session, dataModel, global_reportProgre
 
   
   observeEvent(input$to_home_baysis, {
-    shinyjs::show(id = "home_main_div")
-    shinyjs::hide(id = "baysis_main_div")
+    shinyjs::showElement(id = "home_main_div")
+    shinyjs::hideElement(id = "baysis_main_div")
   })
   
 

@@ -1,0 +1,9 @@
+The posterior, the main outcome of Bayesian inference, is the overall probability distribution of all combinations of parameter values. We can break this distribution down into so-called ``marginal posteriors'', i.e. one separate probability distribution for each parameter, telling us for each value of the respective parameter the probability of that value.
+
+Each marginal posterior is summarized by a $95\%$-credible interval and the pi value (equation below) -- the probability of the marginal posterior having a certain direction. 
+A pi of 0 means a fifty-fifty probability of a positive or negative effect. 
+A pi of 1 means that the effect clearly lies in one direction. 
+
+\begin{equation} 
+	\pi(x) = 2 \cdot \max{ \left(  \int_{x=-\infty}^{0}  p(x) \,dx, \int_{x=0}^{\infty}  p(x) \,dx \right) } - 1
+\end{equation}

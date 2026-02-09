@@ -221,8 +221,7 @@ checkCategorical <- function(vector, convert = F){
 # E.g. y~ x1+x2+x1:x2 and vars=c("x1","x2) ; x1 and x2 categorial var with "A","B"
 # Return: x1A:x2A, x1B:x2B (and depending on data also: ) x1A:x2B, x1B:x2A
 formula_combination <- function(ft, dat, vars){
-  
-  elements <- colnames(as.data.frame(model.matrix(ft, dat)) %>% select_if(~ !is.numeric(.) || sum(.) != 0))
+  elements <- colnames(as.data.frame(model.matrix(ft, dat)) %>% select_if(~ !is.numeric(.) || (length(unique(.)) != 1 || sum(.)!= 0)))
   
   c1 <- attr(ft,"variables")
   c1_var <- trimws(str_split(toString(c1),",")[[1]][-c(1:2)])
@@ -242,10 +241,6 @@ formula_combination <- function(ft, dat, vars){
       }
     }
   }
-  # res
-  # model.matrix(ft, dat)
-  # print1("res",res)
-  
   return(res)
 }
 

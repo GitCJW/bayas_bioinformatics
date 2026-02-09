@@ -595,7 +595,6 @@ SSDGoal <- R6Class(
     # twoListFomat: from list(list(paraId,subName),...) to
     #list(paraId=c(), subName=c())
     getParameter = function(type=c("a","b"), twoListFormat, asFormulaNames){
-
       para <- NULL
       if(type=="a"){
         para <- private$parametersA
@@ -629,7 +628,7 @@ SSDGoal <- R6Class(
               # subNames <- names(subs)
               
               newName <- ""
-              if(!(length(sSubName)==1 && sSubName[[1]] == predName)){
+              # if(!(length(sSubName)==1 && sSubName[[1]] == predName)){
                 for(s_i in seq_along(sSubName)){
                   if(length(sSubName)>1 || sSubName[[1]] != ""){
                     newName <- paste0(predName,"..",sSubName[[s_i]])
@@ -638,7 +637,9 @@ SSDGoal <- R6Class(
                   }
                   newName <- gsub(":",".",newName)
                 }
-              }
+              # }else{
+              #   browser()
+              # }
               newName <- paste0("b_",newName)
               
             }else{

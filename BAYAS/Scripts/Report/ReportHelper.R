@@ -4,7 +4,7 @@ reportTypeEnum <- function(inRecommendedOrder = T) {
     list(blank="blank", 
          planningExperiment = "planningExperiment",
          preplot="preplot", formula="formula", validation="validation", 
-         previewppc="previewppc", ppc="ppc", mp="mp", pairs="pairs", pvp="pvp", 
+         previewppc="previewppc", ppc="ppc", mp="mp", mpSummary = "mpSummary", pairs="pairs", pvp="pvp", 
          priorpc="priorpc", effectMatrix = "effectMatrix", 
          singleEffect = "singleEffect", prediction = "prediction", 
          modelComparison="modelComparison")
@@ -12,7 +12,7 @@ reportTypeEnum <- function(inRecommendedOrder = T) {
     list(blank="blank",
          planningExperiment = "planningExperiment",
          preplot="preplot", formula="formula", validation="validation", 
-         previewppc="previewppc", ppc="ppc", mp="mp", pairs="pairs", pvp="pvp", 
+         previewppc="previewppc", ppc="ppc", mp="mp", mpSummary = "mpSummary", pairs="pairs", pvp="pvp", 
          priorpc="priorpc", effectMatrix = "effectMatrix", 
          singleEffect = "singleEffect", prediction = "prediction", 
          modelComparison="modelComparison")
@@ -63,6 +63,8 @@ getItemDescription <- function(objectType){
     return(readTxtFile(paste0(report_folder,"/GeneralTex/PriorPC.txt")))
   }else if(objectType == tNum$mp){
     return(readTxtFile(paste0(report_folder,"/GeneralTex/MP.txt")))
+  }else if(objectType == tNum$mpSummary){
+    return(readTxtFile(paste0(report_folder,"/GeneralTex/MPSummary.txt")))
   }else if(objectType == tNum$modelComparison){
     return(readTxtFile(paste0(report_folder,"/GeneralTex/ModelComparison.txt")))
   }else if(objectType == tNum$effectMatrix){
@@ -99,6 +101,7 @@ elementSectionMapping <- function(objType){
   if(objType == tNum$pvp) objType <- "Prior vs posterior"
   if(objType == tNum$priorpc) objType <- "Prior predictive check"
   if(objType == tNum$mp) objType <- "Marginal posteriors"
+  if(objType == tNum$mpSummary) objType <- "Summary of marginal posteriors"
   if(objType == tNum$modelComparison) objType <- "Model comparison"
   if(objType == tNum$effectMatrix) objType <- "Model effects"
   if(objType == tNum$singleEffect) objType <- "Model single effects"
@@ -334,6 +337,7 @@ formulaParameterToLatex <- function(word){
 }
 
 wordToLatexConform <- function(word){
+  word <- str_replace_all(word, "%", "\\\\%")
   word <- str_replace_all(word, "_", "\\\\_")
   word <- str_replace_all(word, "<b>", "")
   word <- str_replace_all(word, "</b>", "")
@@ -360,11 +364,11 @@ dfToLatexTable <- function(df, caption=NULL, label=NULL){
   latex <- paste0(latex, " \\begin{center} \n  \\begin{tabular}{||", ce, "||}\n  \\hline \n")
   
   # header
-  latex <- paste0(latex, "  ", paste0(wordToLatexConform(names(df)), collapse=" & "), "\\\\ \n")
+  latex <- paste0(latex, "  ", paste0(wordToLatexConform(colnames(df)), collapse=" & "), "\\\\ \n")
   latex <- paste0(latex, "  \\hline \\hline \n")
   
   colFactors <- sapply(1:ncol(df), function(i) is.factor(df[[i]]))
-  df[,colFactors] <- sapply(df[,colFactors], as.character)
+  if(any(colFactors)) df[,colFactors] <- sapply(df[,colFactors], as.character)
   # data
   data <- sapply(seq_len(dim(df)[1]), function(i){
     paste0("  ",paste0(wordToLatexConform(df[i,]), collapse=" & "), "\\\\ \n  \\hline \n")

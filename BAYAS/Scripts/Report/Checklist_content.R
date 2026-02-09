@@ -21,7 +21,7 @@ get_checklist_content <- function(){
   tmp$text <- paste0("It is good practice to show the outcome measurements. ",
                      "If possible also in dependency of the predictors. ",
                      "Use the plot function (so the grouping/facet option) in ",
-                     "the 'Data upload' section of the evaluation tool.")
+                     "the 'Data visualization' section of the evaluation tool.")
   ret$evaluation[[1]] <- tmp
   
   

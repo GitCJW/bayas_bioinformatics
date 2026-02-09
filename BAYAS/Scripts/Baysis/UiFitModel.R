@@ -204,247 +204,336 @@ runModel_page <- function(){
            style="padding:1px;",
            
            # Overview tabPanel
-           tabsetPanel(id = "runModeltabsetPanel", selected = "Overview",
-                       tabPanel( title = "Overview", 
+           tabsetPanel(
+             id = "runModeltabsetPanel", selected = "Overview",
+             
+             tabPanel(
+               title = "Overview", 
 
-                           tags$div(style="display:grid; grid-template-columns: 50% 50%;",
-                                    
-                             # Model validation
-                             tags$div(
-                               class = "borderColor-dark", 
-                               style = "border-right: 3px solid; min-height:460px; padding:5px;",
-                               tags$div(id = "center", actionLink(inputId = "runModelLinkUpperLeft", label = h5("Model validation"))),
-                               withSpinner(htmlOutput(outputId  = "runModelVerbalResult")),
-                               # htmlOutput(outputId  = "runModelVerbalResult"),
-                               getReportButton("reportModelValidation", tooltip="Report diagnostic values", 
-                                               class="",
-                                               style="float:right; margin: 5px 5px 0px 0px;")
-                             ),
-                             # Posterior predictive check
-                             tags$div(style="padding:5px;",
-                                    tags$div(id = "center", actionLink(inputId = "runModelLinkUpperRight", label = h5("Posterior predictive check of response"))),
-                                    withSpinner(plotOutput(outputId = "runModelPlotPPC"), color=BAYAS_COLORS$`--bs-btn-bg`),
-                                      getReportButton("reportPreviewPPC", 
-                                                      tooltip="Report the current PPC plot", class="",
-                                                    style="float:right; margin: 5px 5px 0px 0px;")
-                             ),
-                             # Marginal posteriors
-                             tags$div(
-                               class = "borderColor-dark", 
-                               style = "border-top: 3px solid;border-right: 3px solid; padding:5px;",
-                               tags$div(id = "center", actionLink(inputId = "runModelLinkBottomLeft", label = h5("Marginal posteriors"))),
-                               withSpinner(plotOutput(outputId = "runModelVariableSummaryPlot"))
-                             ),
-                             # Summary of marginal posteriors
-                             tags$div(
-                               class = "borderColor-dark", 
-                               style = "border-top: 3px solid; padding:5px;",
-                               tags$div(id = "center", h5("Summary of marginal posteriors")),
-                               tags$div(id = "center",
-                                        style="max-height:400px;",
-                                        withSpinner(dataTableOutput(outputId = "runModelVariableSummaryTable")))#,
-                             )
-                             
-                           )
-                       ),
-                       
-                       
-                       tabPanel(title = "Model validation",
+                 tags$div(style="display:grid; grid-template-columns: 50% 50%;",
+                          
+                   # Model validation
+                   tags$div(
+                     class = "borderColor-dark", 
+                     style = "border-right: 3px solid; min-height:460px; padding:5px;",
+                     tags$div(id = "center", actionLink(inputId = "runModelLinkUpperLeft", label = h5("Model validation"))),
+                     withSpinner(htmlOutput(outputId  = "runModelVerbalResult"), color=BAYAS_COLORS$`--bs-btn-bg`),
+                     getReportButton("reportModelValidation", tooltip="Report diagnostic values", 
+                                     class="",
+                                     style="float:right; margin: 5px 5px 0px 0px;")
+                   ),
+                   # Posterior predictive check
+                   tags$div(style="padding:5px;",
+                          tags$div(id = "center", actionLink(inputId = "runModelLinkUpperRight", label = h5("Posterior predictive check of response"))),
+                          withSpinner(plotOutput(outputId = "runModelPlotPPC"), color=BAYAS_COLORS$`--bs-btn-bg`),
+                            getReportButton("reportPreviewPPC", 
+                                            tooltip="Report the current PPC plot", class="",
+                                          style="float:right; margin: 5px 5px 0px 0px;")
+                   ),
+                   # Marginal posteriors
+                   tags$div(
+                     class = "borderColor-dark", 
+                     style = "border-top: 3px solid;border-right: 3px solid; padding:5px;",
+                     tags$div(id = "center", actionLink(inputId = "runModelLinkBottomLeft", label = h5("Marginal posteriors"))),
+                     withSpinner(plotOutput(outputId = "runModelVariableSummaryPlot"), color=BAYAS_COLORS$`--bs-btn-bg`)
+                   ),
+                   # Summary of marginal posteriors
+                   tags$div(
+                     class = "borderColor-dark", 
+                     style = "border-top: 3px solid; padding:5px;",
+                     tags$div(id = "center", h5("Summary of marginal posteriors")),
+                     tags$div(id = "center",
+                              style="max-height:400px;",
+                              withSpinner(
+                                DTOutput(
+                                  outputId = "runModelVariableSummaryTable",
+                                  height="400px"), 
+                                color=BAYAS_COLORS$`--bs-btn-bg`)),
+                     getReportButton("reportSummaryMP", 
+                                     tooltip="Report the current PPC plot", class="",
+                                     style="float:right; margin: 5px 5px 0px 0px;")
+                   )
+                   
+                 )
+             ),
+             
+             
+             tabPanel(
+               title = "Model validation",
 
-                                tabsetPanel(
-                                  id = "runModelModelValidationTabsetPanel", 
-                                  selected = "Sampling quantities", 
-                                  type="pills",
-                                  
-                                  tabPanel(
-                                    title = "Sampling quantities", 
-                                    style="margin-top:20px;",
-                                    tags$div(
-                                      style = "",
-                                      DTOutput(outputId = "runModelModelValidationTabSQ"))),
+                      tabsetPanel(
+                        id = "runModelModelValidationTabsetPanel", 
+                        selected = "Sampling quantities", 
+                        type="pills",
+                        
+                        tabPanel(
+                          title = "Sampling quantities", 
+                          style="margin-top:20px;",
+                          tags$div(
+                            style = "",
+                            DTOutput(outputId = "runModelModelValidationTabSQ"))),
 
-                                  tabPanel(title = "Pairs", style="margin-top:20px;",
-                                           sidebarLayout(
-                                             sidebarPanel(width = 3,
-                                                             
-                                                          tags$p(style="font-weight:bold;margin-top:6px;","Formula elements"),
-                                                          tags$div(style="margin-bottom:20px;", shinyTree("treePairsVars", checkbox=T, themeIcons=F), style="overflow: scroll; max-height:500px;"),
-                                                          
-                                                          tags$div(
-                                                            
-                                                            class="childs-low-tbmargin",
-                                                            
-                                                            actionButton(class = 'btn-primary', 
-                                                                         "plotPairs", "Plot pairs"),
-                                                            
-                                                            getReportButton("reportPairs", tooltip="Report the current plot."),
-                                                            
-                                                            downloadPlotUI("runModelModelValidationTabSQPairsPlot", 
-                                                                           label=icon("download"), 
-                                                                           tooltip=HTML(tooltip$downloadMP)),
-                                                            
-                                                            bslib::tooltip(
-                                                              trigger = actionButton("removePairs", "",icon("trash")),
-                                                              HTML(tooltip$closeCurrentMP),
-                                                              options = list(trigger="hover")
-                                                            )
-                                                          )
-                                                          
+                        tabPanel(title = "Pairs", style="margin-top:20px;",
+                                 sidebarLayout(
+                                   sidebarPanel(width = 3,
+                                                   
+                                                tags$p(style="font-weight:bold;margin-top:6px;","Formula elements"),
+                                                tags$div(style="margin-bottom:20px;", shinyTree("treePairsVars", checkbox=T, themeIcons=F), style="overflow: scroll; max-height:500px;"),
+                                                
+                                                tags$div(
+                                                  
+                                                  class="childs-low-tbmargin",
+                                                  
+                                                  actionButton(class = 'btn-primary', 
+                                                               "plotPairs", "Plot pairs"),
+                                                  
+                                                  getReportButton("reportPairs", tooltip="Report the current plot."),
+                                                  
+                                                  downloadPlotUI("runModelModelValidationTabSQPairsPlot", 
+                                                                 label=icon("download"), 
+                                                                 tooltip=HTML(tooltip$downloadMP)),
+                                                  
+                                                  bslib::tooltip(
+                                                    trigger = actionButton("removePairs", "",icon("trash")),
+                                                    HTML(tooltip$closeCurrentMP),
+                                                    options = list(trigger="hover")
+                                                  )
+                                                )
+                                                
 
-                                                        ),
-                                             
-                                             mainPanel(width = 9,
-                                                       tabsetPanel(id = "runModelModelValidationTabSQPairsPlot", type = "pills")
-                                             )
-                                           )),
-                                  
-                                  tabPanel(title = "Prior predictive check", style="margin-top:20px;",
-                                           tags$div(plotOutput(outputId = "runModelModelValidationTabPriorPredictiveCheck"), style="overflow:auto;"),
-                                           tags$div(style="text-align:right",
-                                                    getReportButton("reportPriorPC", tooltip="Report the current plot.", class="")),
-                                           
-                                           ),
-                                  tabPanel(title = "Prior vs posterior", style="margin-top:20px;",
-                                           sidebarLayout(
-                                             sidebarPanel(width = 3,
-                                                          tags$p(style="font-weight:bold;margin-top:6px;","Formula elements"),
-                                                          tags$div(style="margin-bottom:20px;",shinyTree("treePVPVars", checkbox=T, themeIcons=F), style="overflow: scroll; max-height:500px;"),
-                                                          tags$div(style="margin-bottom:20px;",
-                                                                   checkboxInput("groupByParameterPVP", "Group by parameters")),
-                                                          
-                                                          tags$div(
-                                                            
-                                                            class="childs-low-tbmargin",
-                                                            
-                                                            actionButton(class = 'btn-primary', "plotPVP", 
-                                                                         "Plot PVP"),
-                                                            
-                                                            getReportButton("reportPVP", 
-                                                                            tooltip="Report the current plot."),
-                                                            
-                                                            downloadPlotUI("runModelModelValidationTabSQPVPPlot", 
-                                                                           label=icon("download"), 
-                                                                           tooltip=tooltip$downloadMP),
-                                                            
-                                                            bslib::tooltip(
-                                                              trigger = actionButton("removePVP", "",icon("trash")), 
-                                                              HTML(tooltip$closeCurrentMP),
-                                                              options = list(trigger="hover")
-                                                            )
-                                                          )
-                                                        ),
-                                                         
-                                             mainPanel(width = 9,
-                                                       tabsetPanel(id = "runModelModelValidationTabSQPVPPlot" ,type = "pills")
-                                             )
-                                           ))
-                                            )
-                       ),
-                       tabPanel(title = "PPC", style = "padding:10px;",
-                                sidebarLayout(
-                                  sidebarPanel(width = 3, style="overflow:auto;",
-                                               fluidRow(column(width=4,tags$p(style="font-weight:bold;margin-top:6px;","Plot type")),
-                                                        column(width=8,selectInput("selectionPPCType",width="auto", label=NULL, choices = c("Density overlay", "Interval", "Histogram", "Frequency polygon", "Violin grouped", "Bars"),selected="Density overlay"))),
-                                               fluidRow(column(width=4,tags$p(style="font-weight:bold;margin-top:-2px;","Grouped by")),
-                                                        column(width=8,shinyjs::disabled(selectizeInput("selectionPPCGroup", label=NULL, choices = c(""), selected="", multiple=T)))),
-                                               
-                                               fluidRow(column(width=4,tags$p(style="font-weight:bold;margin-top:6px;","Scale")),
-                                                        column(width=8,selectizeInput("selectionPPCScale", label=NULL, 
-                                                                                      choices = list("None"="", "Pseudo log"="pseudo_log","log"="log","log10"="log10", "log2"="log2",
-                                                                                                     "reverse"="reverse", "sqrt"="sqrt"), selected="None"))),
-                                               fluidRow(column(width=4,tags$p(style="font-weight:bold;margin-top:6px;","Lims")),
-                                                        column(width=4,style="padding-right:5px;",textInput("selectionPPCLowerLim", label=NULL, value="")),
-                                                        column(width=4,style="padding-left:5px;",textInput("selectionPPCUpperLim", label=NULL, value=""))),
-                                               
-                                               fluidRow(column(width=4,tags$p(id="labelPPCDraws", style="font-weight:bold;margin-top:6px;","Draws")),
-                                                        column(width=8,bayasNumericInput("numericPPCDraws", label=NULL, value = 50, min=1,max=200, step=10))),
-                                               
-                                               tags$div(
-                                                 
-                                                 class="childs-low-tbmargin",
-                                                 actionButton(class = 'btn-primary', "plotPPC", 
-                                                              "Plot PPC"),
-                                                 
-                                                 getReportButton("reportPPC", tooltip="Report the current plot."),
-                                                 
-                                                 downloadPlotUI("FitPagePPCPanelPlot", label=icon("download"), 
-                                                                tooltip=tooltip$downloadMP),
-                                                 
-                                                 bslib::tooltip(
-                                                   trigger = actionButton("removePPC", "",icon("trash")),
-                                                   HTML(tooltip$closeCurrentMP),
-                                                   options = list(trigger="hover")
-                                                 )
-                                               )
-                                               
                                               ),
-                                  
-                                  mainPanel(width = 9,
-                                            tabsetPanel(id = "FitPagePPCPanelPlot" ,type = "pills")
+                                   
+                                   mainPanel(width = 9,
+                                             tabsetPanel(id = "runModelModelValidationTabSQPairsPlot", type = "pills")
+                                   )
+                                 )),
+                        
+                        tabPanel(title = "Prior predictive check", style="margin-top:20px;",
+                                 tags$div(plotOutput(outputId = "runModelModelValidationTabPriorPredictiveCheck"), style="overflow:auto;"),
+                                 tags$div(style="text-align:right",
+                                          getReportButton("reportPriorPC", tooltip="Report the current plot.", class="")),
+                                 
+                                 ),
+                        tabPanel(title = "Prior vs posterior", style="margin-top:20px;",
+                                 sidebarLayout(
+                                   sidebarPanel(width = 3,
+                                                tags$p(style="font-weight:bold;margin-top:6px;","Formula elements"),
+                                                tags$div(style="margin-bottom:20px;",shinyTree("treePVPVars", checkbox=T, themeIcons=F), style="overflow: scroll; max-height:500px;"),
+                                                tags$div(style="margin-bottom:20px;",
+                                                         checkboxInput("groupByParameterPVP", "Group by parameters", value=T)),
+                                                
+                                                tags$div(
+                                                  
+                                                  class="childs-low-tbmargin",
+                                                  
+                                                  actionButton(class = 'btn-primary', "plotPVP", 
+                                                               "Plot PVP"),
+                                                  
+                                                  getReportButton("reportPVP", 
+                                                                  tooltip="Report the current plot."),
+                                                  
+                                                  downloadPlotUI("runModelModelValidationTabSQPVPPlot", 
+                                                                 label=icon("download"), 
+                                                                 tooltip=tooltip$downloadMP),
+                                                  
+                                                  bslib::tooltip(
+                                                    trigger = actionButton("removePVP", "",icon("trash")), 
+                                                    HTML(tooltip$closeCurrentMP),
+                                                    options = list(trigger="hover")
+                                                  )
+                                                )
+                                              ),
+                                               
+                                   mainPanel(width = 9,
+                                             tabsetPanel(id = "runModelModelValidationTabSQPVPPlot" ,type = "pills")
+                                   )
+                                 ))
                                   )
-                                )
-                       ),
-                       tabPanel(title = "Marginal posteriors", style = "padding:10px;",
-                                sidebarLayout(
-                                  sidebarPanel(width = 3,
-                                               fluidRow(column(width=4,tags$p(style="font-weight:bold;margin-top:6px;","Plot type")),
-                                                        column(width=8,selectInput("selectionMPType",width="auto", label=NULL, choices = c("Intervals","Areas","Density","Density overlay","Histogram","Violin"),selected="Intervals"))),
-                                               fluidRow(column(width=4,tags$p(style="font-weight:bold;margin-top:6px;","x-scale")),
-                                                        column(width=8,selectInput("selectionMPTypeXScale", label=NULL, choices = c("None","Pseudo log"), selected="None"))),
-                                               fluidRow(column(width=4,tags$p(style="font-weight:bold;margin-top:-2px;","Point estimate")),
-                                                        column(width=8,selectInput("selectionMPPointEst", label=NULL, choices = c("Median","Mean", "None"), selected="Median"))),
+             ),
+             tabPanel(title = "PPC", style = "padding:10px;",
+                      sidebarLayout(
+                        sidebarPanel(width = 3, style="overflow:auto;",
+                                     fluidRow(column(width=4,tags$p(style="font-weight:bold;margin-top:6px;","Plot type")),
+                                              column(width=8,selectInput("selectionPPCType",width="auto", label=NULL, choices = c("Density overlay", "Interval", "Histogram", "Frequency polygon", "Violin grouped", "Bars"),selected="Density overlay"))),
+                                     fluidRow(column(width=4,tags$p(style="font-weight:bold;margin-top:-2px;","Grouped by")),
+                                              column(width=8,shinyjs::disabled(selectizeInput("selectionPPCGroup", label=NULL, choices = c(""), selected="", multiple=T)))),
+                                     
+                                     fluidRow(column(width=4,tags$p(style="font-weight:bold;margin-top:6px;","Scale")),
+                                              column(width=8,selectizeInput("selectionPPCScale", label=NULL, 
+                                                                            choices = list("None"="", "Pseudo log"="pseudo_log","log"="log","log10"="log10", "log2"="log2",
+                                                                                           "reverse"="reverse", "sqrt"="sqrt"), selected="None"))),
+                                     fluidRow(column(width=4,tags$p(style="font-weight:bold;margin-top:6px;","Lims")),
+                                              column(width=4,style="padding-right:5px;",textInput("selectionPPCLowerLim", label=NULL, value="")),
+                                              column(width=4,style="padding-left:5px;",textInput("selectionPPCUpperLim", label=NULL, value=""))),
+                                     
+                                     fluidRow(column(width=4,tags$p(id="labelPPCDraws", style="font-weight:bold;margin-top:6px;","Draws")),
+                                              column(width=8,bayasNumericInput("numericPPCDraws", label=NULL, value = 50, min=1,max=200, step=10))),
+                                     
+                                     tags$div(
+                                       
+                                       class="childs-low-tbmargin",
+                                       actionButton(class = 'btn-primary', "plotPPC", 
+                                                    "Plot PPC"),
+                                       
+                                       getReportButton("reportPPC", tooltip="Report the current plot."),
+                                       
+                                       downloadPlotUI("FitPagePPCPanelPlot", label=icon("download"), 
+                                                      tooltip=tooltip$downloadMP),
+                                       
+                                       bslib::tooltip(
+                                         trigger = actionButton("removePPC", "",icon("trash")),
+                                         HTML(tooltip$closeCurrentMP),
+                                         options = list(trigger="hover")
+                                       )
+                                     )
+                                     
+                                    ),
+                        
+                        mainPanel(width = 9,
+                                  tabsetPanel(id = "FitPagePPCPanelPlot" ,type = "pills")
+                        )
+                      )
+             ),
+             tabPanel(
+               title = "Marginal posteriors", style = "padding:10px;",
+                      
+                      tabsetPanel(
+                        id = "runMarginalPosteriorTabsetPanel", 
+                        selected = "plot", 
+                        type="pills",
+                        
+                        tabPanel(
+                          title = "Plot",
+                          value = "plot",
+                          
+                          sidebarLayout(
+                            sidebarPanel(width = 3,
+                                         fluidRow(column(width=4,tags$p(style="font-weight:bold;margin-top:6px;","Plot type")),
+                                                  column(width=8,selectInput("selectionMPType",width="auto", label=NULL, choices = c("Intervals","Areas","Density","Density overlay","Histogram","Violin"),selected="Intervals"))),
+                                         fluidRow(column(width=4,tags$p(style="font-weight:bold;margin-top:6px;","x-scale")),
+                                                  column(width=8,selectInput("selectionMPTypeXScale", label=NULL, choices = c("None","Pseudo log"), selected="None"))),
+                                         fluidRow(column(width=4,tags$p(style="font-weight:bold;margin-top:-2px;","Point estimate")),
+                                                  column(width=8,selectInput("selectionMPPointEst", label=NULL, choices = c("Median","Mean", "None"), selected="Median"))),
+                                         
+                                         fluidRow(column(width=4,
+                                                         
+                                                         bslib::tooltip(
+                                                           trigger = tags$p(id="labelInnerHDI", style="font-weight:bold;margin-top:2px;","Inner HDI"),
+                                                           HTML(tooltip$labelInnerHDI),
+                                                           options = list(trigger="hover")
+                                                         )),
+                                                  column(width=8, 
+                                                         bayasNumericInput("innerHDIValue", label=NULL, value = 0.5, min=0.001, max=1, step=0.05,
+                                                                           invalidMessage = "Must be in the range [0.001-1]."))),
+                                         
+                                         fluidRow(column(width=4,
+                                                         bslib::tooltip(
+                                                           trigger = tags$p(id="labelOuterHDI", style="font-weight:bold;margin-top:2px;","Outer HDI"),
+                                                           HTML(tooltip$labelOuterHDI),
+                                                           options = list(trigger="hover")
+                                                         )),
+                                                  
+                                                  column(width=8,
+                                                         bayasNumericInput("outerHDIValue", label=NULL, value = 0.9, min=0.001, max=1, step=0.05,
+                                                                           invalidMessage = "Must be in the range [0.001-1]."))),
+                                         
+                                         
+                                         
+                                         tags$p(style="font-weight:bold;margin-top:6px;","Formula elements"),
+                                         tags$div(style="margin-bottom:20px;",shinyTree("treeMPVars", checkbox=T, themeIcons=F), style="overflow: scroll; max-height:500px;"),
+                                         
+                                         tags$div(
+                                           
+                                           class="childs-low-tbmargin",
+                                           actionButton(class = 'btn-primary', "plotMP", 
+                                                        "Plot MP"),
+                                           
+                                           getReportButton("reportMP", tooltip="Report the current plot."),
+                                           
+                                           downloadPlotUI("fitPageMPPanelPlot", label=icon("download"), 
+                                                          tooltip=tooltip$downloadMP),
+                                           
+                                           bslib::tooltip(
+                                             trigger = actionButton("removeMP", "",icon("trash")),
+                                             HTML(tooltip$closeCurrentMP),
+                                             options = list(trigger="hover")
+                                           )
+                                         )),
+                            
+                            
+                            mainPanel(width = 9,
+                                      tabsetPanel(id = "fitPageMPPanelPlot" ,type = "pills")
+                            )
+                          )
+                        ),
+                        tabPanel(
+                          title="Summary table",
+                          value="summaryTable",
+                          
+                          sidebarLayout(
+                            sidebarPanel(
+                              width = 3,
+                              
+                              fluidRow(column(width=4,tags$p(style="font-weight:bold;margin-top:-2px;","Point estimate")),
+                                       column(width=8,selectInput("mpSummaryTableselectionMPPointEst", label=NULL, choices = c("Median","Mean"), selected="Median"))),
+
+                              
+                               fluidRow(column(width=4,
                                                
-                                               fluidRow(column(width=4,
-                                                               
-                                                               bslib::tooltip(
-                                                                 trigger = tags$p(id="labelInnerHDI", style="font-weight:bold;margin-top:2px;","Inner HDI"),
-                                                                 HTML(tooltip$labelInnerHDI),
-                                                                 options = list(trigger="hover")
-                                                               )),
-                                                        column(width=8, 
-                                                               bayasNumericInput("innerHDIValue", label=NULL, value = 0.5, min=0.001, max=1, step=0.05,
-                                                                                 invalidMessage = "Must be in the range [0.001-1]."))),
-                                               
-                                               fluidRow(column(width=4,
-                                                               bslib::tooltip(
-                                                                 trigger = tags$p(id="labelOuterHDI", style="font-weight:bold;margin-top:2px;","Outer HDI"),
-                                                                 HTML(tooltip$labelOuterHDI),
-                                                                 options = list(trigger="hover")
-                                                               )),
-                                                               
-                                                        column(width=8,
-                                                               bayasNumericInput("outerHDIValue", label=NULL, value = 0.9, min=0.001, max=1, step=0.05,
-                                                                                 invalidMessage = "Must be in the range [0.001-1]."))),
-                                               
-                                               
-                                               
-                                               tags$p(style="font-weight:bold;margin-top:6px;","Formula elements"),
-                                               tags$div(style="margin-bottom:20px;",shinyTree("treeMPVars", checkbox=T, themeIcons=F), style="overflow: scroll; max-height:500px;"),
-                                               
-                                               tags$div(
-                                                 
-                                                 class="childs-low-tbmargin",
-                                                 actionButton(class = 'btn-primary', "plotMP", 
-                                                              "Plot MP"),
-                                                 
-                                                 getReportButton("reportMP", tooltip="Report the current plot."),
-                                                 
-                                                 downloadPlotUI("fitPageMPPanelPlot", label=icon("download"), 
-                                                                tooltip=tooltip$downloadMP),
-                                                 
-                                                 bslib::tooltip(
-                                                   trigger = actionButton("removeMP", "",icon("trash")),
-                                                   HTML(tooltip$closeCurrentMP),
-                                                   options = list(trigger="hover")
-                                                 )
+                                               bslib::tooltip(
+                                                 trigger = tags$p(id="labelMpSummaryTableHDIValue", style="font-weight:bold;margin-top:2px;","HDI"),
+                                                 HTML(tooltip$labelHDI),
+                                                 options = list(trigger="hover")
                                                )),
-                                  
-                                  
-                                  mainPanel(width = 9,
-                                            tabsetPanel(id = "fitPageMPPanelPlot" ,type = "pills")
-                                            )
-                                )
-                       )
+                                        column(width=8, 
+                                               bayasNumericInput("mpSummaryTableHDIValue", label=NULL, value = 0.95, min=0.001, max=0.9999, step=0.05,
+                                                                 invalidMessage = "Must be in the range [0.001-0.9999]."))),
+                              
+                              fluidRow(column(width=4,
+                                              
+                                              bslib::tooltip(
+                                                trigger = tags$p(id="labelPIThreshold", style="font-weight:bold;margin-top:2px;","pi threshold"),
+                                                HTML(tooltip$labelHDI),
+                                                options = list(trigger="hover")
+                                              )),
+                                       column(width=8, 
+                                              bayasNumericInput("mpSummaryTablePIValue", label=NULL, value = 0, min=-Inf, max=Inf, step=1))),
+                              
+                               tags$p(style="font-weight:bold;margin-top:6px;","Formula elements"),
+                               tags$div(style="margin-bottom:20px;",shinyTree("treeMPVarsForSummary", checkbox=T, themeIcons=F), style="overflow: scroll; max-height:500px;"),
+                              
+                              actionButton("mpSummaryTableButton", label="Show result",class="btn-primary")
+                               
+                               # tags$div(
+                               #   
+                               #   class="childs-low-tbmargin",
+                               #   actionButton(class = 'btn-primary', "plotMP", 
+                               #                "Plot MP"),
+                               #   
+                               #   getReportButton("reportMP", tooltip="Report the current plot."),
+                               #   
+                               #   downloadPlotUI("fitPageMPPanelPlot", label=icon("download"), 
+                               #                  tooltip=tooltip$downloadMP),
+                               #   
+                               #   bslib::tooltip(
+                               #     trigger = actionButton("removeMP", "",icon("trash")),
+                               #     HTML(tooltip$closeCurrentMP),
+                               #     options = list(trigger="hover")
+                               #   )
+                               # )
+                            ),
+                            
+                            
+                            mainPanel(
+                              width = 9,
+                              DTOutput(
+                                outputId = "mpSummaryTableSummaryTable",
+                                height="400px"), 
+                            )
+                          )
+                        )
+                      )
+             )
            )
          )
        )

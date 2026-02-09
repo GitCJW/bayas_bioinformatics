@@ -113,7 +113,7 @@ full_dens_diff_beta <- function(mu1, mu2, kappa){
 full_dens_diff_poisson <- function(lambda1, lambda2, acc=1e-4, N=512){
   if(length(lambda1)!=length(lambda2)) stop("lambda1 and lambda2 must be of equal length!")
   ret <- c()
-  
+  # browser()
   min1 <- qpois(acc, lambda1)
   min2 <- qpois(acc, lambda1)
   max1 <- qpois(1-acc, lambda2)
@@ -172,6 +172,53 @@ full_dens_diff_binom <- function(p1, p2, N1, N2, N=512, acc=1e-4) {
   return(ret)
 }
 
+
+
+
+##################################################
+################## Beta-binomial #################
+##################################################
+
+# Calculates the overlap of two beta-binomial distributions given two vectors of p and N.
+# Returns a list of overlapping values of each p/N pair
+full_dens_diff_betabinom <- function(p1, p2, phi1, phi2, N1, N2, N=512, acc=1e-4) {
+  ret <- c()
+
+  p1 <- rnorm(8000, 0.4,0.02)
+  p2 <- rnorm(8000, 0.45,0.02)
+  
+  phi1 <- phi2 <- rnorm(8000, 20,2)
+  N1 <- N2 <- 1000
+  
+  min1 <- qbetabinom(acc, N1, min(p1), min(phi1))
+  max1 <- qbetabinom(1-acc, N1, max(p1), min(phi1))
+  min2 <- qbetabinom(acc, N2, min(p2), min(phi2))
+  max2 <- qbetabinom(1-acc, N2, max(p2), min(phi2))
+  
+  max <- max(max1, max2)
+  min <- min(min1, min2)
+  
+  N_t <- N
+  diff <- max - min
+  if(diff < N_t) N_t <- diff
+  
+  a1 <- p1 * phi1
+  a2 <- p2 * phi2
+  b1 <- (1-p1) * phi1
+  b2 <- (1-p2) * phi2
+  seq <- seq(min, max, length=N_t+1)
+  
+  
+  ret <- sapply(seq_along(p1), function(i){
+    f1_tmp <- pbetabinom.ab(seq, N1, a1[i], b1[i])
+    f1 <- c(f1_tmp[1],f1_tmp[2:N_t]-f1_tmp[1:(N_t-1)], 1-f1_tmp[N_t])
+    f2_tmp <- pbetabinom.ab(seq, N2, a2[i], b2[i])
+    f2 <- c(f2_tmp[1],f2_tmp[2:N_t]-f2_tmp[1:(N_t-1)], 1-f2_tmp[N_t])
+    sum(pmin(f1, f2))
+  })
+
+  return(ret)
+}
 
 
 ##################################################

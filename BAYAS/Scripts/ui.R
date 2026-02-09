@@ -1,3 +1,4 @@
+#check https://github.com/stan-dev/rstan/issues/1140
 library(BH)
 
 library(rstan)
@@ -11,9 +12,9 @@ library(shinyjs)
 library(shinyWidgets)
 library(shinyTree)
 library(shinycssloaders)
-library(shinyalert) 
-library(shinyFeedback) 
-library(shinybusy) 
+library(shinyalert) #check for redundancy
+library(shinyFeedback) #check for redundancy
+library(shinybusy) #check for redundancy
 library(bslib)
 
 library(DT)
@@ -52,6 +53,14 @@ library(withr)
 library(shinybayas)
 library(bayesianssd)
 
+library(VGAM)
+
+# library(cicerone) #walkthrough
+# library(sendmailR) 
+# library(ipc)
+# library(shinyvalidate)
+
+
 options(future.globals.maxSize=4*1024**3) #4GB
 
 BAYAS_COLORS <<- NULL
@@ -87,7 +96,9 @@ global_browser <<- F
 global_browser2 <<- F
 
 # Enable multiprocessing
-ifelse(localUse,plan(sequential),plan(multisession, workers=2))
+noParallel <<- T
+numWorkers <<- 2
+ifelse(localUse,plan(sequential),plan(multisession, workers=numWorkers))
 
 
 # Load profiler (reactlog::reactlog_enable() -> Strg+F3)
@@ -126,6 +137,7 @@ css_folder <<- paste0(dirname(getwd()),"/CSS")
 js_folder <<- paste0(dirname(getwd()),"/Javascript")
 report_folder <<- paste0(dirname(getwd()),"/Report")
 planning_model_folder <<- paste0(dirname(getwd()),"/Planning_models")
+# stanModels_folder <<- paste0(dirname(getwd()),"/StanModels")
 pw_folder <<- paste0(dirname(getwd()),"/PW")
 data_folder <<- paste0(dirname(getwd()),"/Data")
 data_user_folder <<- paste0(dirname(getwd()),"/Data_user")
@@ -137,6 +149,7 @@ shiny::addResourcePath("CSS",css_folder)
 shiny::addResourcePath("JS",js_folder)
 shiny::addResourcePath("Report",report_folder)
 shiny::addResourcePath("Planning_models",planning_model_folder)
+# shiny::addResourcePath("StanModels",stanModels_folder)
 shiny::addResourcePath("PW",pw_folder)
 shiny::addResourcePath("Data",data_folder)
 shiny::addResourcePath("Data_user",data_user_folder)
@@ -271,3 +284,15 @@ ui <- bslib::page(
     )
   )
 )
+
+#Not included are other packages like ssdbayas, shinybayas
+# notEmptyLines <- function(x) x[x!=""]
+# list.files(path = paste0(getwd(), "/Scripts"), recursive = T, full.names = T) %>%
+#   str_subset("[.][R]$") %>%
+#   sapply(function(x) x %>% readLines() %>% notEmptyLines %>% length()) %>%
+#   sum()
+
+# profvis::profvis({
+#   shiny::runApp(paste0(getwd(),"/Scripts"))
+# }, 
+# prof_output="output.prof")

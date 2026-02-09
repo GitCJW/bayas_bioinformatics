@@ -321,7 +321,8 @@ init_upload_function <- function(input, output, session, dataModel){
     
     isolate({
       dMID <- dataModel$getDataModelInputData()
-      
+    
+        
       decSep <- dMID$getDecSep()
       cellSep <- dMID$getCellSep()
       file <- dMID$getTmpDataPath()
@@ -373,11 +374,11 @@ init_upload_function <- function(input, output, session, dataModel){
       dMID$setExcelTable(data$data)
       
       if(!is.null(data$data)){
-        show(ns("rawInputExcel"))
-        hide(ns("rawInputExcelErrors"))
+        showElement(ns("rawInputExcel"))
+        hideElement(ns("rawInputExcelErrors"))
       }else{
-        hide(ns("rawInputExcel"))
-        show(ns("rawInputExcelErrors"))
+        hideElement(ns("rawInputExcel"))
+        showElement(ns("rawInputExcelErrors"))
         output[[ns("rawInputExcelErrors")]] <- renderUI(
           tags$div(
             style = "width: 100%; text-align: center;",
@@ -392,13 +393,12 @@ init_upload_function <- function(input, output, session, dataModel){
       
       #Information of getting to 'long format' (if no long-format is present)
       if(is.null(dMID$getLongFormat())){
-        show(ns("tableUserDataInfo"))
-        hide(ns("tableInputPropertiesInfo"))
+        showElement(ns("tableUserDataInfo"))
+        hideElement(ns("tableInputPropertiesInfo"))
         output[[ns("tableInputProperties")]] <- renderDT(NULL)
         
         dMID$setInputProperties(NULL)
-        
-        hide(ns("tableUserData"))
+        # hideElement(ns("tableUserData")) Not working!
       }
 
     })
@@ -427,15 +427,15 @@ init_upload_function <- function(input, output, session, dataModel){
       if(!is.null(data)){
         
         if(is.null(dMID$getLongFormat())){
-          show(ns("tableUserDataInfo"))
-          hide(ns("tableInputPropertiesInfo"))
+          showElement(ns("tableUserDataInfo"))
+          hideElement(ns("tableInputPropertiesInfo"))
           output[[ns("tableInputProperties")]] <- renderDT(NULL)
           dMID$setInputProperties(NULL)
         }
           
         
-        show(ns("rawInputExcel"))
-        hide(ns("rawInputExcelErrors"))
+        showElement(ns("rawInputExcel"))
+        hideElement(ns("rawInputExcelErrors"))
         
         file <- dMID$getTmpDataPath()
         disable <- !is.null(file) && file$type == "xlsx"
@@ -457,7 +457,7 @@ init_upload_function <- function(input, output, session, dataModel){
         )
         
       }else{
-        hide(ns("tableUserDataInfo"))
+        hideElement(ns("tableUserDataInfo"))
         output[[ns("rawInputExcel")]] <- renderExcel(NULL)
       }
 
@@ -494,11 +494,14 @@ init_upload_function <- function(input, output, session, dataModel){
           showNotification(ret$msg, type="error")
           return()
       }
+      if(ret$msg != ""){
+        showNotification(ret$msg, type="warning")
+      }
 
       sel <- ret$data
       
-      hide(ns("tableUserDataInfo"))
-      show(ns("tableUserData"))
+      hideElement(ns("tableUserDataInfo"))
+      showElement(ns("tableUserData"))
       
       dMID <- dataModel$getDataModelInputData()
       dMID$setLongFormat(sel)
@@ -647,7 +650,7 @@ init_upload_function <- function(input, output, session, dataModel){
       output[[ns("dtHeaderColumnMessage")]] <- renderUI(paste0("Transpose failed. Are some row headers empty? Row headers cannot be left blank. ",
                                                                "Please revise your selected cells."))
       output[[ns("dtHeaderColumn")]] <- renderDT(NULL)
-      hide(ns("dtHeaderColumn"))
+      hideElement(ns("dtHeaderColumn"))
     }else{
       transposedData <- nextImpObj$data
       dt <- datatable(
@@ -662,7 +665,7 @@ init_upload_function <- function(input, output, session, dataModel){
         formatStyle(seq_len(dim(transposedData)[2]), lineHeight="70%") %>%
         formatStyle(seq_len(dim(transposedData)[2]), `text-align` = "right")
       
-      show(ns("dtHeaderColumn"))
+      showElement(ns("dtHeaderColumn"))
       output[[ns("dtHeaderColumn")]] <- renderDT(dt)
       output[[ns("dtHeaderColumnMessage")]] <- renderUI(NULL)
       enable(ns("confirmImportDataModal"))
@@ -685,7 +688,7 @@ init_upload_function <- function(input, output, session, dataModel){
     if(!merge){
       output[[ns("dtDuplicateHeaderMergedMessage")]] <- renderUI(paste0("Unfortunately, this option is not available yet. Coming soon."))
       output[[ns("dtDuplicateHeaderMerged")]] <- renderDT(NULL)
-      hide(ns("dtDuplicateHeaderMerged"))
+      hideElement(ns("dtDuplicateHeaderMerged"))
     }else{
       dmid <- dataModel$getDataModelImportData()
       nextImpObj <- dmid$importData(cImpObj, combineHeaders=merge)
@@ -693,7 +696,7 @@ init_upload_function <- function(input, output, session, dataModel){
       if(nextImpObj$status == "failed"){
         output[[ns("dtDuplicateHeaderMergedMessage")]] <- renderUI(paste0("Oops, merge failed for unknown reason."))
         output[[ns("dtDuplicateHeaderMerged")]] <- renderDT(NULL)
-        hide(ns("dtDuplicateHeaderMerged"))
+        hideElement(ns("dtDuplicateHeaderMerged"))
       }else{
         data <- nextImpObj$data
         dt <- datatable(
@@ -708,7 +711,7 @@ init_upload_function <- function(input, output, session, dataModel){
           formatStyle(seq_len(dim(data)[2]), lineHeight="70%") %>%
           formatStyle(seq_len(dim(data)[2]), `text-align` = "right")
         
-        show(ns("dtDuplicateHeaderMerged"))
+        showElement(ns("dtDuplicateHeaderMerged"))
         output[[ns("dtDuplicateHeaderMerged")]] <- renderDT(dt)
         output[[ns("dtDuplicateHeaderMergedMessage")]] <- renderUI(NULL)
         enable(ns("confirmImportDataModal"))
@@ -733,7 +736,7 @@ init_upload_function <- function(input, output, session, dataModel){
     if(singleMeas){
       output[[ns("dtRowSingleMeasurementCombinedMessage")]] <- renderUI(paste0("Your data should now be 'long formatted'."))
       output[[ns("dtRowSingleMeasurementCombined")]] <- renderDT(NULL)
-      hide(ns("dtRowSingleMeasurementCombined"))
+      hideElement(ns("dtRowSingleMeasurementCombined"))
     }else{
       dmid <- dataModel$getDataModelImportData()
       nextImpObj <- dmid$importData(cImpObj, mergeColumns=T, mergeColNames=cImpObj$header)
@@ -741,7 +744,7 @@ init_upload_function <- function(input, output, session, dataModel){
       if(nextImpObj$status == "failed"){
         output[[ns("dtRowSingleMeasurementCombinedMessage")]] <- renderUI(paste0("Oops, merge failed for unknown reason."))
         output[[ns("dtRowSingleMeasurementCombined")]] <- renderDT(NULL)
-        hide(ns("dtRowSingleMeasurementCombined"))
+        hideElement(ns("dtRowSingleMeasurementCombined"))
       }else{
         data <- nextImpObj$data
         dt <- datatable(
@@ -756,7 +759,7 @@ init_upload_function <- function(input, output, session, dataModel){
           formatStyle(seq_len(dim(data)[2]), lineHeight="70%") %>%
           formatStyle(seq_len(dim(data)[2]), `text-align` = "right")
         
-        show(ns("dtRowSingleMeasurementCombined"))
+        showElement(ns("dtRowSingleMeasurementCombined"))
         output[[ns("dtRowSingleMeasurementCombined")]] <- renderDT(dt)
         output[[ns("dtRowSingleMeasurementCombinedMessage")]] <- renderUI(NULL)
         enable(ns("confirmImportDataModal"))
@@ -797,7 +800,7 @@ init_upload_function <- function(input, output, session, dataModel){
       if(nextImpObj$status == "failed"){
         output[[ns("dtDuplicateHeaderMergedMessage")]] <- renderUI(paste0("Oops, merge failed for unknown reason."))
         output[[ns("dtDuplicateHeaderMerged")]] <- renderDT(NULL)
-        hide(ns("dtDuplicateHeaderMerged"))
+        hideElement(ns("dtDuplicateHeaderMerged"))
       }else{
         objList <- list.append(objList, nextImpObj)
         index <- importObjectIndex() +1
@@ -811,11 +814,11 @@ init_upload_function <- function(input, output, session, dataModel){
       if(nextImpObj$status == "failed"){
         output[[ns("dtDuplicateHeaderMergedMessage")]] <- renderUI(paste0("Oops, merge failed for unknown reason."))
         output[[ns("dtDuplicateHeaderMerged")]] <- renderDT(NULL)
-        hide(ns("dtDuplicateHeaderMerged"))
+        hideElement(ns("dtDuplicateHeaderMerged"))
       }else{
         #Final, remove modal
-        hide(ns("tableUserDataInfo"))
-        show(ns("tableUserData"))
+        hideElement(ns("tableUserDataInfo"))
+        showElement(ns("tableUserData"))
         
         sel <- data.frame(nextImpObj$data)
 
@@ -836,7 +839,6 @@ init_upload_function <- function(input, output, session, dataModel){
   
   #Return in steps
   observeEvent(input[[ns("modalBack")]], {
-    print("back")
     enable(ns("confirmImportDataModal"))
     importObjectIndex(importObjectIndex()-1)
   })
@@ -850,9 +852,9 @@ init_upload_function <- function(input, output, session, dataModel){
   
   # Button "trash" for removing the datatable
   observeEvent(input[[ns("rawDataToTableRemove")]], {
-    show(ns("tableUserDataInfo"))
-    hide(ns("tableInputPropertiesInfo"))
-    hide(ns("tableUserData"))
+    showElement(ns("tableUserDataInfo"))
+    hideElement(ns("tableInputPropertiesInfo"))
+    hideElement(ns("tableUserData"))
     output[[ns("tableUserData")]] <- renderDT(NULL)
     session$sendCustomMessage(type = "unbinding_table_elements", ns("tableInputProperties"))
     output[[ns("tableInputProperties")]] <- renderDT(NULL)
@@ -868,7 +870,7 @@ init_upload_function <- function(input, output, session, dataModel){
   observeEvent(input[[ns("tableUserData")]], {
     dMID <- dataModel$getDataModelInputData()
     dMID$setLongFormat(input[[ns("tableUserData")]], silent=T)
-    browser()
+    if(local_use) browser()
   })
   observe({
     dMID <- dataModel$getDataModelInputData()
@@ -893,8 +895,8 @@ init_upload_function <- function(input, output, session, dataModel){
             formatStyle(0:(dim(sel)[2]), lineHeight="70%")
         )
 
-        hide(ns("tableUserDataInfo"))
-        show(ns("tableUserData"))
+        hideElement(ns("tableUserDataInfo"))
+        showElement(ns("tableUserData"))
         
       }else{
         output[[ns("tableUserData")]] <- renderDT(NULL)
@@ -931,9 +933,9 @@ init_upload_function <- function(input, output, session, dataModel){
       }
       
       if(!is.null(newTable)){
-        show(ns("tableInputPropertiesInfo"))
+        showElement(ns("tableInputPropertiesInfo"))
       }else{
-        hide(ns("tableInputPropertiesInfo"))
+        hideElement(ns("tableInputPropertiesInfo"))
       }
 
       dtInputProperties(newTable)
@@ -1040,7 +1042,7 @@ isLimitUseless <- function(y, lowerLimit = NULL, upperLimit = NULL){
 
   
 verifyData <- function(data){
-
+  msg <- ""
   #remove empty columns
   data <- removeEmptyCol(data)
 
@@ -1056,6 +1058,14 @@ verifyData <- function(data){
     data <- data[-1,]
   }
 
+  #Are there special characters within header names?
+  header_new_names <- sapply(seq_along(header), function(i){
+    gsub("[^[:alnum:]_]", "", header[i])
+  })
+  if(any(header != header_new_names)){
+    msg <- "Special characters in header names are removed!"
+  }
+  header <- header_new_names
   
   #Are there duplicates within header names?
   dup <- header[header != ""]
@@ -1063,7 +1073,7 @@ verifyData <- function(data){
     showNotification("Header names must be unique!", type="error")
     return(list(valid=F, msg="Header names must be unique!", data=NULL))
   }
-  
+ 
   c <- 0
   for(hh_id in seq_along(header)){
     hh <- header[[hh_id]]
@@ -1086,7 +1096,7 @@ verifyData <- function(data){
   
   data <- data[rowSums(is.null(data) | is.na(data) | data == "") != ncol(data), ,F]
   
-  return(list(valid=T, msg="", data=data))
+  return(list(valid=T, msg=msg, data=data))
 }
 
 removeLastEmptyRows <- function(data){
@@ -1104,7 +1114,7 @@ removeLastEmptyRows <- function(data){
 }
 
 removeEmptyCol <- function(data){
-  data[, !sapply(data, is_empty_column)]
+  data[, !sapply(data, is_empty_column), F]
 }
 is_empty_column <- function(col) {
   all(is.na(col) | col == "")

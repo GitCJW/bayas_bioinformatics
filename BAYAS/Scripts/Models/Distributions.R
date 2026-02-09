@@ -1326,16 +1326,12 @@ HalfStudentTDistribution <- R6Class(
       if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpNu <- values[1]
       if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpMu <- values[2]
       if(!is.null(values[3]) && !is.na(values[3]) && is.numeric(values[3])) tmpSigma <- values[3]
-      min <- qst(0.01,nu=tmpNu,mu=tmpMu,sigma=tmpSigma)
-      max <- qst(0.99,nu=tmpNu,mu=tmpMu,sigma=tmpSigma)
+      min <- qtrunct_at_0(0.01,df=tmpNu,location=tmpMu,scale=tmpSigma) 
+      max <- qtrunct_at_0(0.99,df=tmpNu,location=tmpMu,scale=tmpSigma)
       x <- seq(from=min, to=max, length=1000)
-      y <- dst(x,nu=tmpNu,mu=tmpMu,sigma=tmpSigma)
+      y <- dtrunct_at_0(x,df=tmpNu,location=tmpMu,scale=tmpSigma)
       data <- data.frame(x=x,y=y)
       ggplot(data, aes(x=x,y=y)) + geom_line() + scale_y_continuous(breaks = NULL)
-      
-      #TODO qhalft returns NA
-      # LaplacesDemon::qhalft(0.5,nu=10,scale=1)
-      # LaplacesDemon::dhalft()
       
     },
     adjustedParameters = function(){
@@ -1555,22 +1551,24 @@ HalfCauchyDistribution <- R6Class(
       if(is.null(self$description)){
         self$description <- paste0(
           "The half-Cauchy distribution is the truncated version of the Cauchy distribution, restricted to positive values. ",
-          "It is controlled by the scale (σ > 0), and it has heavy tails, making it suitable for positive-valued parameters with potential for large values."
+          "It is controlled by the location (μ > 0) and scale (σ > 0). ",
+          "It has heavy tails, making it suitable for positive-valued parameters with potential for large values."
         )
       } 
     },
     setDefaultAuxParameter = function(){
-      # fit<-rstanarm::stan_glm("y~1", data=data.frame(y=rnorm(100)), prior_intercept=cauchy(-1,5), prior_aux=cauchy(0,5))
-      # self$auxParameter[[1]] <- DistributionParameter$new(name = "mu", display_name="&mu;", description="The mean (location).", value=0, default_val=0,min_val=0, max_val=Inf)
-      self$auxParameter[[1]] <- DistributionParameter$new(name = "sigma", display_name="&sigma;", description="The variance (scale).", value=10, default_val=10,min_val=greaterZero, max_val=Inf)
+      self$auxParameter[[1]] <- DistributionParameter$new(name = "mu", display_name="&mu;", description="The mean (location).", value=0, default_val=0,min_val=0, max_val=Inf)
+      self$auxParameter[[2]] <- DistributionParameter$new(name = "sigma", display_name="&sigma;", description="The variance (scale).", value=10, default_val=10,min_val=greaterZero, max_val=Inf)
     },
-    plotMe = function(values){#1:sigma
+    plotMe = function(values){ #1:mu, 2:sigma
+      tmpMu <- self$getValueOf("mu")
       tmpSigma <- self$getValueOf("sigma")
-      if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpSigma <- values[1]
-      min <- 0
-      max <- qhalfcauchy(0.95,scale=tmpSigma)
+      if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpMu <- values[1]
+      if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpSigma <- values[2]
+      min <- qtrunccauchy_at_0(0.01,location=tmpMu,scale=tmpSigma)
+      max <- qtrunccauchy_at_0(0.99,location=tmpMu,scale=tmpSigma)
       x <- seq(from=min, to=max, length=1000)
-      y <- dhalfcauchy(x,scale=tmpSigma)
+      y <- dtrunccauchy_at_0(x,location=tmpMu,scale=tmpSigma)
       data <- data.frame(x=x,y=y)
       ggplot(data, aes(x=x,y=y)) + geom_line() + scale_y_continuous(breaks = NULL)
     },
@@ -1597,47 +1595,49 @@ HalfCauchyDistribution <- R6Class(
       return(res)
     },
     getPrior = function(brms=F){                                  
-      # return(cauchy(self$auxParameter[[1]]$value,self$auxParameter[[2]]$value, autoscale=F))
-      warning("This function should only be used in a context, where this function is used as a half-student-t.")
       if(brms){
-        p <- brms::set_prior(paste0("cauchy(",0,",",
-                                    self$auxParameter[[2]]$value,")"),
-                             lb=0)
+        p <- brms::set_prior(
+          paste0("cauchy(",self$auxParameter[[1]]$value,",",
+                 self$auxParameter[[2]]$value,")"),
+          lb=0)
         return(p)
       }else{
-        return(cauchy(0,self$auxParameter[[1]]$value, autoscale=F))
+        return(cauchy(self$auxParameter[[1]]$value,self$auxParameter[[2]]$value, autoscale=F))
       }
     },
     getFormula = function(rounded=T, index=NULL){
+      tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
       tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
       if(self$is.vector){
         return(paste0(tags$span("Half-Cauchy", class="formulaDistribution"),
-                      " ( 0 ,", "<b>&sigma;",tags$sub(index) ,"</b> )"))      
+                      " ( <b>&mu;",tags$sub(index) ,"</b> ,", "<b>&sigma;",tags$sub(index) ,"</b> )"))      
       }else{
         return(paste0(tags$span("Half-Cauchy", class="formulaDistribution"),
-                      " ( 0 , ",tmp_sigma," )"))
+                      " ( ",tmp_mu," , ",tmp_sigma," )"))
       }
     },
     getFormulaLatex = function(rounded=T, index=NULL){
+      tmp_mu <- ifelse(rounded,round(self$getValueOf("mu"),2), self$getValueOf("mu"))
       tmp_sigma <- ifelse(rounded,round(self$getValueOf("sigma"),2), self$getValueOf("sigma"))
       if(self$is.vector){
-        param1 <- list(name="0",index=NULL, vector=F)
+        param1 <- list(name="\\mu",index=NULL, vector=self$is.vector)
         param2 <- list(name="\\sigma",index=index, vector=self$is.vector)
         return(distToLatex("Half-Cauchy",list(param1,param2)))
       }else{
-        param1 <- list(name=0,index=NULL, vector=F)
+        param1 <- list(name=tmp_mu,index=NULL, vector=F)
         param2 <- list(name=tmp_sigma,index=NULL, vector=F)
         return(distToLatex("Half-Cauchy",list(param1,param2)))
       }
     },
     getAuxParametersLatex = function(index=NULL){
+      tmp_mu <- self$getValueOf("mu")
       tmp_sigma <- self$getValueOf("sigma")
       if(self$is.vector){
-        param1 <- list(name="0",index=NULL, vector=F)
+        param1 <- list(name="\\mu",index=NULL, vector=self$is.vector)
         param2 <- list(name="\\sigma",index=index, vector=self$is.vector)
         return(distAuxToLatex(list(param1,param2)))
       }else{
-        param1 <- list(name=0,index=NULL, vector=F)
+        param1 <- list(name=tmp_mu,index=NULL, vector=F)
         param2 <- list(name=tmp_sigma,index=NULL, vector=F)
         return(distAuxToLatex(list(param1,param2)))
       }
@@ -1799,10 +1799,10 @@ HalfNormalDistribution <- R6Class(
       tmpSigma <- self$getValueOf("sigma")
       if(!is.null(values[1]) && !is.na(values[1]) && is.numeric(values[1])) tmpMu <- values[1]
       if(!is.null(values[2]) && !is.na(values[2]) && is.numeric(values[2])) tmpSigma <- values[2]
-      min <- qhalfnorm(0.01,mean=tmpMu,sd=tmpSigma)
-      max <- qhalfnorm(0.99,mean=tmpMu,sd=tmpSigma)
+      min <- qtruncnorm_at_0(0.01,mean=tmpMu,sd=tmpSigma)
+      max <- qtruncnorm_at_0(0.99,mean=tmpMu,sd=tmpSigma)
       x <- seq(from=min, to=max, length=1000)
-      y <- dhalfnorm(x,mean=tmpMu,tmpSigma)
+      y <- dtruncnorm_at_0(x,mean=tmpMu,tmpSigma)
       data <- data.frame(x=x,y=y)
       ggplot(data, aes(x=x,y=y)) + geom_line() + scale_y_continuous(breaks = NULL)
     },

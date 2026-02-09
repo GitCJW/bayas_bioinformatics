@@ -595,7 +595,6 @@ getParametersPossiblePriorDistributions <- function(type=c("predictor","aux"),
   dResp <- planningDistribtionsEnum("response")
   dLink <- planningLinkEnum()
   
-
   if(class=="generation"){
     if(type %in% c("predictor","intercept","fixed")){
       ret <- list('Choose...'="",
@@ -635,7 +634,7 @@ getParametersPossiblePriorDistributions <- function(type=c("predictor","aux"),
                                             'Weibull'=d$Weibull))
     }
   }else if(class=="inference"){
-    if(type == "predictor"){
+    if(type %in% c("predictor","intercept","fixed")){
       ret <- list('Choose...'="",
                   'Continuous unbound (recommended)' = c('Normal'=d$Normal,
                                            'Cauchy'=d$Cauchy,

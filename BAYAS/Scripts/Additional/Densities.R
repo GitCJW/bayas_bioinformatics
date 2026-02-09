@@ -382,6 +382,113 @@ prediction_dens_binom <- function(N_binom, p, seq=NULL, N=512, acc=1e-4){
 
 
 
+##################################################
+################## Beta-binomial ################# 
+##################################################
+
+qbetabinom <- function(p, size, mu, phi) {
+  # Check inputs
+  if (any(p < 0 | p > 1)) stop("p must be between 0 and 1")
+  
+  a <- mu*phi
+  b <- (1-mu)*phi
+  
+  qs <- c()
+  if(length(p) > 1 || length(a) == 1){
+    # Possible support values: 0, 1, ..., size
+    qs <- sapply(p, function(prob) {
+      # cumulative distribution over support
+      cdf_vals <- pbetabinom.ab(0:size, size=size, shape1=a, shape2=b)
+      # smallest x with CDF >= prob
+      which(cdf_vals >= prob)[1] - 1
+    })
+  }else{
+    # Possible support values: 0, 1, ..., size
+    qs <- sapply(seq_along(a), function(i) {
+      # cumulative distribution over support
+      cdf_vals <- pbetabinom.ab(0:size, size=size, shape1=a[i], shape2=b[i])
+      # smallest x with CDF >= prob
+      which(cdf_vals >= p)[1] - 1
+    })
+  }
+
+  return(qs)
+}
+
+
+# Good for plotting distributions
+# Calculates the mass. Returns a df of three columns:
+# x: 
+# density: the mass of the value x
+# cum_dist: cumulative mass distribution function
+prediction_dens_betabinom <- function(N_binom, p, phi, seq=NULL, N=512, acc=1e-4){
+
+  # N_binom <- 100000
+  # p <- rbeta(4000,100,200)
+  # seq=NULL
+  # N=512
+  # time <- as.numeric(Sys.time())*1000
+  
+  if(is.null(seq)){
+    min <- qbetabinom(acc, N_binom, min(p), min(phi))
+    max <- qbetabinom(1-acc, N_binom, max(p), min(phi))
+    
+    diff <- max-min
+    N <- N-1
+    if(diff < N){
+      N <- diff
+    }else{
+      steps <- ceiling(diff /N)
+      if(steps*N > N_binom){
+        # diff <- N_binom
+        N <- floor(diff/steps)
+        min <- 0
+        max <- N*steps
+        diff <- max-min
+      }
+      new_range <- steps*N
+      diff_d <- new_range-diff
+      
+      if(floor(diff_d/2) > min){
+        min <- 0
+        max <- new_range
+      }else if(max+ceiling(diff_d/2) > N_binom){
+        min <- N_binom-new_range
+        max <- N_binom
+      }else{
+        min <- min-floor(diff_d/2)
+        max <- max+ceiling(diff_d/2)
+      }
+    }
+    N<-N+1
+    seq <- seq(min,max, length=N)
+  }
+  seq_diff <- seq[2] - seq[1]
+  ret <- matrix(0,length(p),N)
+  cum_ret <- matrix(0,length(p),N)
+  
+  a <- p*phi
+  b <- (1-p)*phi
+  
+  for(i in 1:length(p)){
+    ret_a <- pbetabinom.ab(pmax(0,c(seq-(seq_diff/2),last(seq)+(seq_diff/2))),N_binom, a[i],b[i])
+    ret[i,] <- ret_a[2:(N+1)]-ret_a[1:N]
+    cum_ret[i,] <- pbetabinom.ab(seq,N_binom, a[i],b[i])
+  }
+  
+  val <- sapply(1:N,function(j){
+    mean(ret[,j])
+  })
+  cum_dist <- sapply(1:N,function(j){
+    mean(cum_ret[,j])
+  })
+  
+  df <- data.frame(x=seq, density=val, cum_dist = cum_dist)
+  
+  # as.numeric(Sys.time())*1000 - time
+}
+
+
 
 ##################################################
 ################## Neg-Binomial ##################
@@ -464,6 +571,7 @@ prediction_dens_negbinom <- function(mu, phi, seq=NULL, N=512, acc=1e-4){
 prediction_dens_bernoulli <- function(p){
   if(length(mu)!=length(phi)) stop("mu and phi must be of equal length!")
   
+  
   # p <- rbeta(4000,100,200)
   seq=c(0,1)
   N=2
@@ -492,8 +600,19 @@ prediction_dens_bernoulli <- function(p){
 #data: from functions prediction_dens_***
 #ci value of interval (0.9)
 #method: string
-ciOfDens <- function(data, ci, method = c("hdi","eti", "hdi2")){
+ciOfDens <- function(data, ci, method = c("hdi","eti", "hdi2"), 
+                     countData){
+  ret <- NULL
+  if(!countData){
+    ret <- ciOfDens.cont(data = data, ci = ci, method = method)
+  }else{
+    ret <- ciOfDens.disc(data = data, ci = ci, method = method)
+  }
+  return(ret)
+}
 
+ciOfDens.cont <- function(data, ci, method = c("hdi","eti", "hdi2")){
+  
   approx <- approxfun(x=data$x,y=data$density, yleft=0, yright=0)
   approx_cum <- approxfun(x=data$x,y=data$cum_dist, yleft=0, yright=1)
   approx_cum_rev <- approxfun(x=data$cum_dist,y=data$x, yleft=0, yright=1)
@@ -503,58 +622,19 @@ ciOfDens <- function(data, ci, method = c("hdi","eti", "hdi2")){
   lowerDens <- 0
   upperDens <- 0
   interval <- c(low=0,high=0)
-
   
   if(method == "eti"){
     interval <- c(low=approx_cum_rev((1-ci)/2),high=approx_cum_rev(ci+(1-ci)/2))
-    #median
-    centerPoint <- approx_cum_rev(0.5)
-    centerPointDens <- approx(centerPoint)
-    lowerDens <- approx(interval[1])
-    upperDens <- approx(interval[2])
-  # }else if(method=="hdi"){
-    # current_acc <- 1
-    # acc <- 1e-6
-    # step_size_start <- abs((data$x[length(data$x)]-data$x[1])/length(data$x))
-    # step_size <- step_size_start
-    # start_val <- data$x[1]
-    # signPos <- T
-    # while(current_acc > acc){
-    #   ret <- HDIFunction(data,ci,start_val)
-    #   current_acc <- abs(ret)
-    #   if(current_acc < acc) break;
-    #   if(step_size_start/step_size > 1e100) return(NULL)
-    #   if(ret < 0){
-    #     if(signPos) step_size <- step_size/2
-    #     signPos <- F
-    #     start_val <- start_val - step_size
-    #   }else{
-    #     if(!signPos) step_size <- step_size/2
-    #     signPos <- T
-    #     start_val <- start_val + step_size
-    #   }
-    # }
-    # cumLow <- approx_cum(start_val)
-    # upper <- approx_cum_rev(cumLow+ci)
-    # interval <- c(low=start_val,high=upper)
-    # 
-    # #median
-    # centerPoint <- approx_cum_rev(0.5)
-    # centerPointDens <- approx(centerPoint)
-    # lowerDens <- approx(interval[1])
-    # upperDens <- approx(interval[2])
   }else if(method=="hdi2" || method=="hdi"){
     interval <- HDIFunction2(data,ci)
-    
-    #median
-    centerPoint <- approx_cum_rev(0.5)
-    centerPointDens <- approx(centerPoint)
-    lowerDens <- approx(interval[1])
-    upperDens <- approx(interval[2])
-    
   }else{
     stop(paste0("Unknwon method: ", method))
   }
+  
+  centerPoint <- approx_cum_rev(0.5)
+  centerPointDens <- approx(centerPoint)
+  lowerDens <- approx(interval[1])
+  upperDens <- approx(interval[2])
   
   ret <- data.frame(lower=interval[1], center=centerPoint, upper=interval[2], 
                     lowerDens=lowerDens, centerPointDens=centerPointDens,
@@ -563,11 +643,49 @@ ciOfDens <- function(data, ci, method = c("hdi","eti", "hdi2")){
   return(ret)
 }
 
+ciOfDens.disc <- function(data, ci, method = c("hdi","eti", "hdi2")){
+  
+  approx <- approxfun(x=data$x,y=data$density, yleft=0, yright=0)
+  approx_cum <- approxfun(x=data$x,y=data$cum_dist, yleft=0, yright=1)
+  approx_cum_rev <- approxfun(x=data$cum_dist,y=data$x, yleft=min(data$x), yright=max(data$x))
+  
+  # if(length(data$x)==2){
+  #   approx_cum_rev <- function(x) data$cum_dist[1] + (data$cum_dist[2]-data$cum_dist[1])*x
+  # }
+
+  centerPoint <- 0
+  centerPointDens <- 0
+  lowerDens <- 0
+  upperDens <- 0
+  interval <- c(low=0,high=0)
+  
+  if(method == "eti"){
+    interval <- c(low=approx_cum_rev((1-ci)/2),high=approx_cum_rev(ci+(1-ci)/2))
+  }else if(method=="hdi2" || method=="hdi"){
+    interval <- HDIFunction2(data,ci)
+  }else{
+    stop(paste0("Unknwon method: ", method))
+  }
+  
+  centerPoint <- approx_cum_rev(0.5)
+  centerPointDens <- approx(centerPoint)
+
+  interval[1] <- max(data$x[data$x <= interval[1]])
+  interval[2] <- min(data$x[data$x >= interval[2]])
+  lowerDens <- data$density[data$x == interval[1]]
+  upperDens <- data$density[data$x == interval[2]]
+  
+  ret <- data.frame(lower=interval[1], center=centerPoint, upper=interval[2], 
+                    lowerDens=lowerDens, centerPointDens=centerPointDens,
+                    upperDens=upperDens)
+  rownames(ret) <- method
+  return(ret)
+}
 
 HDIFunction <- function(data, ci, lower){
   approx <- approxfun(x=data$x,y=data$density, yleft=0, yright=0)
   approx_cum <- approxfun(x=data$x,y=data$cum_dist, yleft=0, yright=1)
-  approx_cum_rev <- approxfun(x=data$cum_dist,y=data$x, yleft=0, yright=1)
+  approx_cum_rev <- approxfun(x=data$cum_dist,y=data$x, yleft=min(data$x), yright=max(data$x))
   
   densLow <- approx(lower)
   cumLow <- approx_cum(lower)
@@ -592,4 +710,33 @@ HDIFunction2 <- function(data, ci){
   
   index <- match(min(ret),ret)
   return(c(approx_cum_rev(seq[index]),approx_cum_rev(seq[index]+ci)))
+}
+
+
+
+#data: from functions prediction_dens_***
+#min, max 
+probOfRange <- function(data, min, max, countData){
+  if(is.null(min) || is.null(max) || is.null(data)) return(NaN)
+  ret <- 0
+  try({
+    if(!countData){
+      ret <- probOfRange.cont(data = data, min = min, max = max)
+    }else{
+      ret <- probOfRange.disc(data = data, min = min, max = max)
+    }
+  })
+  return(ret)
+}
+
+probOfRange.cont <- function(data, min, max){
+  approx_cum <- approxfun(x=data$x,y=data$cum_dist, yleft=0, yright=1)
+  return(approx_cum(max) - approx_cum(min))
+}
+
+probOfRange.disc <- function(data, min, max){
+  min <- ceiling(min)
+  max <- floor(max)
+  if(min > max) return(0)
+  return(sum(data$density[data$x >=min & data$x <=max]))
 }

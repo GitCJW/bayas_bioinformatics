@@ -1,11 +1,11 @@
 
-
 average_diff <- function(a,b){
   return(a-b)
 }
 
 
 group_mp_effects <- function(eff, catVar, numVar){
+  
   comb <- eff$combinations
   mps <- eff$mp
 
@@ -64,7 +64,6 @@ mp_effects <- function(rstanarmBrmsFit, catVar=NULL, numVar=NULL, numVal=NULL,
   # Necessary?
   # class(rstanarmfit) <- class(rstanarmfit)[!class(rstanarmfit) %in% "betareg"]
 
-  
   if("brmsfit" %in% class(rstanarmBrmsFit)){
     post <- as.array(rstanarmBrmsFit)
     dP <- dim(post)
@@ -120,6 +119,17 @@ mp_effects <- function(rstanarmBrmsFit, catVar=NULL, numVar=NULL, numVal=NULL,
     }
     all_comb <- expand.grid(comb_list, stringsAsFactors = F)
     
+    #Are all combinations (all_comb) present in data?
+    new_all_comb <- all_comb[0,,F]
+    for(r in 1:dim(all_comb)[1]){
+      comb <- all_comb[r,,F]
+      sub_data <- data
+      for(i in seq_len(dim(comb)[2])){
+        sub_data <- sub_data[sub_data[[names(comb)[i]]] == comb[[i]],,F]
+      }
+      if(dim(sub_data)[1] > 0) new_all_comb <- rbind(new_all_comb, comb)
+    }
+    all_comb <- new_all_comb
     
     new_data <- data[1,]
     # new_data <- data.frame(0)
@@ -190,6 +200,19 @@ mp_effects <- function(rstanarmBrmsFit, catVar=NULL, numVar=NULL, numVal=NULL,
     }
     all_comb <- expand.grid(comb_list, stringsAsFactors = F)
     
+    #Are all combinations (all_comb) present in data?
+    new_all_comb <- all_comb[0,,F]
+    for(r in 1:dim(all_comb)[1]){
+      comb <- all_comb[r,,F]
+      sub_data <- data
+      for(i in seq_len(dim(comb)[2])){
+        sub_data <- sub_data[sub_data[[names(comb)[i]]] == comb[[i]],,F]
+      }
+      if(dim(sub_data)[1] > 0) new_all_comb <- rbind(new_all_comb, comb)
+    }
+    all_comb <- new_all_comb
+    
+    
     new_data <- data[1,]
     # new_data <- data.frame(0)
     # for(i in 1:length(fit_pred)){
@@ -216,7 +239,7 @@ mp_effects <- function(rstanarmBrmsFit, catVar=NULL, numVar=NULL, numVal=NULL,
 
     for(r in 1:dim(all_comb)[1]){
       tmp <- new_data
-      tmp[names(all_comb)] <- all_comb[r,]
+      tmp[names(all_comb)] <- all_comb[r,,F]
       single_ret <- list()
       single_ret$comb <- tmp[,colnames(tmp) %in% names(ret$combinations),drop=F]
 
@@ -338,7 +361,6 @@ single_effect <- function(ncol, nrow,
   if(nrow == (ncol-dim(comb)[2]+1)) ret_linpred$B <- 0
   
   
-  # comb <- eff_g_epred$combinations
   combB <- comb[nrow,,drop=F]
   combA <- comb[ncol-dim(comb)[2]+1,,drop=F]
   
@@ -553,7 +575,8 @@ eff_matrix <- function(selGroup, selSlope, numericVal, matrixType, fit, response
   
   eff <- list()
   
-  if(!is.null(selGroup) && (length(selGroup) > 1 || selGroup != "")){
+  
+  if(!is.null(selGroup) && (!is.null(selGroup) && (length(selGroup) > 1 || selGroup != ""))){
     eff <- mp_effects(fit, catVar=selGroup, numVar=NULL, numVal=numericVal, response=response, "linpred") 
     eff <- group_mp_effects(eff, catVar=selGroup, numVar=selSlope)
     mps <- eff$mp
@@ -573,7 +596,7 @@ eff_matrix <- function(selGroup, selSlope, numericVal, matrixType, fit, response
       }
     }
     data <- data.frame(m)
-  }else if(!is.null(selSlope) && selSlope != ""){
+  }else if(!is.null(selSlope) && (length(selSlope) > 1 || selSlope != "")){ 
     eff <- mp_effects(fit, catVar=NULL, numVar=selSlope, numVal=NULL, response=response,"linpred") 
     eff <- group_mp_effects(eff, catVar=selGroup, numVar=selSlope)
     mps <- eff$mp

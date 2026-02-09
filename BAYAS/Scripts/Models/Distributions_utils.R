@@ -1,5 +1,6 @@
 
 #density and quantile function for half-normal
+#Replaced by truncnorm_at_0
 dhalfnorm <- function (x, mean = 0,sd = 1, log = FALSE) {
   dens <- log(2) + dnorm(x, mean = mean, sd = sd, 
                          log = TRUE)
@@ -119,4 +120,165 @@ rhs <- function(n, df = 1, global_df = 1, global_scale = 1,
   
   # Final mixture
   return((1 - w) * hs_samples + w * slab_samples)
+}
+
+
+
+
+dtruncnorm_at_0 <- function(x, mean = 0, sd = 1, log = FALSE) {
+  if (sd <= 0) stop("sd must be positive.")
+  if (any(x < 0)) {
+    # Handle values outside the truncated range.
+    # For values <= 0, the density is 0.
+    dens <- rep(-Inf, length(x)) # -Inf for log density
+    dens[x > 0] <- dnorm(x[x > 0], mean = mean, sd = sd, log = TRUE) - pnorm(0, mean = mean, sd = sd, lower.tail = FALSE, log.p = TRUE)
+  } else {
+    dens <- dnorm(x, mean = mean, sd = sd, log = TRUE) - pnorm(0, mean = mean, sd = sd, lower.tail = FALSE, log.p = TRUE)
+  }
+  
+  if (log == FALSE) {
+    dens <- exp(dens)
+    # Ensure density is 0 for x <= 0 if exp was applied to -Inf
+    dens[x <= 0] <- 0
+  }
+  return(dens)
+}
+
+# R-like implementation for qtruncnorm (truncated at 0)
+qtruncnorm_at_0 <- function(p, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE) {
+  if (sd <= 0) stop("sd must be positive.")
+  if (any(p < 0) || any(p > 1)) stop("p must be in [0,1].")
+  
+  if (log.p == TRUE) p <- exp(p)
+  if (lower.tail == FALSE) p <- 1 - p
+  
+  # Calculate the CDF value of 0 in the original normal distribution
+  cdf_0_orig <- pnorm(0, mean = mean, sd = sd, lower.tail = TRUE)
+  
+  # Map p from the truncated distribution's scale to the original distribution's scale
+  # The probability for the original normal distribution corresponding to p
+  # on the truncated distribution is:
+  # p_orig = cdf_0_orig + p * (1 - cdf_0_orig)
+  p_orig <- cdf_0_orig + p * (1 - cdf_0_orig)
+  
+  # Calculate the quantile using the original normal distribution's quantile function
+  q <- qnorm(p_orig, mean = mean, sd = sd)
+  
+  # Ensure that the returned quantile is within the truncated range (x >= 0)
+  # This should generally hold if p_orig calculation is correct, but good for robustness.
+  # If q is somehow slightly negative due to floating point, floor it at 0.
+  q[q < 0] <- 0
+  
+  return(q)
+}
+
+
+# R-like implementation for dtrunccauchy (truncated at 0)
+dtrunccauchy_at_0 <- function(x, location = 0, scale = 1, log = FALSE) {
+  if (scale <= 0) stop("scale must be positive.")
+  
+  # Calculate the denominator (probability of X > 0)
+  prob_gt_0 <- pcauchy(0, location = location, scale = scale, lower.tail = FALSE)
+  
+  if (any(x < 0)) {
+    dens <- rep(-Inf, length(x)) # -Inf for log density
+    valid_x_idx <- which(x > 0)
+    
+    if (length(valid_x_idx) > 0) {
+      dens[valid_x_idx] <- dcauchy(x[valid_x_idx], location = location, scale = scale, log = TRUE) - log(prob_gt_0)
+    }
+  } else {
+    dens <- dcauchy(x, location = location, scale = scale, log = TRUE) - log(prob_gt_0)
+  }
+  
+  if (log == FALSE) {
+    dens <- exp(dens)
+    dens[x <= 0] <- 0 # Ensure density is 0 for x <= 0
+  }
+  return(dens)
+}
+
+# R-like implementation for qtrunccauchy (truncated at 0)
+qtrunccauchy_at_0 <- function(p, location = 0, scale = 1, lower.tail = TRUE, log.p = FALSE) {
+  if (scale <= 0) stop("scale must be positive.")
+  if (any(p < 0) || any(p > 1)) stop("p must be in [0,1].")
+  
+  if (log.p == TRUE) p <- exp(p)
+  if (lower.tail == FALSE) p <- 1 - p
+  
+  # Calculate the CDF value of 0 in the original Cauchy distribution
+  cdf_0_orig <- pcauchy(0, location = location, scale = scale, lower.tail = TRUE)
+  
+  # Map p from the truncated distribution's scale to the original distribution's scale
+  # The probability for the original Cauchy distribution corresponding to p
+  # on the truncated distribution is:
+  # p_orig = cdf_0_orig + p * (1 - cdf_0_orig)
+  p_orig <- cdf_0_orig + p * (1 - cdf_0_orig)
+  
+  # Calculate the quantile using the original Cauchy distribution's quantile function
+  q <- qcauchy(p_orig, location = location, scale = scale)
+  
+  # Ensure that the returned quantile is within the truncated range (x >= 0)
+  # This should generally hold if p_orig calculation is correct.
+  q[q < 0] <- 0
+  
+  return(q)
+}
+
+# R-like implementation for dtrunct (truncated at 0)
+dtrunct_at_0 <- function(x, df, location = 0, scale = 1, log = FALSE) {
+  if (df <= 0) stop("df (degrees of freedom) must be positive.")
+  if (scale <= 0) stop("scale must be positive.")
+  
+  # Calculate the denominator (probability of X > 0)
+  prob_gt_0 <- pt(0, df = df, ncp = location / scale, lower.tail = FALSE) # ncp handles non-central t for location
+  
+  # Handle cases where x is outside the truncated range
+  if (any(x < 0)) {
+    dens <- rep(-Inf, length(x)) # -Inf for log density
+    valid_x_idx <- which(x > 0)
+    
+    if (length(valid_x_idx) > 0) {
+      # Calculate log density for original t-distribution
+      # Using a non-central t-distribution for location
+      # For a general t-distribution (location, scale), the density is:
+      # dt((x - location) / scale, df = df) / scale
+      log_dens_orig <- dt((x[valid_x_idx] - location) / scale, df = df, log = TRUE) - log(scale)
+      dens[valid_x_idx] <- log_dens_orig - log(prob_gt_0)
+    }
+  } else {
+    log_dens_orig <- dt((x - location) / scale, df = df, log = TRUE) - log(scale)
+    dens <- log_dens_orig - log(prob_gt_0)
+  }
+  
+  if (log == FALSE) {
+    dens <- exp(dens)
+    dens[x <= 0] <- 0 # Ensure density is 0 for x <= 0
+  }
+  return(dens)
+}
+
+# R-like implementation for qtrunct (truncated at 0)
+qtrunct_at_0 <- function(p, df, location = 0, scale = 1, lower.tail = TRUE, log.p = FALSE) {
+  if (df <= 0) stop("df (degrees of freedom) must be positive.")
+  if (scale <= 0) stop("scale must be positive.")
+  if (any(p < 0) || any(p > 1)) stop("p must be in [0,1].")
+  
+  if (log.p == TRUE) p <- exp(p)
+  if (lower.tail == FALSE) p <- 1 - p
+  
+  # Calculate the CDF value of 0 in the original t-distribution
+  cdf_0_orig <- pt(0, df = df, ncp = location / scale, lower.tail = TRUE)
+  
+  # Map p from the truncated distribution's scale to the original distribution's scale
+  # p_orig = cdf_0_orig + p * (1 - cdf_0_orig)
+  p_orig <- cdf_0_orig + p * (1 - cdf_0_orig)
+  
+  # Calculate the quantile using the original t-distribution's quantile function
+  q <- qt(p_orig, df = df, ncp = location / scale)
+  
+  # Ensure that the returned quantile is within the truncated range (x >= 0)
+  q[q < 0] <- 0
+  
+  return(q)
 }

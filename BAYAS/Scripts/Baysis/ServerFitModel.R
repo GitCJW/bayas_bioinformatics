@@ -191,6 +191,10 @@ init_run_model_function <- function(input, output, session, dataModel,
       return()
     }
     
+    if(!is.null(content$class) && content$class=="brms"){
+      progressBar$set(value=0, message = 'Compiling model ...', detail= "This may take a while")
+    }
+    
     
     f <- future({
       sink(consoleFile)
@@ -205,6 +209,7 @@ init_run_model_function <- function(input, output, session, dataModel,
         #Somehow the output passed to the viewer is not redirected to the consoleFile when using more than 1 core,
         #so that the progressbar doesn't make sense.
         if(!is.null(content$class) && content$class=="brms"){
+          
           sampled_model <- brms::brm(formula = content$formula, data=content$data, verbose = T,
                                      iter = content$stanParameter$iterations, cores = 1, #content$stanParameter$cores, 
                                      control=list(adapt_delta = content$stanParameter$adapt_delta, 
@@ -240,7 +245,23 @@ init_run_model_function <- function(input, output, session, dataModel,
 
     progressBar$set(value=0.9, message = 'Allocate memory ...', detail= "This may take a while")
     ret <- value(f) 
-    if(is.null(ret)){
+    
+    post <- c()
+    if(!is.null(content$class) && content$class=="brms"){
+      post <- as.array(ret$fit)
+    }else{
+      post <- as.array(ret$stanfit)
+    }
+    
+    if(!is.null(ret) && length(post) == 0){
+      showNotification("Initialization failed. Try again or revise your model.", type="error")
+      progressBar$set(value=1)
+      progressBar$close()
+      label_of_fit_run <<- "Run Fit"
+      shinyjs::enable(id = "btnRunModelRun")
+      updateTextInput(session = session, inputId = "runModelFitName", value = name)
+      return()
+    }else if(is.null(ret)){
 	    if(localUse) browser()
       showNotification("Couldn't fit the model for unknown reasons. The operator is notified.", type="error")
       malfunction_report(code=malfunctionCode()$compareStanModels, msg="unused interaction levels",
@@ -253,13 +274,13 @@ init_run_model_function <- function(input, output, session, dataModel,
       updateTextInput(session = session, inputId = "runModelFitName", value = name)
       return()
     }
+    
     ret <- baysisModel$postprocessing(ret, content)
     sampled_model <- ret[[1]]
     progressBar$set(value=1)
     progressBar$close()
     
     write("", consoleFile, append=F)
-
 
     # Validate fitted model and save to iteration data model (and dataModel)
     if(!is.null(sampled_model)){
@@ -317,8 +338,7 @@ init_run_model_function <- function(input, output, session, dataModel,
   
   ## stanParameters is a list, containing the number of iterations (iterations) and the number of chains (chains)
   prepareTask <- function(progressBar, consoleFile, consoleFile2, consoleFile3, stanParameters){
-    # write("Entering...", consoleFile3, append=T)
-    
+
     old_stat <- ""
     cur <- ""
     status <- ""
@@ -344,11 +364,9 @@ init_run_model_function <- function(input, output, session, dataModel,
       error= function(e){
         return(NULL)
       })
-      # write(cur,consoleFile3, append=T)
-      
+
 
       if(!is.null(cur) && cur == 1){
-        # write("END", consoleFile3, append=T)
         flag <- F
       }else{
         
@@ -359,13 +377,9 @@ init_run_model_function <- function(input, output, session, dataModel,
         error= function(e){
           return(NULL)
         })
-        
-        # write("ret:",consoleFile3, append=T)
-        # write(ret,consoleFile3, append=T)
-        
+  
         if(is.null(ret)){
           progressBar$set(value = plogis(timeWaitPre)-0.75, message = "Prepare sampling ...", detail="This may take a while")
-          # write("a", consoleFile3, append=T)
           timeWaitPre <- timeWaitPre+0.05
         }else{
           if(ret != old_stat){
@@ -375,14 +389,9 @@ init_run_model_function <- function(input, output, session, dataModel,
             progress <- validateStanOutput(paste(status), stanParameters)
             if(progress==1){
               flag <- F
-              # setProgress(plogis(timeWait), message="Allocate memory ...")
-              # progressBar$set(value = plogis(timeWait), message = "Allocate memory ...")
-              # write("c", consoleFile3, append=T)
-              # timeWait <- timeWait+0.05
             }else{
               # setProgress(progress*0.65+0.25,message="Sample model ...")
               progressBar$set(value = progress*0.5+0.25, message = "Sample model ...", detail="This may take a while")
-              # write("b", consoleFile3, append=T)
             }
           }
         }
@@ -409,6 +418,7 @@ init_run_model_function <- function(input, output, session, dataModel,
       output$runModelVariableSummaryPlot <- renderPlot(NULL)
       output$runModelVariableSummaryTable <- renderDataTable(NULL)
       output$treeMPVars <- renderTree(NULL)
+      output$treeMPVarsForSummary <- renderTree(NULL)
       output$runModelSelectedModelFormula <- renderUI(NULL)
       output$runModelModelValidationTabSQ <- renderDT(NULL)
       output$treePairsVars <- renderTree(NULL)
@@ -562,9 +572,11 @@ init_run_model_function <- function(input, output, session, dataModel,
        input$selectInputRunModelPreviousModels != ""){
       shinyjs::addClass(id = "reportPreviewPPC", "btn-primary")
       shinyjs::addClass(id = "reportModelValidation", "btn-primary")
+      shinyjs::addClass(id = "reportSummaryMP", "btn-primary")
     }else{
       shinyjs::removeClass(id = "reportPreviewPPC", "btn-primary")
       shinyjs::removeClass(id = "reportModelValidation", "btn-primary")
+      shinyjs::removeClass(id = "reportSummaryMP", "btn-primary")
     }
   })
   
@@ -618,6 +630,119 @@ init_run_model_function <- function(input, output, session, dataModel,
     }
   })
   
+  #Observe report button for preview PPC
+  observeEvent(input$reportSummaryMP, {
+    
+    #Any fit selected?
+    if(!is.null(input$selectInputRunModelPreviousModels) && 
+       input$selectInputRunModelPreviousModels != ""){
+      
+      withProgress(message = 'Adding item to reporting queue',  expr = {
+        
+        
+        pIDM <- dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)
+ 
+        sampled_model <- pIDM$get.calculated_stan_object()
+        posterior <- as.array(sampled_model)
+        if(class(sampled_model)[1] == "brmsfit"){
+          posterior <- as.array(sampled_model)
+          d <- dim(posterior)
+          posterior <- posterior[1:d[1], 1:d[2], 1:(d[3]-2)]
+        }
+        
+        post <- posterior_interval(sampled_model, prob = 0.95)
+        if("brmsfit" %in% class(sampled_model)){
+          var_names <- dimnames(posterior)$variable
+          post <- post[1:(dim(post)[1]-2),]
+        }else{
+          var_names <- dimnames(posterior)$parameters
+        }
+        
+        
+        median <- sapply(1:length(var_names), function(i){ median(posterior[,,var_names[i]]) })
+        table <- data.frame(stringsAsFactors = F, Variable = var_names, 
+                            lesserZero = rep("",length(var_names)), 
+                            greaterZero = rep("",length(var_names)), 
+                            pi= rep(0,length(var_names)), 
+                            sign= rep(0,length(var_names)))
+        for(var_name in var_names){
+          x0 <- mean(posterior[,, var_name] > 0)
+          table[table$Variable == var_name,]$lesserZero <- format(1-x0, digits=3)
+          table[table$Variable == var_name,]$greaterZero <- format(x0, digits=3)
+          if(x0 > 0.5){
+            table[table$Variable == var_name,]$pi <- PI.value(posterior[,, var_name])
+            table[table$Variable == var_name,]$sign <- "+"
+          }else{
+            table[table$Variable == var_name,]$pi <- PI.value(posterior[,, var_name])
+            table[table$Variable == var_name,]$sign <- "-"
+          }
+        }
+        colnames(table) <- c("Variables","p(effect<0)","p(effect>0)","pi","sign")
+
+        
+        ci_min <- formatC(post[,1], digits=4)
+        med <- formatC(median, digits=4)
+        ci_max <- formatC(post[,2], digits=4)
+        
+        res <- cbind(first =ci_min, Median = med, last = ci_max, pi = table$pi, sign=table$sign)
+        colnames(res) <- c("2.5%","Median","97.5%","pi","sign")
+
+        table <- datatable(
+          res, 
+          selection="none",
+          fillContainer = T,
+          options=list(paging=F,searching=F,info=F,ordering=T,
+                       columnDefs = list(list(className = "dt-left", targets = "_all")))) %>% 
+          formatRound(columns=c('2.5%', 'Median','97.5%'), digits=3) %>% 
+          formatRound(columns=c('pi'), digits=2) %>% 
+          formatStyle("pi", 
+                      color=styleInterval(
+                        cuts=c(0.6,0.7,0.8,0.9),
+                        values=c(BAYAS_COLORS$`--tb-cell-colors-1`, 
+                                 BAYAS_COLORS$`--tb-cell-colors-2`,
+                                 BAYAS_COLORS$`--tb-cell-colors-3`,
+                                 BAYAS_COLORS$`--tb-cell-colors-4`,
+                                 BAYAS_COLORS$`--tb-cell-colors-5`)) )%>%
+          formatStyle(0:(dim(res)[2]), lineHeight="70%")
+        
+  
+        inputName <- pIDM$get.name()
+        inputName <- str_replace_all(inputName, " ", "_")
+        
+        setProgress(value=0.2)
+        
+        tEnum <- reportTypeEnum()
+        
+        setProgress(value=0.4)
+        
+        
+        caption <- paste0("Summary of marginal posteriors of model '", input$selectInputRunModelPreviousModels,"'")
+        
+        res <- cbind(parameter=rownames(res),res)
+        
+        latexPlot <- dfToLatexTable(df=res,caption=caption)
+        setProgress(value=0.8)
+        
+        reportDiv <- reportType(div=list(table=table))
+
+        
+        #Add ppc element to report progress
+        #pIDM_id=-1 -1 for reported items that are not related to a certain pIDM
+        #There are no different dataModels, so that the csv name is used instead
+        addItem(moduleType = "evaluation",
+                dataModel_id=pIDM$getDataModelInputData()$getCurrentDataPath(), 
+                pDIM_id=pIDM$get.id(),  pDIM_name = pIDM$get.name(),
+                imgFile=paste0("Images/Report/mp_summary.png"), 
+                type=tEnum$mpSummary, object=list(div=reportDiv, latex=latexPlot), 
+                singleton=T, show=T, global_reportProgressModel=global_reportProgressModel)
+        
+        setProgress(value=1)
+      })
+      
+    }else{
+      showNotification("No plot to report! Fit a model first!", type = "warning")
+    }
+  })
  
   
   # Init observer for MP tab
@@ -952,6 +1077,8 @@ observerModelValidationTab <- function(input, output, session, dataModel, global
   plot_id_PVP <- reactiveVal(1)
   observeEvent(input$plotPVP, ignoreInit = T, {
     
+    # browser()
+    
     tryCatch({
       
       res <- c()
@@ -1004,23 +1131,33 @@ observerModelValidationTab <- function(input, output, session, dataModel, global
       #Replace naming for auxiliary parameters if necessary
       res <- baysisModel$matchAuxiliaryNames(res)
 
-      data <- dMID$getLongFormat()
-      
-      content <- baysisModel$get_content_for_stan_code(response = response, 
-                                                       data = data, 
-                                                       stanParameter = stanParameters)
+      # data <- dMID$getLongFormat()
+      # 
+      # content <- baysisModel$get_content_for_stan_code(response = response, 
+      #                                                  data = data, 
+      #                                                  stanParameter = stanParameters)
+      # 
+      # 
+      # # assign("sampled_model",sampled_model)
+      # #Required for the update function. Otherwise the call object in sampled_model will use an older content.
+      # assign("content", content, envir = .GlobalEnv)
+      # 
+      # c <- call("posterior_vs_prior", object=sampled_model, pars=res,
+      #           group_by_parameter = input$groupByParameterPVP, facet_args = list(scales = "free"))
+      # gg <- eval(c) +
+      #   theme(legend.position = "none") +
+      #   theme(text = element_text(size = 14)) +
+      #   geom_pointrange(size=1)
 
-
-      # assign("sampled_model",sampled_model)
-      #Required for the update function. Otherwise the call object in sampled_model will use an older content.
-      assign("content", content, envir = .GlobalEnv)
-      
-      c <- call("posterior_vs_prior", object=sampled_model, pars=res, 
-                group_by_parameter = input$groupByParameterPVP)
-      gg <- eval(c) + 
-        theme(text = element_text(size = 14)) + 
-        geom_pointrange(size=1)
-      
+      gg <- posterior_vs_prior(
+        object = sampled_model,
+        pars = res,
+        group_by_parameter = input$groupByParameterPVP,
+        facet_args = list(scales = "free")
+      ) +
+        theme(legend.position = "none") +
+        theme(text = element_text(size = 14)) +
+        geom_pointrange(size = 1)
 
       plot_id_tmp <- dataModel$getDataModelPlotModel()$getNextId("pvp")
       plot_name <- paste0("Plot ", plot_id_tmp)
@@ -1253,6 +1390,7 @@ observerPPCTab <- function(input, output, session, dataModel, global_reportProgr
     pIDM <- dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)
     
     #fitPageMPPanelPlot
+    
     sampled_model <- pIDM$get.calculated_stan_object()
     dMID <- pIDM$getDataModelInputData()
 
@@ -1559,6 +1697,9 @@ observerMPTab <- function(input, output, session, dataModel, global_reportProgre
     
     if(type != "Violin" && scale=="Pseudo log") gg <- gg + scale_x_continuous(trans=scales::pseudo_log_trans())
 
+    parameter_replaces <- abbreviate(gg$data$parameter, minlength = 20, method="both.sides")
+    gg <- gg + scale_y_discrete(labels = rev(parameter_replaces), limits = rev(gg$data$parameter))
+    
     plot_id_tmp <- dataModel$getDataModelPlotModel()$getNextId("mp")
     plot_name <- paste0("Plot ", plot_id_tmp)
     
@@ -1692,6 +1833,99 @@ observerMPTab <- function(input, output, session, dataModel, global_reportProgre
     })
   })
   
+  #Show summary table of marginal posterior
+  # observeEvent(input$mpSummaryTableButton, {
+  #   
+  # })
+  observeEvent(input[["mpSummaryTableButton"]], {
+    
+    res <- c()
+    t <- input$treeMPVarsForSummary
+    n_i <- names(t)
+    for(i in 1:length(t)){
+      if(class(t[[i]])=="list"){
+        n_j <- names(t[[i]])
+        for(j in 1:length(t[[i]])){
+          if(!is.null(attr(t[[i]][[j]],"stselected")) && attr(t[[i]][[j]],"stselected") == "TRUE") res <- c(res, n_j[j])
+        }
+      }else{
+        if(!is.null(attr(t[[i]],"stselected")) && attr(t[[i]],"stselected") == "TRUE") res <- c(res, n_i[i])
+      }
+    }
+    
+    #fitPageMPPanelPlot
+    if(is.null(input$selectInputRunModelPreviousModels) || input$selectInputRunModelPreviousModels == ""){
+      showNotification("Please fit a model before.", type="warning")
+      return()
+    }
+    
+    pIDM <- dataModel$get.perIterationDataModel(input$selectInputRunModelPreviousModels)
+    
+    
+    sampled_model <- pIDM$get.calculated_stan_object()
+    posterior <- as.array(sampled_model)
+    res <- gsub("<i>||</i>","",res)
+    
+    baysisModel <- pIDM$get.selected_BAYSIS_stan_model() 
+    res <- baysisModel$matchAuxiliaryNames(res)
+    
+    # c("Median","Mean", "None")
+    type <- input$mpSummaryTableselectionMPPointEst
+    hdi <- input$mpSummaryTableHDIValue
+    pi_t <- input$mpSummaryTablePIValue
+    
+    if(is.null(hdi) || is.na(hdi)) hdi <- 0.95
+    if(is.null(pi_t) || is.na(pi_t)) pi_t <- 0
+    
+    if(hdi == 1) hdi <- 0.9999
+    if(hdi == 0) hdi <- 0.0001
+    
+    output$mpSummaryTableSummaryTable <- DT::renderDataTable({
+      
+      # browser()
+      
+      hdi_lo <- round((1-hdi)/2,4)
+      hdi_hi <- round(1-(1-hdi)/2,4)
+      
+      var_names <- res
+      
+      post <- posterior_interval(sampled_model, prob = hdi)
+      if("brmsfit" %in% class(sampled_model)){
+        post <- post[1:(dim(post)[1]-2),]
+      }
+      post <- post[var_names,,drop=F]
+      
+      central <- sapply(1:length(var_names), function(i){ median(posterior[,,var_names[i]]) })
+      if(!is.null(type) && type == "Mean") central <- sapply(1:length(var_names), function(i){ mean(posterior[,,var_names[i]]) })
+      
+      table <- data.frame(stringsAsFactors = F, Variable = var_names, 
+                          lesserT = rep("",length(var_names)), 
+                          greaterT = rep("",length(var_names)), 
+                          pi= rep(0,length(var_names)))
+      for(var_name in var_names){
+        x0 <- posterior[,, var_name]
+        table[table$Variable == var_name,]$lesserT <- length(x0[x0 < pi_t]) / length(x0)
+        table[table$Variable == var_name,]$greaterT <- length(x0[x0 > pi_t]) / length(x0)
+        table[table$Variable == var_name,]$pi <- PI.value(x0, pi_t)
+      }
+      res <- cbind(first = post[,1], central = central, last = post[,2], lesserT= table$lesserT, greaterT = table$greaterT, pi = table$pi)
+      colnames(res) <- c(paste0(hdi_lo*100, "%"),type,paste0(hdi_hi*100, "%"),paste0("p(x<" , pi_t,")"),paste0("p(x>" , pi_t,")"),"pi")
+      
+      datatable(
+        res, 
+        selection="none",
+        fillContainer = T,
+        options=list(paging=F,searching=F,info=F,ordering=T,
+                     columnDefs = list(list(className = "dt-left", targets = "_all")))) %>% 
+        # formatRound(columns=c('2.5%', type,'97.5%'), digits=3) %>% 
+        formatRound(columns=c(1:3), digits=3) %>% 
+        formatRound(columns=c(4:6), digits=4) %>% 
+        formatStyle(0:(dim(res)[2]), lineHeight="70%")
+      
+    })
+    
+  })
+  
 }
 
 
@@ -1754,7 +1988,6 @@ createModelFitResults <- function(input, output, session, iterationDataModel,
                                   global_reportProgressModel){
   
   withProgress(message = 'Creating result view', value = 0, expr = {
-    
     sampled_model <- iterationDataModel$get.calculated_stan_object()
     dMID <- iterationDataModel$getDataModelInputData()
 
@@ -1768,15 +2001,9 @@ createModelFitResults <- function(input, output, session, iterationDataModel,
     if(class(sampled_model)[1] == "stanreg" || class(sampled_model)[1] == "brmsfit"){
       min_draws <- floor(iterationDataModel$get.number_iterations()/2*iterationDataModel$get.number_chains())
       
-      
       # Increase progressbar
       setProgress(value = 0.1)
-      
-      # loo <- rstanarm::loo(sampled_model)
-      # Increase progressbar
-      # setProgress(value = 0.6)
-      
-      # pareto_res <- pareto_k_table(loo)
+
       posterior <- as.array(sampled_model)
       if(class(sampled_model)[1] == "brmsfit"){
         posterior <- as.array(sampled_model)
@@ -1875,12 +2102,12 @@ createModelFitResults <- function(input, output, session, iterationDataModel,
         }
         colnames(table) <- c("Variables","p(effect<0)","p(effect>0)","pi","sign")
         res <- cbind(first = post[,1], Median = median, last = post[,2], pi = table$pi, sign=table$sign)
-        # print1("res",res)
         colnames(res) <- c("2.5%","Median","97.5%","pi","sign")
 
         datatable(
           res, 
           selection="none",
+          fillContainer = T,
           options=list(paging=F,searching=F,info=F,ordering=T,
                        columnDefs = list(list(className = "dt-left", targets = "_all")))) %>% 
           formatRound(columns=c('2.5%', 'Median','97.5%'), digits=3) %>% 
@@ -1892,7 +2119,9 @@ createModelFitResults <- function(input, output, session, iterationDataModel,
                                  BAYAS_COLORS$`--tb-cell-colors-2`,
                                  BAYAS_COLORS$`--tb-cell-colors-3`,
                                  BAYAS_COLORS$`--tb-cell-colors-4`,
-                                 BAYAS_COLORS$`--tb-cell-colors-5`)))
+                                 BAYAS_COLORS$`--tb-cell-colors-5`)) )%>%
+          formatStyle(0:(dim(res)[2]), lineHeight="70%")
+        
       })
 
       # Increase progressbar
@@ -1912,6 +2141,10 @@ createModelFitResults <- function(input, output, session, iterationDataModel,
       
       # Marginal Posterior Tab
       output$treeMPVars <- renderTree({
+        getTreeElements(iterationDataModel$get.selected_BAYSIS_stan_model()$getTermCombinationsOfAllModelElements())
+      })
+      
+      output$treeMPVarsForSummary <- renderTree({
         getTreeElements(iterationDataModel$get.selected_BAYSIS_stan_model()$getTermCombinationsOfAllModelElements())
       })
       
@@ -1995,7 +2228,6 @@ createModelFitResults <- function(input, output, session, iterationDataModel,
     
     # Model Validation sub tab 'Sampling quantities'
     output$runModelModelValidationTabSQ <- renderDT({
-      
       
       n_eff_min <- iterationDataModel$get.number_chains()*100
       n_eff_max <- floor(iterationDataModel$get.number_chains()*iterationDataModel$get.number_iterations()/2)
@@ -2093,8 +2325,9 @@ createModelFitResults <- function(input, output, session, iterationDataModel,
     
     y <- data[[resp_name]]
 
-    
-    plot <- bayesplot::ppc_dens_overlay(y, y_rep) +
+    dens_y <- density(y)
+    y_max <- 2*max(dens_y$y)
+    plot <- bayesplot::ppc_dens_overlay(y, y_rep) + ylim(0,y_max) +
       baysisModel$plot_scale(x=T)
 
     cPIDM$set.priorPredictiveCheckPlot(plot)
@@ -2286,13 +2519,13 @@ initModelValidationPreview <- function(input, output, session, iterationDataMode
       
       #Better placement?
 
-      delay(t0+(tStep*0),shinyjs::show("check0", anim=T, animType="fade", time=0.5))
-      delay(t0+(tStep*1),shinyjs::show("check1", anim=T, animType="fade", time=0.5))
-      delay(t0+(tStep*2),shinyjs::show("check2", anim=T, animType="fade", time=0.5))
-      delay(t0+(tStep*3),shinyjs::show("check3", anim=T, animType="fade", time=0.5))
-      delay(t0+(tStep*4),shinyjs::show("check4", anim=T, animType="fade", time=0.5))
-      delay(t0+(tStep*5),shinyjs::show("check5", anim=T, animType="fade", time=0.5))
-      delay(t0+(tStep*6),shinyjs::show("check6", anim=T, animType="fade", time=0.5))
+      delay(t0+(tStep*0),shinyjs::showElement("check0", anim=T, animType="fade", time=0.5))
+      delay(t0+(tStep*1),shinyjs::showElement("check1", anim=T, animType="fade", time=0.5))
+      delay(t0+(tStep*2),shinyjs::showElement("check2", anim=T, animType="fade", time=0.5))
+      delay(t0+(tStep*3),shinyjs::showElement("check3", anim=T, animType="fade", time=0.5))
+      delay(t0+(tStep*4),shinyjs::showElement("check4", anim=T, animType="fade", time=0.5))
+      delay(t0+(tStep*5),shinyjs::showElement("check5", anim=T, animType="fade", time=0.5))
+      delay(t0+(tStep*6),shinyjs::showElement("check6", anim=T, animType="fade", time=0.5))
       
       return(ret)
     })

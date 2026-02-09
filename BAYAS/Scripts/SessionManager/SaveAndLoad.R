@@ -1,8 +1,6 @@
 
 saveSession <- function(dataModel, file, encrypt=T){
 
-  # if(global_browser) browser()
-  
   # Evaluation model
   stateEval <- dataModel$getState(1)
   
@@ -64,7 +62,8 @@ saveSession <- function(dataModel, file, encrypt=T){
 
   # Write to local
   if(encrypt){
-    key <- readRDS(paste0(dirname(getwd()),"/PW/key.key"))
+    # key <- readRDS(paste0(dirname(getwd()),"/PW/key.key"))
+    key <- mailAuth()$SESSION_CRYPT_KEY
     saveRDS(state, file=file)
     encrypt(inputFile=file, outputFile=file, key=key)
   }else{
@@ -105,7 +104,8 @@ saveObject <- function(obj, file, encrypt=T){
 
   # Write to local
   if(encrypt){
-    key <- readRDS(paste0(dirname(getwd()),"/PW/key.key"))
+    # key <- readRDS(paste0(dirname(getwd()),"/PW/key.key"))
+    key <- mailAuth()$SESSION_CRYPT_KEY
     saveRDS(state, file=file)
     encrypt(inputFile=file, outputFile=file, key=key)
   }else{
@@ -160,11 +160,10 @@ unnestR6 <- function(state, unnestList = list()){
 
 loadSession <- function(dataModel, file, decrypt=T){
 
-  # if(global_browser) browser()
-  
   state <- NULL
   if(decrypt){
-    key <- readRDS(paste0(dirname(getwd()),"/PW/key.key"))
+    # key <- readRDS(paste0(dirname(getwd()),"/PW/key.key"))
+    key <- mailAuth()$SESSION_CRYPT_KEY
     
     status <- tryCatch(
       {
@@ -220,7 +219,7 @@ loadSession <- function(dataModel, file, decrypt=T){
       st <- statePlan[[st_id]]
       loadSingleObject(objList[[st_id]], st, objList, statePlan)
     }
-    
+
     mCDList$setInstance(objList[[as.character(cMCDUUID)]])
     cMCD$setModelName("_tmp")
     cMCD$doTriggerLoadMCD()
@@ -291,8 +290,8 @@ loadObject <- function(obj, objClassName, file, decrypt=T){
   
   state <- NULL
   if(decrypt){
-    key <- readRDS(paste0(dirname(getwd()),"/PW/key.key"))
-    
+    # key <- readRDS(paste0(dirname(getwd()),"/PW/key.key"))
+    key <- mailAuth()$SESSION_CRYPT_KEY
     status <- tryCatch(
       {
         decrypt(inputFile=file, outputFile=file, key=key)

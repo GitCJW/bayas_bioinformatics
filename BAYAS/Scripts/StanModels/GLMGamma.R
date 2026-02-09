@@ -12,7 +12,8 @@ GLMGammaStanModel <- R6Class(
   public = list(
     
     id = 6,
-    display_name = 'GLM - Gamma distribution',
+    brmsClass = F,
+    display_name = 'Gamma distribution (GLM)',
     description = 'The gamma distribution is used e.g. for modelling the age of cancer incidence or peak calling the ChIP-seq data analysis.
     \nYour response variable should be continuous and have a lower limit of >0 and an upper limit of INF. Please make sure that your (theoretical) limits makes sense.',
     is.discrete = F,
@@ -213,7 +214,7 @@ GLMGammaStanModel <- R6Class(
       #get priors
       usedVars <- self$get_used_vars(extras=T, response=T)
       order_of_elements <- colnames(as.data.frame(model.matrix(formula, self$myPerIterationDataModel$getDataModelInputData()$getLongFormatVariable(usedVars, completeCases=T))) %>% 
-                                      select_if(~ !is.numeric(.) || sum(.) != 0))
+                                      select_if(~ !is.numeric(.) || (length(unique(.)) != 1 || sum(.)!= 0)))
       if(order_of_elements[1] == "(Intercept)") order_of_elements <- order_of_elements[-1]
       
       
