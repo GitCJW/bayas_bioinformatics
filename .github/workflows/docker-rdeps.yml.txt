@@ -1,0 +1,39 @@
+name: Build rdeps image
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "Docker/rdep/Dockerfile_rdeps"
+      - ".github/workflows/build-rdeps.yml"
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push rdeps image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Docker/rdep/Dockerfile_rdeps
+          push: true
+          tags: |
+            drcjw/bayas_rdeps:1.0.0
+            drcjw/bayas_rdeps:latest
+            drcjw/bayas_rdeps:${{ github.sha }}

@@ -1,0 +1,26 @@
+FROM rocker/r-ver:4.3.3
+
+LABEL org.opencontainers.image.authors="chrstoph.waterkamp@uni-due.de"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    sudo \
+    r-cran-curl \
+    software-properties-common \
+    pandoc \
+    libxml2-dev \
+    libssl-dev \
+    xvfb \
+    xauth \
+    xfonts-base \
+    r-cran-rjava \
+    default-jre \
+    libmail-java \
+    libpoppler-cpp-dev \
+    libglpk40 \
+    texlive-latex-base \
+    texlive-latex-recommended \
+    texlive-fonts-recommended \
+    texlive-latex-extra \
+    r-cran-nloptr \
+    libsodium-dev \
+  && rm -rf /var/lib/apt/lists/*

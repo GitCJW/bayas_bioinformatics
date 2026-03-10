@@ -1,0 +1,41 @@
+name: Build final image
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "Docker/final/Dockerfile"
+      - "Docker/dep/**"
+      - "BAYAS/**"
+      - ".github/workflows/build-final.yml"
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push final image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Docker/final/Dockerfile
+          push: true
+          tags: |
+            drcjw/bayas_final:1.0.0
+            drcjw/bayas_final:latest
+            drcjw/bayas_final:${{ github.sha }}
