@@ -7,12 +7,10 @@ RUN R -q -e " \
   options(repos = c(CRAN='https://cloud.r-project.org')); \
   pkgs <- c( \
     'VGAM'='1.1-14', \ 
-'bayesianssd'='0.1.0', \ 
 'gridExtra'='2.3', \ 
 'HDInterval'='0.2.4', \ 
 'doFuture'='1.2.1', \ 
 'foreach'='1.5.2', \ 
-'shinybayas'='0.2.9', \ 
 'withr'='3.0.2', \ 
 'ggpubr'='0.6.3', \ 
 'sodium'='1.4.0', \ 
