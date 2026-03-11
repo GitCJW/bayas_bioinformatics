@@ -3,79 +3,79 @@ FROM drcjw/bayas_core:1.0.0
 LABEL org.opencontainers.image.authors="chrstoph.waterkamp@uni-due.de"
 
 RUN R -q -e "install.packages('remotes', repos='https://cloud.r-project.org')"
-RUN R -q -e " \
-  options(repos = c(CRAN='https://cloud.r-project.org')); \
-  pkgs <- c( \
-    'VGAM'='1.1-14', \ 
-'gridExtra'='2.3', \ 
-'HDInterval'='0.2.4', \ 
-'doFuture'='1.2.1', \ 
-'foreach'='1.5.2', \ 
-'withr'='3.0.2', \ 
-'ggpubr'='0.6.3', \ 
-'sodium'='1.4.0', \ 
-'readxl'='1.4.5', \ 
-'excelR'='0.4.0', \ 
-'pracma'='2.4.6', \ 
-'mailR'='0.8', \ 
-'filesstrings'='3.4.0', \ 
-'pdftools'='3.7.0', \ 
-'knitr'='1.51', \ 
-'sortable'='0.6.0', \ 
-'statmod'='1.5.1', \ 
-'spatstat'='3.5-1', \ 
-'spatstat.linnet'='3.4-1', \ 
-'spatstat.model'='3.6-1', \ 
-'rpart'='4.1.24', \ 
-'spatstat.explore'='3.7-0', \ 
-'nlme'='3.1-168', \ 
-'spatstat.random'='3.4-4', \ 
-'spatstat.geom'='3.7-0', \ 
-'spatstat.univar'='3.1-6', \ 
-'spatstat.data'='3.1-9', \ 
-'bayestestR'='0.17.0', \ 
-'RColorBrewer'='1.1-3', \ 
-'gtools'='3.9.5', \ 
-'data.table'='1.18.2.1', \ 
-'ggExtra'='0.11.0', \ 
-'png'='0.1-8', \ 
-'LaplacesDemon'='16.1.8', \ 
-'ggplot2'='4.0.2', \ 
-'bayesplot'='1.15.0', \ 
-'tidyr'='1.3.2', \ 
-'dplyr'='1.2.0', \ 
-'stringr'='1.6.0', \ 
-'promises'='1.5.0', \ 
-'future'='1.69.0', \ 
-'futile.logger'='1.4.9', \ 
-'DT'='0.34.0', \ 
-'bslib'='0.10.0', \ 
-'shinybusy'='0.3.3', \ 
-'shinyFeedback'='0.4.0', \ 
-'shinyalert'='3.1.0', \ 
-'shinycssloaders'='1.1.0', \ 
-'shinyTree'='0.3.1', \ 
-'shinyWidgets'='0.9.1', \ 
-'shinyjs'='2.1.1', \ 
-'R6'='2.6.1', \ 
-'loo'='2.9.0', \ 
-'brms'='2.23.0', \ 
-'rstanarm'='2.32.2', \ 
-'Rcpp'='1.1.1', \ 
-'rstan'='2.32.7', \ 
-'StanHeaders'='2.32.10', \ 
-'BH'='1.90.0-1', \ 
-'shiny'='1.12.1' \
+
+RUN R -q -e "\
+options(repos = c(CRAN='https://cloud.r-project.org')); \
+pkgs <- c( \
+  'VGAM'='1.1-14', \
+  'gridExtra'='2.3', \
+  'HDInterval'='0.2.4', \
+  'doFuture'='1.2.1', \
+  'foreach'='1.5.2', \
+  'withr'='3.0.2', \
+  'ggpubr'='0.6.3', \
+  'sodium'='1.4.0', \
+  'readxl'='1.4.5', \
+  'excelR'='0.4.0', \
+  'pracma'='2.4.6', \
+  'mailR'='0.8', \
+  'filesstrings'='3.4.0', \
+  'pdftools'='3.7.0', \
+  'knitr'='1.51', \
+  'sortable'='0.6.0', \
+  'statmod'='1.5.1', \
+  'spatstat'='3.5-1', \
+  'spatstat.linnet'='3.4-1', \
+  'spatstat.model'='3.6-1', \
+  'rpart'='4.1.24', \
+  'spatstat.explore'='3.7-0', \
+  'nlme'='3.1-168', \
+  'spatstat.random'='3.4-4', \
+  'spatstat.geom'='3.7-0', \
+  'spatstat.univar'='3.1-6', \
+  'spatstat.data'='3.1-9', \
+  'bayestestR'='0.17.0', \
+  'RColorBrewer'='1.1-3', \
+  'gtools'='3.9.5', \
+  'data.table'='1.18.2.1', \
+  'ggExtra'='0.11.0', \
+  'png'='0.1-8', \
+  'LaplacesDemon'='16.1.8', \
+  'ggplot2'='4.0.2', \
+  'bayesplot'='1.15.0', \
+  'tidyr'='1.3.2', \
+  'dplyr'='1.2.0', \
+  'stringr'='1.6.0', \
+  'promises'='1.5.0', \
+  'future'='1.69.0', \
+  'futile.logger'='1.4.9', \
+  'DT'='0.34.0', \
+  'bslib'='0.10.0', \
+  'shinybusy'='0.3.3', \
+  'shinyFeedback'='0.4.0', \
+  'shinyalert'='3.1.0', \
+  'shinycssloaders'='1.1.0', \
+  'shinyTree'='0.3.1', \
+  'shinyWidgets'='0.9.1', \
+  'shinyjs'='2.1.1', \
+  'R6'='2.6.1', \
+  'loo'='2.9.0', \
+  'brms'='2.23.0', \
+  'rstanarm'='2.32.2', \
+  'Rcpp'='1.1.1', \
+  'rstan'='2.32.7', \
+  'StanHeaders'='2.32.10', \
+  'BH'='1.90.0-1', \
+  'shiny'='1.12.1' \
 ); \
 for (p in names(pkgs)) { \
-message('==== Installing ', p, ' ', pkgs[[p]], ' ===='); \
-tryCatch({ \
-  remotes::install_version(p, version = pkgs[[p]], upgrade = 'never', dependencies = TRUE); \
-}, error = function(e) { \
-  message('FAILED PACKAGE: ', p); \
-  message('FAILED VERSION: ', pkgs[[p]]); \
-  message('ERROR MESSAGE: ', conditionMessage(e)); \
-  quit(status = 1); \
-}); \
-} \"
-
+  message('==== Installing ', p, ' ', pkgs[[p]], ' ===='); \
+  tryCatch({ \
+    remotes::install_version(p, version = pkgs[[p]], upgrade = 'never', dependencies = TRUE); \
+  }, error = function(e) { \
+    message('FAILED PACKAGE: ', p); \
+    message('FAILED VERSION: ', pkgs[[p]]); \
+    message('ERROR MESSAGE: ', conditionMessage(e)); \
+    quit(status = 1); \
+  }); \
+}"
