@@ -6,7 +6,7 @@ on:
     branches: [main]
     paths:
       - "Docker/core/**"
-      - "Docker/rdep/**"
+      - "Docker/rdeps/**"
       - "Docker/final/**"
       - "Docker/dep/**"
       - "BAYAS/**"
@@ -62,7 +62,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: Docker/rdep/Dockerfile_rdeps
+          file: Docker/rdeps/Dockerfile_rdeps
           push: true
           tags: |
             drcjw/bayas_rdeps:1.0.0
