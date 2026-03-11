@@ -66,6 +66,16 @@ RUN R -q -e " \
 'StanHeaders'='2.32.10', \ 
 'BH'='1.90.0-1', \ 
 'shiny'='1.12.1' \
-  ); \
-  for (p in names(pkgs)) remotes::install_version(p, version=pkgs[[p]], upgrade='never', dependencies=TRUE); \"
+); \
+for (p in names(pkgs)) { \
+message('==== Installing ', p, ' ', pkgs[[p]], ' ===='); \
+tryCatch({ \
+  remotes::install_version(p, version = pkgs[[p]], upgrade = 'never', dependencies = TRUE); \
+}, error = function(e) { \
+  message('FAILED PACKAGE: ', p); \
+  message('FAILED VERSION: ', pkgs[[p]]); \
+  message('ERROR MESSAGE: ', conditionMessage(e)); \
+  quit(status = 1); \
+}); \
+} \"
 
