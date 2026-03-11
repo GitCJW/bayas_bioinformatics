@@ -24,7 +24,7 @@ COPY BAYAS/Planning_models/ /root/BAYAS/Planning_models/
 COPY BAYAS/Data_user/ /root/BAYAS/Data_user/
 COPY BAYAS/Icons/ /root/BAYAS/Icons/
 
-COPY Rprofile.site /usr/lib/R/etc/
+# COPY Rprofile.site /usr/lib/R/etc/
 
 EXPOSE 3838 
 
