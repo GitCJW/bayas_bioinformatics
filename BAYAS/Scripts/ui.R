@@ -39,9 +39,9 @@ library(spatstat)
 library(statmod)
 library(sortable)
 library(knitr)
-library(pdftools) 
-library(filesstrings) 
-library(mailR) 
+library(pdftools)
+library(filesstrings)
+library(mailR)
 library(pracma)
 
 library(excelR)
@@ -56,7 +56,7 @@ library(bayesianssd)
 library(VGAM)
 
 # library(cicerone) #walkthrough
-# library(sendmailR) 
+# library(sendmailR)
 # library(ipc)
 # library(shinyvalidate)
 
@@ -106,12 +106,12 @@ useProfVis <<- F
 if(localUse && useProfVis) library(profvis)
 
 # Enable generic error messages
-if(!localUse){ 
+if(!localUse){
   options(shiny.sanitize.errors = TRUE)
 }else{
   options(shiny.sanitize.errors = F)
   options(shiny.fullstacktrace = TRUE)
-} 
+}
 
 #Logger
 flog.threshold(INFO) #DEBUG, INFO
@@ -137,8 +137,6 @@ css_folder <<- paste0(dirname(getwd()),"/CSS")
 js_folder <<- paste0(dirname(getwd()),"/Javascript")
 report_folder <<- paste0(dirname(getwd()),"/Report")
 planning_model_folder <<- paste0(dirname(getwd()),"/Planning_models")
-# stanModels_folder <<- paste0(dirname(getwd()),"/StanModels")
-pw_folder <<- paste0(dirname(getwd()),"/PW")
 data_folder <<- paste0(dirname(getwd()),"/Data")
 data_user_folder <<- paste0(dirname(getwd()),"/Data_user")
 
@@ -149,8 +147,6 @@ shiny::addResourcePath("CSS",css_folder)
 shiny::addResourcePath("JS",js_folder)
 shiny::addResourcePath("Report",report_folder)
 shiny::addResourcePath("Planning_models",planning_model_folder)
-# shiny::addResourcePath("StanModels",stanModels_folder)
-shiny::addResourcePath("PW",pw_folder)
 shiny::addResourcePath("Data",data_folder)
 shiny::addResourcePath("Data_user",data_user_folder)
 
@@ -205,7 +201,7 @@ theme_set(theme_bw(base_family="helvetica"))
 ui <- bslib::page(
   theme = bslib::bs_theme(version = 5, bootswatch=GLOBAL_THEME),
   style = "height:auto; padding:0px; gap:0px;",
-  
+
   tagList(
 
     if(localUse && useProfVis)  profvis_ui("profiler"),
@@ -217,7 +213,7 @@ ui <- bslib::page(
     includeCSS(paste0(icon_folder,"/css/icons.css")),
     lapply(list.files(css_folder, pattern = "\\.css$", full.names = TRUE, recursive = F), includeCSS),
     lapply(list.files(paste0(css_folder,"/",GLOBAL_THEME), pattern = "\\.css$", full.names = TRUE, recursive = F), includeCSS),
-    
+
     # use_cicerone(),
 
     tags$head(
@@ -254,13 +250,13 @@ ui <- bslib::page(
 
       shinyjs::useShinyjs(),
       useShinyFeedback(),
-      
+
       shinybusy::add_busy_spinner(timeout=500),
-      
+
       # shiny::busyIndicatorOptions(),
       # shiny::useBusyIndicators(),
-      
-      
+
+
       hidden(tags$div(id = "planning_main_div", ui_planning())),
       hidden(tags$div(id = "baysis_main_div", ui_baysis())),
       hidden(tags$div(id = "report_main_div", ui_report())),
@@ -294,5 +290,5 @@ ui <- bslib::page(
 
 # profvis::profvis({
 #   shiny::runApp(paste0(getwd(),"/Scripts"))
-# }, 
+# },
 # prof_output="output.prof")

@@ -6,24 +6,68 @@ RUN R -q -e "install.packages('remotes', repos='https://cloud.r-project.org')"
 RUN R -q -e " \
   options(repos = c(CRAN='https://cloud.r-project.org')); \
   pkgs <- c( \
-    'nloptr'='2.1.1', 'lme4'='1.1-36', 'BH'='1.87.0-1', \
-    'rstan'='2.32.6', 'rstanarm'='2.32.1', 'brms'='2.22.0', \
-    'loo'='2.8.0', 'R6'='2.5.1', 'shiny'='1.10.0', \
-    'shinyjs'='2.1.0', 'shinyWidgets'='0.8.7', 'shinyTree'='0.3.1', \
-    'shinycssloaders'='1.1.0', 'shinyalert'='3.1.0', 'shinyFeedback'='0.4.0', \
-    'shinybusy'='0.3.3', 'bslib'='0.9.0', 'DT'='0.33', \
-    'futile.logger'='1.4.3', 'future'='1.34.0', 'promises'='1.3.2', \
-    'stringr'='1.5.1', 'dplyr'='1.1.4', 'tidyr'='1.3.1', \
-    'bayesplot'='1.11.1', 'ggplot2'='3.5.1', 'LaplacesDemon'='16.1.6', \
-    'png'='0.1-8', 'ggExtra'='0.10.1', 'data.table'='1.16.4', \
-    'gtools'='3.9.5', 'RColorBrewer'='1.1-3', 'bayestestR'='0.15.1', \
-    'spatstat'='3.3-1', 'statmod'='1.5.0', 'sortable'='0.5.0', \
-    'knitr'='1.49', 'pdftools'='3.4.1', 'filesstrings'='3.4.0', \
-    'mailR'='0.8', 'pracma'='2.4.4', 'excelR'='0.4.0', 'readxl'='1.4.3', \
-    'sodium'='1.4.0', 'ggpubr'='0.6.0', 'withr'='3.0.2', \
-    'doParallel'='1.0.17', 'doFuture'='1.0.1' \
+    'VGAM'='1.1-14', \ 
+'bayesianssd'='0.1.0', \ 
+'gridExtra'='2.3', \ 
+'HDInterval'='0.2.4', \ 
+'doFuture'='1.2.1', \ 
+'foreach'='1.5.2', \ 
+'shinybayas'='0.2.9', \ 
+'withr'='3.0.2', \ 
+'ggpubr'='0.6.3', \ 
+'sodium'='1.4.0', \ 
+'readxl'='1.4.5', \ 
+'excelR'='0.4.0', \ 
+'pracma'='2.4.6', \ 
+'mailR'='0.8', \ 
+'filesstrings'='3.4.0', \ 
+'pdftools'='3.7.0', \ 
+'knitr'='1.51', \ 
+'sortable'='0.6.0', \ 
+'statmod'='1.5.1', \ 
+'spatstat'='3.5-1', \ 
+'spatstat.linnet'='3.4-1', \ 
+'spatstat.model'='3.6-1', \ 
+'rpart'='4.1.24', \ 
+'spatstat.explore'='3.7-0', \ 
+'nlme'='3.1-168', \ 
+'spatstat.random'='3.4-4', \ 
+'spatstat.geom'='3.7-0', \ 
+'spatstat.univar'='3.1-6', \ 
+'spatstat.data'='3.1-9', \ 
+'bayestestR'='0.17.0', \ 
+'RColorBrewer'='1.1-3', \ 
+'gtools'='3.9.5', \ 
+'data.table'='1.18.2.1', \ 
+'ggExtra'='0.11.0', \ 
+'png'='0.1-8', \ 
+'LaplacesDemon'='16.1.8', \ 
+'ggplot2'='4.0.2', \ 
+'bayesplot'='1.15.0', \ 
+'tidyr'='1.3.2', \ 
+'dplyr'='1.2.0', \ 
+'stringr'='1.6.0', \ 
+'promises'='1.5.0', \ 
+'future'='1.69.0', \ 
+'futile.logger'='1.4.9', \ 
+'DT'='0.34.0', \ 
+'bslib'='0.10.0', \ 
+'shinybusy'='0.3.3', \ 
+'shinyFeedback'='0.4.0', \ 
+'shinyalert'='3.1.0', \ 
+'shinycssloaders'='1.1.0', \ 
+'shinyTree'='0.3.1', \ 
+'shinyWidgets'='0.9.1', \ 
+'shinyjs'='2.1.1', \ 
+'R6'='2.6.1', \ 
+'loo'='2.9.0', \ 
+'brms'='2.23.0', \ 
+'rstanarm'='2.32.2', \ 
+'Rcpp'='1.1.1', \ 
+'rstan'='2.32.7', \ 
+'StanHeaders'='2.32.10', \ 
+'BH'='1.90.0-1', \ 
+'shiny'='1.12.1' \
   ); \
   for (p in names(pkgs)) remotes::install_version(p, version=pkgs[[p]], upgrade='never', dependencies=TRUE); \"
 
-RUN R -e "install.packages('HDInterval'); library('HDInterval')"
-RUN R -e "install.packages('VGAM'); library('VGAM')"

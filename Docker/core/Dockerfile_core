@@ -1,4 +1,4 @@
-FROM rocker/r-ver:4.3.3
+FROM rocker/r-ver:4.5.2
 
 LABEL org.opencontainers.image.authors="chrstoph.waterkamp@uni-due.de"
 

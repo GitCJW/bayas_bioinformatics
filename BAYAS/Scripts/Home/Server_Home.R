@@ -82,8 +82,6 @@ init_home_page <- function(input, output, session, image_folder){
     subject <- "command_new_member"
     body <- paste0("subscribe address=",input$subscriptionMail)
     
-    # user <- readLines(file(paste0(pw_folder, "/email_auth.txt")))
-    # pwd <- readLines(file(paste0(pw_folder, "/email_auth_pw.txt")))
     user <- mailAuth()$MAIL_AUTH
     pwd <- mailAuth()$MAIL_AUTH_PW
     
@@ -139,8 +137,6 @@ init_home_page <- function(input, output, session, image_folder){
       to <- "bayas@uni-due.de"
       subject <- "BAYAS_feedback"
 
-      # user <- readLines(file(paste0(pw_folder, "/email_auth.txt")))
-      # pwd <- readLines(file(paste0(pw_folder, "/email_auth_pw.txt")))
       user <- mailAuth()$MAIL_AUTH
       pwd <- mailAuth()$MAIL_AUTH_PW
 

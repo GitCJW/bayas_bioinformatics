@@ -27,8 +27,7 @@ malfunction_report <- function(code, msg=NULL, type = c("error","warning","info"
     subject <- paste0("BAYAS_error (", type, "): ",code)
     body <- paste0(msg)
     
-    # user <- readLines(file(paste0(pw_folder, "/email_auth.txt")))
-    # pwd <- readLines(file(paste0(pw_folder, "/email_auth_pw.txt")))
+
     user <- mailAuth()$MAIL_AUTH
     pwd <- mailAuth()$MAIL_AUTH_PW
     

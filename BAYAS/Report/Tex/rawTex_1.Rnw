@@ -1,0 +1,193 @@
+\documentclass[11pt]{scrartcl}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usepackage{hyperref}
+\usepackage{spverbatim}
+
+\usepackage{flexisym}
+\usepackage{breqn}
+\usepackage{upgreek}
+
+\newcommand{\breakingcomma}{%
+  \begingroup\lccode`~=`,
+  \lowercase{\endgroup\expandafter\def\expandafter~\expandafter{~\penalty0 }}}
+
+\begin{document}
+
+\bibliographystyle{abbrv}
+
+\title{BAYAS Statistics Report}
+\KOMAoptions{fontsize=11pt}
+\subtitle{}
+\author{}
+\maketitle
+
+
+\section{Planning of experiment ``Two\_Groups\_comparison''}
+
+
+
+
+This chapter describes a statistical model that represents a real-world phenomenon (e.g. a biological experiment). 
+Reported \textit{seeds} bring quasi-random number generation into defined initial state for reproducibility. The model is also used to determine the sample size for a given set of requirements. \subsection{Formula}
+The formula is a mathematical representation of the model and contains important information about relations between variables. A formula of the structure ``$Y \sim X$'' means that a variable $Y$ has a distribution $X$.
+Often such formulas are used to describe our prior knowledge (or \textit{prior} for short). E.g.\ if you read $\alpha \sim \text{Normal}(0,1)$ this means that \emph{we know} that a variable $\alpha$ follows a normal distribution with mean 0 and standard deviation 1. 
+Variables with underlined names are vectors of one or more elements. 
+
+There are two versions of the model used for estimating the sample size \textit{N}, which differ in the priors.
+The \textit{data generation} model has highly informative priors that reflect a realistic size of the effect of interest, and the model is used to generate samples. 
+These samples are fed into the \textit{inference} model, which is used to infer probability distributions of model parameters. These distributions are key to the sample size determination, e.g.\ if the probability distribution of a target parameter is sufficiently narrow, our sample size is large enough. The inference model should also later be the one that will be applied to the actual data. \subsubsection{Data generation model}\begin{dgroup*}\breakingcomma
+\begin{dmath*}
+	y \sim \text{Normal}(\mu , \sigma)
+\end{dmath*}
+\begin{dmath*}
+	\mu = \underline{b_{sex}}
+\end{dmath*}
+\begin{dmath*}\breakingcomma
+ 	\underline{b_{sex}} \sim \{ \text{Normal}(3 , 1) , \text{Normal}(1 , 1) \}
+\end{dmath*}
+\begin{dmath*}\breakingcomma
+ 	\sigma \sim \text{Exponential}(10)
+\end{dmath*}
+\end{dgroup*}
+$\underline{sex} = \left\{\text{female} , \allowbreak\text{male}\right\}$ \\ 
+
+
+\subsubsection{Inference model}\begin{dgroup*}\breakingcomma
+\begin{dmath*}
+	y \sim \text{Normal}(\mu , \sigma)
+\end{dmath*}
+\begin{dmath*}
+	\mu = \underline{b_{sex}}
+\end{dmath*}
+\begin{dmath*}\breakingcomma
+ 	\underline{b_{sex}} \sim \{ \text{Normal}(0 , 10) , \text{Normal}(0 , 10) \}
+\end{dmath*}
+\begin{dmath*}\breakingcomma
+ 	\sigma \sim \text{Exponential}(1)
+\end{dmath*}
+\end{dgroup*}
+$\underline{sex} = \left\{\text{female} , \allowbreak\text{male}\right\}$ \\ 
+\subsection{Definition of (other) variables }
+Variables describe a particular set of data and are either \textit{categorical} or \textit{numerical}. A categorical variable can take one of a limited, fixed number of possible values, representing different categories or groups. 
+These values are typically qualitative and non-numeric, although they can be encoded as numbers for analysis purposes. Each categorical variable is defined by its \textit{elements} and their frequencies of occurrence in a single batch. When a variable is \textit{capped}, batches are cut to a desired length. For example: The variable \textit{sex} with an \textit{explicit} occurrence of the elements \textit{female}(1) and \textit{male}(2) means that \textit{female} occurs once and \textit{male} twice. If the dataset length is 5 and the variable is \textit{capped}, the variable will have elements (\textit{female}, \textit{male}, \textit{male}, \textit{female}, \textit{male}). In this capped example the set (\textit{female}(1), \textit{male}(2)) or, explicitly, (\textit{female}, \textit{male}, \textit{male}) is repeated twice, and the second repeat is reduced by one \textit{male} to fit into the desired length of 5 elements. 
+
+To allow for random variation in the occurrence of elements (in this case, the frequency is set to \textit{equal} by default), a randomization parameter is used to specify the percentage of variation between elements. For example, if \textit{male} and \textit{female} are equally distributed, but with a variation of $10\%$, the difference between the occurrences of the two elements can be at most $10\%$, e.g.\ 10 times \textit{male} and 11 times \textit{female}. \\\subsubsection{`sex'}
+Type: \textit{Categorical} \\
+Elements: \textit{female, male} \\
+Frequency of elements: \textit{Equal} \\
+Capped: \textit{Yes} \\
+Randomize frequency: \textit{No} \\
+
+\subsection{Parameter seeds} 
+\begin{table} [!htbp] 
+ \begin{center} 
+  \begin{tabular}{||c c c||} 
+ \hline $\sigma$ & Generate data & Inference \\ \hline 
+   & 8240 & -6386 \\ 
+  \hline 
+  \end{tabular} 
+ \end{center} 
+ \caption{Used seeds for parameter `$\sigma$'.} 
+\end{table} 
+\begin{table} [!htbp] 
+ \begin{center} 
+  \begin{tabular}{||c c c||} 
+ \hline $\underline{b_{sex}}$ & Generate data & Inference \\ \hline 
+  female & 4604 & 6288 \\ 
+  male & -9042 & 3921 \\ 
+  \hline 
+  \end{tabular} 
+ \end{center} 
+ \caption{Used seeds for parameter `$\underline{b_{sex}}$'.} 
+\end{table} 
+\subsection{Example data} 
+A sample dataset showing the variables used and their values. The values of the response variables (the leftmost one) are generated using the generative model. \\ 
+Response seed: \textit{123}\\
+\begin{table}[htbp] 
+ \begin{center} 
+  \begin{tabular}{||c c||}
+  \hline 
+  y & sex\\ 
+  \hline \hline 
+  2.954 & female\\ 
+  \hline 
+  0.314 & male\\ 
+  \hline 
+  \end{tabular} 
+ \end{center}
+ \caption{Minimum example dataset of `\textit{Two\_Groups\_comparison}'.}
+ \label{id-4_model-Two_Groups_comparison_minDatasetWOUnusedOV}
+\end{table}
+\subsection{Sample size determination} 
+Sample size determination is the process of calculating the number of observations or participants needed in a study to reliably detect or exclude an effect. 
+Unlike conventional approaches such as the power t-test, we here use a simulation-based approach with two parameters. 
+The \textit{power} is the probability of achieving the formulated goals, and the \textit{approximate number simulations} controls the number of simulations for a certain sample size. 
+\textit{Goals} are user-defined conditions that must be met for the sample size to be considered sufficient. 
+In general, such a condition involves an effect between parameters of the model, i.e.\ a difference between parameters, think e.g.\ of the difference between average body masses of male and female mice as the effect of sex on the parameter average body mass $\mu$. This effect is defined by the sum of the \textit{first group} of parameters minus the sum of the \textit{second group}. Remember that parameters, and thus effects, are not given by single values, but by distributions. Considering, for example, $95\%$ of the \textit{probability mass} of these distributions can lead to a more robust approach. 
+
+ROPE (Region Of Practical Equivalence) refers to a range of values that are interpreted as de facto equal (e.g.\ because all values in ROPE are biologically indistinguishable or fall below the limit of detection of a measurement instrument). For example, you could consider body masses between two groups of mice as practically equivalent if their difference in grammes lies in interval [-1,+1] (which thus would be the ROPE). All values within this range will be treated as \textit{equal}. A possible condition for the estimation of the sample size is to have a sample size large enough to see a meaningful effect, i.e.\ an effect of a size that with high credibility \textit{excludes} the ROPE. Alternatively, if it is more probable that there is no meaningful effect, a useful condition for the sample size is the \textit{inclusion} of the probability density within the ROPE. \textit{Lower} and \textit{upper} define the ROPE limits. 
+
+As probability distributions become more narrow -- uncertainty decreases -- with increasing sample size, another useful condition for the sample size could be that the \textit{precision} (i.e.\ the width of a probability density distribution) should be better than a given value. \\Power: \textit{0.8}\\
+Max N: \textit{40}\\
+Approximate number simulations: \textit{200}\\
+Seed: \textit{1}\\
+\subsubsection{Sample size determination goals} 
+Goal \textit{sex\_diff}, see figure~\ref{id-4_model-Two_Groups_comparison_goal-sex_diff} \\
+Parameters in group `A': $b_{sex:female }$\\
+Parameters in group `B': $b_{sex:male }$\\
+Goal type: \textit{ROPE}\\
+ROPE type: \textit{Exclude}\\
+ROPE lower bound: \textit{-0.1}\\
+ROPE upper bound: \textit{0.1}\\
+Probability mass: \textit{0.95}\%\\
+\begin{figure}[H] 
+\centering 
+\includegraphics{F:/Dateien/Arbeit/Bioinf/BAYAS/0_BAYAS_github/BAYAS/Report/Images/id-4_model-Two_Groups_comparison_goal-sex_diff_4.pdf}\caption{A single goal `sex\_diff' of the sample size determination. Histograms of the expected difference of the parameters of the \textit{inference} model and the \textit{data generation} model before sampling. The red rectangle represents the ROPE. } 
+\label{id-4_model-Two_Groups_comparison_goal-sex_diff} 
+\end{figure} 
+\subsubsection{Sample size determination result} 
+ If a sample size can be determined that fulfills the conditions, this will reported. Because this is a simulation-based approach where the number of simulations is indirectly controlled by the user, the uncertainty of the estimated power for a given sample size is quantified by a $90\%$ credible interval.
+The reported sample size is the total number of observations aggregated over all groups.Result of sample size determination of `Two\_Groups\_comparison', see figure~\ref{id-4_model-Two_Groups_comparison_4_resultGraph} and table~\ref{id-4_model-Two_Groups_comparison_resultTable}\\
+Potential \textit{N}: \textit{8}\\
+90\%-credible interval of power: \textit{0.759 - 0.85}\\
+Power interval width: \textit{0.0909}\\
+Number of simulations for this N: \textit{200}\\
+\begin{figure}[H] 
+\centering 
+\includegraphics{F:/Dateien/Arbeit/Bioinf/BAYAS/0_BAYAS_github/BAYAS/Report/Images/id-4_model-Two_Groups_comparison_4_resultGraph.pdf}\caption{Sample sizes (horizontal axis) simulated in sample size determination (`Two\_Groups\_comparison'), and power (vertical axis) reached for these sample sizes. Each circle marks the fraction of trials with the indicated sample size in which the goal was achieved. Vertical error bars are 90\% credible intervals of power. 
+The blue dashed line shows the desired power and the blue circle/bar shows the smallest of the tested sample sizes at which this power is probably surpassed. See table~\ref{id-4_model-Two_Groups_comparison_resultTable} for more details on the number of simulations per sample size.} 
+\label{id-4_model-Two_Groups_comparison_4_resultGraph} 
+\end{figure} 
+\begin{table}[htbp] 
+ \begin{center} 
+  \begin{tabular}{||c c c c||}
+  \hline 
+  N & \#Simulations & Power & Certain\\ 
+  \hline \hline 
+  40 & 20 &    1 & FALSE\\ 
+  \hline 
+  17 & 20 &    1 & FALSE\\ 
+  \hline 
+  5 & 60 & 0.733 & FALSE\\ 
+  \hline 
+  6 & 20 & 0.55 & FALSE\\ 
+  \hline 
+  9 & 40 & 0.925 & FALSE\\ 
+  \hline 
+  8 & 200 & 0.81 & TRUE\\ 
+  \hline 
+  7 & 280 & 0.682 & TRUE\\ 
+  \hline 
+  \end{tabular} 
+ \end{center}
+ \caption{Sample size determination of experiment `Two\_Groups\_comparison'. Simulated \textit{N} with its number of simulations and empirical power.}
+ \label{id-4_model-Two_Groups_comparison_resultTable}
+\end{table}
+
+\clearpage
+\bibliography{literatur}
+\end{document}
