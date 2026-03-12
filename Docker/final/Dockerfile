@@ -7,7 +7,6 @@ RUN Rscript /root/Docker/dep/stan_toolchain.R
 
 
 RUN R -q -e "\
-  options(repos=c(CRAN='https://cloud.r-project.org')); \
   remotes::install_github('GitCJW/shinybayas@v0.2.9', upgrade='never', dependencies=TRUE); \
   remotes::install_github('GitCJW/bayesianssd@v0.1.1', upgrade='never', dependencies=TRUE); \
 "
@@ -24,7 +23,7 @@ COPY BAYAS/Planning_models/ /root/BAYAS/Planning_models/
 COPY BAYAS/Data_user/ /root/BAYAS/Data_user/
 COPY BAYAS/Icons/ /root/BAYAS/Icons/
 
-COPY Docker/Rprofile.site /usr/lib/R/etc/
+COPY Docker/Rprofile.site /usr/local/lib/R/etc/
 
 EXPOSE 3838 
 
