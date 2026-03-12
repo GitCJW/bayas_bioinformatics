@@ -31,4 +31,4 @@ EXPOSE 3838
 RUN R --version
 
 #For nginx
-CMD ["R", "-e", "shiny::runApp('/root/BAYAS/Scripts'"]
+CMD ["R", "-e", "shiny::runApp('/root/BAYAS/Scripts')"]
