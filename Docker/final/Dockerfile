@@ -24,11 +24,11 @@ COPY BAYAS/Planning_models/ /root/BAYAS/Planning_models/
 COPY BAYAS/Data_user/ /root/BAYAS/Data_user/
 COPY BAYAS/Icons/ /root/BAYAS/Icons/
 
-# COPY Rprofile.site /usr/lib/R/etc/
+COPY Docker/Rprofile.site /usr/lib/R/etc/
 
 EXPOSE 3838 
 
 RUN R --version
 
 #For nginx
-CMD ["R", "-e", "shiny::runApp('/root/BAYAS/Scripts', host='0.0.0.0', port=3838)"]
+CMD ["R", "-e", "shiny::runApp('/root/BAYAS/Scripts'"]
