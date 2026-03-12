@@ -70,12 +70,5 @@ pkgs <- c( \
 ); \
 for (p in names(pkgs)) { \
   message('==== Installing ', p, ' ', pkgs[[p]], ' ===='); \
-  tryCatch({ \
-    remotes::install_version(p, version = pkgs[[p]], upgrade = 'never', dependencies = TRUE); \
-  }, error = function(e) { \
-    message('FAILED PACKAGE: ', p); \
-    message('FAILED VERSION: ', pkgs[[p]]); \
-    message('ERROR MESSAGE: ', conditionMessage(e)); \
-    quit(status = 1); \
-  }); \
+  remotes::install_version(p, version = pkgs[[p]], upgrade = 'never', dependencies = TRUE); \
 }"
