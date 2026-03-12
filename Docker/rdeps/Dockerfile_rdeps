@@ -5,7 +5,6 @@ LABEL org.opencontainers.image.authors="chrstoph.waterkamp@uni-due.de"
 RUN R -q -e "install.packages('remotes', repos='https://cloud.r-project.org')"
 
 RUN R -q -e "\
-options(repos = c(CRAN='https://cloud.r-project.org')); \
 pkgs <- c( \
   'VGAM'='1.1-14', \
   'gridExtra'='2.3', \
