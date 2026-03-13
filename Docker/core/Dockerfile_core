@@ -23,4 +23,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-latex-extra \
     r-cran-nloptr \
     libsodium-dev \
+	libwebp-dev \
   && rm -rf /var/lib/apt/lists/*
