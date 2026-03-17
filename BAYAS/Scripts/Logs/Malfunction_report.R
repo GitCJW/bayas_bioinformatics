@@ -24,9 +24,9 @@ malfunction_report <- function(code, msg=NULL, type = c("error","warning","info"
 
   if(writeMail && !localUse){
     from <- "bayas@uni-due.de"
+    to <- "bayas@uni-due.de"
     subject <- paste0("BAYAS_error (", type, "): ",code)
     body <- paste0(msg)
-
 
     user <- mailAuth()$MAIL_AUTH
     pwd <- mailAuth()$MAIL_AUTH_PW
