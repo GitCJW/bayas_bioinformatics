@@ -64,7 +64,6 @@ saveSession <- function(dataModel, file, encrypt=T){
   if(encrypt){
     key <- mailAuth()$SESSION_CRYPT_KEY
     if(is.null(key) || key == ""){
-      showNotification("Can't save the session.", type="error")
       malfunction_report(code=malfunctionCode()$incorrectBAYASFile, msg="encryption failed",
                          type="error")
       if(localUse) browser()
@@ -113,7 +112,6 @@ saveObject <- function(obj, file, encrypt=T){
   if(encrypt){
     key <- mailAuth()$SESSION_CRYPT_KEY
     if(is.null(key) || key == "") {
-      showNotification("Can't save the session.", type="error")
       malfunction_report(code=malfunctionCode()$incorrectBAYASFile, msg="encryption failed",
                          type="error")
       if(localUse) browser()
