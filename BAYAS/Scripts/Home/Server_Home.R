@@ -160,8 +160,6 @@ init_home_page <- function(input, output, session, image_folder){
                           passwd=pwd,
                           ssl=T)
 
-      browser()
-
       try({
         send.mail(
           from=from, to=to, subject=subject, body=body,
