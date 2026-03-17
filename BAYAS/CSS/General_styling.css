@@ -12,6 +12,15 @@ body {
 
 
 
+.centerIcon > span{
+  margin-left: 0 !important;
+}
+
+
+.action-button .action-icon + .action-label {
+  margin-left: 0 !important;
+}
+
 
 .bayas_shinybusy_spinner{
   text-align: center;

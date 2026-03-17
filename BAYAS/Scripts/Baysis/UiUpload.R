@@ -63,8 +63,10 @@ upload_page <- function(ns){
         
 
         actionButton(ns("rawDataToTable"), label="", 
-                     icon=tags$i(class="icon icon-angle-double-right-solid"), 
-                     style = "margin:10px 0px; display: inline-flex; font-size: large; padding: 9px;"),
+                     icon=icon("angle-double-right"), 
+                     style = "margin:10px 0px;",
+                     class="centerIcon"),
+
         
         # actionButton(ns("rawDataToTableAdd"), label="",
         #              icon=tags$i(class="icon icon-angle-double-right-add-solid"),

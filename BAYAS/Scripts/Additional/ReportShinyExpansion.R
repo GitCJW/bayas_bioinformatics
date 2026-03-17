@@ -21,7 +21,8 @@ getChecklistProgress <- function(checklistId, numberElements, label){
           style="flex: 1 1 0px; text-align:center;",
           
           actionButton(ns(count), 
-                       label=label[[count]],
+                       label=label[[count]], icon=NULL,
+                       class="centerLabel",
                        style="border-radius:50%; width:38px; height:38px;",
                        style="padding:0px;")
         )
