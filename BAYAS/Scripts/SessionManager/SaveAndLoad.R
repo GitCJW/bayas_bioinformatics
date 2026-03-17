@@ -70,6 +70,7 @@ saveSession <- function(dataModel, file, encrypt=T){
       if(localUse) browser()
       return(list(F, msg="Can't save the session."))
     }
+    key <- sha256(charToRaw(key))
     saveRDS(state, file=file)
     encrypt(inputFile=file, outputFile=file, key=key)
   }else{
@@ -118,6 +119,7 @@ saveObject <- function(obj, file, encrypt=T){
       if(localUse) browser()
       return(list(F, msg="Can't save the session."))
     }
+    key <- sha256(charToRaw(key))
     saveRDS(state, file=file)
     encrypt(inputFile=file, outputFile=file, key=key)
   }else{
@@ -182,6 +184,7 @@ loadSession <- function(dataModel, file, decrypt=T){
       if(localUse) browser()
       return(list(F, msg="Can't read this file."))
     }
+    key <- sha256(charToRaw(key))
     status <- tryCatch(
       {
         decrypt(inputFile=file, outputFile=file, key=key)
@@ -315,6 +318,7 @@ loadObject <- function(obj, objClassName, file, decrypt=T){
       if(localUse) browser()
       return(list(F, msg="Can't read this file."))
     }
+    key <- sha256(charToRaw(key))
     status <- tryCatch(
       {
         decrypt(inputFile=file, outputFile=file, key=key)

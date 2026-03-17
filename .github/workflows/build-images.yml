@@ -9,7 +9,7 @@ on:
       - "Docker/rdeps/**"
       - "Docker/final/**"
       - "Docker/dep/**"
-      - "BAYAS/**"
+      #- "BAYAS/**"
       - ".github/workflows/build-images.yml"
 
 jobs:
