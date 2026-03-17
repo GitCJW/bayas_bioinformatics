@@ -63,6 +63,13 @@ saveSession <- function(dataModel, file, encrypt=T){
   # Write to local
   if(encrypt){
     key <- mailAuth()$SESSION_CRYPT_KEY
+    if(is.null(key) || key == ""){
+      showNotification("Can't save the session.", type="error")
+      malfunction_report(code=malfunctionCode()$incorrectBAYASFile, msg="encryption failed",
+                         type="error")
+      if(localUse) browser()
+      return(list(F, msg="Can't save the session."))
+    }
     saveRDS(state, file=file)
     encrypt(inputFile=file, outputFile=file, key=key)
   }else{
@@ -104,6 +111,13 @@ saveObject <- function(obj, file, encrypt=T){
   # Write to local
   if(encrypt){
     key <- mailAuth()$SESSION_CRYPT_KEY
+    if(is.null(key) || key == "") {
+      showNotification("Can't save the session.", type="error")
+      malfunction_report(code=malfunctionCode()$incorrectBAYASFile, msg="encryption failed",
+                         type="error")
+      if(localUse) browser()
+      return(list(F, msg="Can't save the session."))
+    }
     saveRDS(state, file=file)
     encrypt(inputFile=file, outputFile=file, key=key)
   }else{
@@ -160,9 +174,14 @@ loadSession <- function(dataModel, file, decrypt=T){
 
   state <- NULL
   if(decrypt){
-    # key <- readRDS(paste0(dirname(getwd()),"/PW/key.key"))
     key <- mailAuth()$SESSION_CRYPT_KEY
-
+    if(is.null(key) || key == ""){
+      showNotification("Can't read this file. Either an incorrect format or corrupted data.", type="error")
+      malfunction_report(code=malfunctionCode()$incorrectBAYASFile, msg="decryption failed",
+                         type="error")
+      if(localUse) browser()
+      return(list(F, msg="Can't read this file."))
+    }
     status <- tryCatch(
       {
         decrypt(inputFile=file, outputFile=file, key=key)
@@ -288,8 +307,14 @@ loadObject <- function(obj, objClassName, file, decrypt=T){
 
   state <- NULL
   if(decrypt){
-    # key <- readRDS(paste0(dirname(getwd()),"/PW/key.key"))
     key <- mailAuth()$SESSION_CRYPT_KEY
+    if(is.null(key)){
+      showNotification("Can't read this file. Either an incorrect format or corrupted data.", type="error")
+      malfunction_report(code=malfunctionCode()$incorrectBAYASFile, msg="decryption failed",
+                         type="error")
+      if(localUse) browser()
+      return(list(F, msg="Can't read this file."))
+    }
     status <- tryCatch(
       {
         decrypt(inputFile=file, outputFile=file, key=key)
