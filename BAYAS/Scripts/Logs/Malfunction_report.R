@@ -19,27 +19,29 @@ malfunctionCode <- function(){
 }
 
 #askForReport: not yet implemented
-malfunction_report <- function(code, msg=NULL, type = c("error","warning","info"), 
+malfunction_report <- function(code, msg=NULL, type = c("error","warning","info"),
                                writeMail=T, askForReport=F){
 
   if(writeMail && !localUse){
     from <- "bayas@uni-due.de"
     subject <- paste0("BAYAS_error (", type, "): ",code)
     body <- paste0(msg)
-    
+
 
     user <- mailAuth()$MAIL_AUTH
     pwd <- mailAuth()$MAIL_AUTH_PW
-    
+
     mailControl <- list(host.name="mailout.uni-duisburg-essen.de",
                         port=587,
-                        user.name=user, 
+                        user.name=user,
                         passwd=pwd,
                         ssl=T)
-    send.mail(
-      from=from, to=from, subject=subject, body=body,
-      smtp=mailControl, authenticate =T
-    )
+    try({
+      send.mail(
+        from=from, to=to, subject=subject, body=body,
+        smtp=mailControl, authenticate =T
+      )
+    })
   }
 }
 

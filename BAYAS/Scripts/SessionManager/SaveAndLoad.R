@@ -3,26 +3,26 @@ saveSession <- function(dataModel, file, encrypt=T){
 
   # Evaluation model
   stateEval <- dataModel$getState(1)
-  
+
   #un-nest R6 objects
   retEval <- unnestR6(stateEval)
   retEval <- retEval$unnestList
-  
+
 
   # Planning model
   id <- stateEval$nextUUID
-  
+
   name <- cMCD$getModelName()
   if(!(!is.null(name) && name == "_tmp"))
     mCDList$addMCDList(cMCD, name=NULL)
   statePlan <- mCDList$getState(id)
-  
+
   #un-nest R6 objects
   retPlan <- unnestR6(statePlan)
   retPlan <- retPlan$unnestList
-  
-  
-  
+
+
+
   #testing
   {
     flag <- flag2 <- flag3 <- F
@@ -43,7 +43,7 @@ saveSession <- function(dataModel, file, encrypt=T){
         saveRDS(aa, file=paste0(tmpFile, "_so_", aa_id))
       }
     }
-    
+
     if(flag3){
       index <- 143
       index2 <- 8
@@ -56,13 +56,12 @@ saveSession <- function(dataModel, file, encrypt=T){
       }
     }
   }
-  
+
 
   state <- list(retEval = retEval, retPlan = retPlan)
 
   # Write to local
   if(encrypt){
-    # key <- readRDS(paste0(dirname(getwd()),"/PW/key.key"))
     key <- mailAuth()$SESSION_CRYPT_KEY
     saveRDS(state, file=file)
     encrypt(inputFile=file, outputFile=file, key=key)
@@ -71,8 +70,8 @@ saveSession <- function(dataModel, file, encrypt=T){
   }
   dataModel$resetState()
   mCDList$resetState()
-  
-  
+
+
   #Check whether reset works
   if(localUse){
     stateEval2 <- dataModel$getState(1)
@@ -80,8 +79,8 @@ saveSession <- function(dataModel, file, encrypt=T){
     retEval2 <- retEval2$unnestList
     if(length(retEval) != length(retEval2)) browser()
     dataModel$resetState()
-    
-    
+
+
     #Check whether reset works
     statePlan2 <- mCDList$getState(id)
     retPlan2 <- unnestR6(statePlan2)
@@ -94,9 +93,9 @@ saveSession <- function(dataModel, file, encrypt=T){
 }
 
 saveObject <- function(obj, file, encrypt=T){
-  
+
   state <- obj$getState(1)
-  
+
   #un-nest R6 objects
   retObj <- unnestR6(state)$unnestList
 
@@ -104,7 +103,6 @@ saveObject <- function(obj, file, encrypt=T){
 
   # Write to local
   if(encrypt){
-    # key <- readRDS(paste0(dirname(getwd()),"/PW/key.key"))
     key <- mailAuth()$SESSION_CRYPT_KEY
     saveRDS(state, file=file)
     encrypt(inputFile=file, outputFile=file, key=key)
@@ -112,10 +110,10 @@ saveObject <- function(obj, file, encrypt=T){
     saveRDS(state, file=file)
   }
   obj$resetState()
-  
+
   return(T)
 }
-  
+
 
 unnestR6 <- function(state, unnestList = list()){
   if(is.list(state) && length(state) == 3 && !is.null(names(state)[2]) && names(state)[2] == "nextUUID"){
@@ -126,7 +124,7 @@ unnestR6 <- function(state, unnestList = list()){
       unnestList <- ret$unnestList
       state[[3]] <- ret$state
     }
-    
+
     id <- as.character(state[[1]])
     if(!id %in% names(unnestList) && !is.empty(state[[3]]) &&
        !(length(state[[3]]) == 1 && is.na(state[[3]]))){
@@ -136,9 +134,9 @@ unnestR6 <- function(state, unnestList = list()){
     }
     state[[3]] <- NA
   }else{
-    
+
     unlist_state <- unlist(state)
-    
+
     if(any(grepl("nextUUID", names(unlist_state)))){
       for(st_id in seq_along(state)){
         st <- state[[st_id]]
@@ -150,9 +148,9 @@ unnestR6 <- function(state, unnestList = list()){
         }
       }
     }
-    
+
   }
-  
+
 
   return(list(state=state, unnestList=unnestList))
 }
@@ -164,7 +162,7 @@ loadSession <- function(dataModel, file, decrypt=T){
   if(decrypt){
     # key <- readRDS(paste0(dirname(getwd()),"/PW/key.key"))
     key <- mailAuth()$SESSION_CRYPT_KEY
-    
+
     status <- tryCatch(
       {
         decrypt(inputFile=file, outputFile=file, key=key)
@@ -190,7 +188,7 @@ loadSession <- function(dataModel, file, decrypt=T){
       NULL
     }
   )
-  
+
   if(is.null(state)){
     showNotification("Can't read this file.", type="error")
     malfunction_report(code=malfunctionCode()$incorrectBAYASFile, msg="read RDS failed",
@@ -204,17 +202,17 @@ loadSession <- function(dataModel, file, decrypt=T){
 
     ## Planning
     statePlan <- state$retPlan
-    
+
     cMCDUUID <- -1
     objList <- list()
-    
+
     for(st in statePlan){
       class_def <- get(st$class)
       newObj <- class_def$new(emptyState=T)
       objList <- list.append(objList, newObj, as.character(st$value$uuid))
       if(st$class == "ModelCreatingDataList") cMCDUUID <- st$value$uuid
     }
-    
+
     for(st_id in seq_along(statePlan)){
       st <- statePlan[[st_id]]
       loadSingleObject(objList[[st_id]], st, objList, statePlan)
@@ -228,44 +226,44 @@ loadSession <- function(dataModel, file, decrypt=T){
     stateEval <- state$retEval
     dataModelUUID <- -1
     objList <- list()
-    
+
     for(st in stateEval){
       class_def <- get(st$class)
       newObj <- class_def$new(emptyState=T)
       objList <- list.append(objList, newObj, as.character(st$value$uuid))
       if(st$class == "DataModel") dataModelUUID <- st$value$uuid
     }
-    
+
     for(st_id in seq_along(stateEval)){
       st <- stateEval[[st_id]]
       loadSingleObject(objList[[st_id]], st, objList, stateEval)
     }
-   
+
     dataModel$setInstance(objList[[as.character(dataModelUUID)]])
-    
+
     #write excelTable from cPIDM
     dM <- dataModel$getDataModelInputData()
     tP <- dM$getTmpDataPath()
 
     if(!is.null(tP)){
-      
+
       #replace xlsx with csv
       tP$file <- str_replace(tP$file, ".xlsx", ".csv")
-      
+
       data <- dM$getExcelTable()
       write.table(data, tP$file, row.names=F, col.names=F,
                   sep = ",", dec = ".")
-      
+
       tP$type <- "csv"
       tP$sheet <- NULL
       dM$setTmpDataPath(tP)
       dM$setDecSep("point", silent=T)
       dM$setCellSep("comma", silent=T)
     }
-    
+
     #write report items images to file
     dataModel$get.reportProgressModel()$saveImagesOfItems(dataModel, mCDList)
-    
+
     list(T, msg="")
   },
   error =  function(exc){
@@ -282,12 +280,12 @@ loadSession <- function(dataModel, file, decrypt=T){
     }
     list(F, msg=msg)
   })
-  
+
   return(status)
 }
 
 loadObject <- function(obj, objClassName, file, decrypt=T){
-  
+
   state <- NULL
   if(decrypt){
     # key <- readRDS(paste0(dirname(getwd()),"/PW/key.key"))
@@ -317,7 +315,7 @@ loadObject <- function(obj, objClassName, file, decrypt=T){
       NULL
     }
   )
-  
+
   if(is.null(state)){
     showNotification("Can't read this file.", type="error")
     malfunction_report(code=malfunctionCode()$incorrectBAYASFile, msg="read RDS failed",
@@ -325,28 +323,28 @@ loadObject <- function(obj, objClassName, file, decrypt=T){
     if(localUse) browser()
     return(list(F, msg="Can't read this file."))
   }
-  
-  
+
+
 
   status <- tryCatch({
     topUuid <- -1
     objList <- list()
-    
+
     state <- state$retObj
-    
+
     for(st in state){
       class_def <- get(st$class)
       newObj <- class_def$new(emptyState=T)
       objList <- list.append(objList, newObj, as.character(st$value$uuid))
       if(st$class == objClassName) topUuid <- st$value$uuid
     }
-    
+
     for(st_id in seq_along(state)){
       st <- state[[st_id]]
       loadSingleObject(objList[[st_id]], st, objList, state)
     }
     obj$setInstance(objList[[as.character(topUuid)]])
-    
+
     list(T, msg="")
   },
   error =  function(exc){
@@ -363,12 +361,12 @@ loadObject <- function(obj, objClassName, file, decrypt=T){
     }
     list(F, msg=msg)
   })
-  
+
   return(status)
 }
 
 loadSingleObject <- function(obj, objState, objList, state){
-  
+
   va_names <- names(objState$value)
   for(val_id in seq_along(objState$value)){
     val <- objState$value[[val_id]]
@@ -381,26 +379,26 @@ loadSingleObject <- function(obj, objState, objList, state){
     }
   }
   obj$setState(objState$value)
-  
+
   return(T)
 }
 
 loadSingleObjectDepth <- function(a, objList){
 
   if(is.list(a) && length(a) == 3 && !is.null(names(a)[2]) && names(a)[2] == "nextUUID"){
-    
+
     id <- as.character(a$uuid)
     return(objList[[id]])
-    
+
   }else{
     for(el_id in seq_along(a)){
       el <- a[[el_id]]
-      
+
       unlist_state <- unlist(el)
       if(any(grepl("nextUUID", names(unlist_state)))){
         a[[el_id]] <- loadSingleObjectDepth(el, objList)
       }
-      
+
     }
   }
   return(a)
@@ -410,11 +408,11 @@ loadSingleObjectDepth <- function(a, objList){
 
 encrypt <- function(inputFile, outputFile, key){
   file_content <- readBin(inputFile, raw(), file.size(inputFile))
-  encrypted_content <- sodium::data_encrypt(file_content, 
-                                            key = key, 
+  encrypted_content <- sodium::data_encrypt(file_content,
+                                            key = key,
                                             nonce = random(24))
   packed <- sodium_pack(encrypted_content)
-  writeBin(packed, outputFile) 
+  writeBin(packed, outputFile)
 }
 decrypt <- function(inputFile, outputFile, key){
   encrypted_raw <- readBin(inputFile, raw(), file.size(inputFile))
