@@ -6,7 +6,7 @@ mailAuth <- function(){
   tryCatch({
     MAIL_AUTH <- Sys.getenv("BAYAS_SMTP_USER")
     MAIL_AUTH_PW <- Sys.getenv("BAYAS_SMTP_PASS")
-    SESSION_CRYPT_KEY <- Sys.getenv("BAYAS_CYRPTKEY")
+    SESSION_CRYPT_KEY <- Sys.getenv("BAYAS_CRYPTKEY")
   })
 
   list(
